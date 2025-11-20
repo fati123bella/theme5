@@ -719,6 +719,55 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'type'     => 'text',
     ) );
 
+    // Latest Recipes Category
+    $wp_customize->add_setting( 'cozyrecipes_latest_category', array(
+        'default'           => '',
+        'sanitize_callback' => 'absint',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_latest_category', array(
+        'label'       => __( 'Latest Recipes Category', 'cozyrecipes' ),
+        'description' => __( 'Filter latest recipes by category (leave empty to show all categories)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_homepage',
+        'type'        => 'select',
+        'choices'     => cozyrecipes_get_categories_choices(),
+    ) );
+
+    // Number of Latest Posts
+    $wp_customize->add_setting( 'cozyrecipes_latest_count', array(
+        'default'           => '9',
+        'sanitize_callback' => 'absint',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_latest_count', array(
+        'label'       => __( 'Number of Latest Posts', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_homepage',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 3,
+            'max'  => 18,
+            'step' => 1,
+        ),
+    ) );
+
+    // Number of Popular Categories
+    $wp_customize->add_setting( 'cozyrecipes_categories_count', array(
+        'default'           => '8',
+        'sanitize_callback' => 'absint',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_categories_count', array(
+        'label'       => __( 'Number of Categories to Display', 'cozyrecipes' ),
+        'description' => __( 'How many popular categories to show (sorted by post count)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_homepage',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 4,
+            'max'  => 16,
+            'step' => 1,
+        ),
+    ) );
+
     // ========================================
     // LAYOUT SECTION
     // ========================================

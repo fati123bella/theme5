@@ -89,12 +89,19 @@ endif;
 // Latest Recipes Section
 $latest_title = get_theme_mod( 'cozyrecipes_latest_title', 'Latest Recipes' );
 $latest_subtitle = get_theme_mod( 'cozyrecipes_latest_subtitle', 'Fresh and delicious recipes added recently' );
+$latest_category = get_theme_mod( 'cozyrecipes_latest_category', '' );
+$latest_count = get_theme_mod( 'cozyrecipes_latest_count', 9 );
 
 $latest_args = array(
     'post_type'      => 'post',
-    'posts_per_page' => 9,
+    'posts_per_page' => absint( $latest_count ),
     'post_status'    => 'publish',
 );
+
+// Filter by category if selected
+if ( ! empty( $latest_category ) ) {
+    $latest_args['cat'] = absint( $latest_category );
+}
 
 $latest_query = new WP_Query( $latest_args );
 
@@ -131,12 +138,13 @@ $show_categories = get_theme_mod( 'cozyrecipes_show_categories', true );
 if ( $show_categories ) :
     $categories_title = get_theme_mod( 'cozyrecipes_categories_title', 'Popular Categories' );
     $categories_subtitle = get_theme_mod( 'cozyrecipes_categories_subtitle', 'Browse recipes by your favorite categories' );
+    $categories_count = get_theme_mod( 'cozyrecipes_categories_count', 8 );
 
-    // Get all categories with posts
+    // Get popular categories with posts
     $categories = get_categories( array(
         'orderby'    => 'count',
         'order'      => 'DESC',
-        'number'     => 8,
+        'number'     => absint( $categories_count ),
         'hide_empty' => true,
     ) );
 
