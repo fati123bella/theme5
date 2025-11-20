@@ -762,6 +762,43 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     // ========================================
+    // RECIPE CARDS DISPLAY
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_recipe_cards', array(
+        'title'       => __( 'Recipe Cards', 'cozyrecipes' ),
+        'description' => __( 'Customize the appearance of recipe cards in grids and archives.', 'cozyrecipes' ),
+        'priority'    => 52,
+    ) );
+
+    // Show Category Badge
+    $wp_customize->add_setting( 'cozyrecipes_show_category_badge', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_category_badge', array(
+        'label'       => __( 'Show Category Badge on Recipe Cards', 'cozyrecipes' ),
+        'description' => __( 'Display the primary category badge on recipe card images.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_cards',
+        'type'        => 'checkbox',
+    ) );
+
+    // Category Badge Color
+    $wp_customize->add_setting( 'cozyrecipes_category_badge_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_category_badge_color', array(
+        'label'       => __( 'Category Badge Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for the category badge.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_cards',
+        'settings'    => 'cozyrecipes_category_badge_color',
+    ) ) );
+
+    // ========================================
     // SINGLE POST SETTINGS
     // ========================================
 
@@ -832,6 +869,7 @@ function cozyrecipes_customizer_css() {
     $hero_bg = get_theme_mod( 'cozyrecipes_hero_bg_color', '#ff6b6b' );
     $footer_bg = get_theme_mod( 'cozyrecipes_footer_bg_color', '#2a2a2a' );
     $footer_text = get_theme_mod( 'cozyrecipes_footer_text_color', '#cccccc' );
+    $category_badge_color = get_theme_mod( 'cozyrecipes_category_badge_color', '#ff6b6b' );
     $body_font = get_theme_mod( 'cozyrecipes_body_font', 'Inter' );
     $heading_font = get_theme_mod( 'cozyrecipes_heading_font', 'Playfair Display' );
     $font_size = get_theme_mod( 'cozyrecipes_base_font_size', '16' );
@@ -871,17 +909,21 @@ function cozyrecipes_customizer_css() {
 
         a,
         .main-navigation a:hover,
-        .recipe-link,
-        .recipe-category-badge {
+        .recipe-link {
             color: <?php echo esc_attr( $accent_color ); ?>;
         }
 
         .hero-search-form button,
         .search-form button,
         .pagination a:hover,
-        .pagination .current,
-        .recipe-category-badge {
+        .pagination .current {
             background-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Category Badge Custom Color */
+        .recipe-category-badge {
+            background-color: <?php echo esc_attr( $category_badge_color ); ?>;
+            color: #fff;
         }
 
         .recipe-card-title a:hover,

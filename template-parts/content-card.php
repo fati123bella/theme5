@@ -14,13 +14,16 @@
             </a>
 
             <?php
-            // Display category badge
-            $category = cozyrecipes_first_category();
-            if ( $category ) :
-                ?>
-                <span class="recipe-category-badge">
-                    <?php echo esc_html( $category->name ); ?>
-                </span>
+            // Display category badge if enabled
+            $show_category = get_theme_mod( 'cozyrecipes_show_category_badge', true );
+            if ( $show_category ) :
+                $category = cozyrecipes_first_category();
+                if ( $category ) :
+                    ?>
+                    <span class="recipe-category-badge">
+                        <?php echo esc_html( $category->name ); ?>
+                    </span>
+                <?php endif; ?>
             <?php endif; ?>
         </div><!-- .recipe-card-image -->
     <?php endif; ?>
