@@ -214,9 +214,9 @@ function cozyrecipes_resource_hints() {
     <!-- Preconnect to font resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin"></noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
     <?php
 }
 add_action( 'wp_head', 'cozyrecipes_resource_hints', 2 );
@@ -499,68 +499,6 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'section'  => 'cozyrecipes_colors',
         'settings' => 'cozyrecipes_footer_text_color',
     ) ) );
-
-    // ========================================
-    // TYPOGRAPHY SECTION
-    // ========================================
-
-    $wp_customize->add_section( 'cozyrecipes_typography', array(
-        'title'    => __( 'Typography', 'cozyrecipes' ),
-        'priority' => 35,
-    ) );
-
-    // Body Font
-    $wp_customize->add_setting( 'cozyrecipes_body_font', array(
-        'default'           => 'Inter',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_body_font', array(
-        'label'    => __( 'Body Font', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_typography',
-        'type'     => 'select',
-        'choices'  => array(
-            'Inter'     => 'Inter',
-            'Roboto'    => 'Roboto',
-            'Open Sans' => 'Open Sans',
-            'Lato'      => 'Lato',
-        ),
-    ) );
-
-    // Heading Font
-    $wp_customize->add_setting( 'cozyrecipes_heading_font', array(
-        'default'           => 'Playfair Display',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_heading_font', array(
-        'label'    => __( 'Heading Font', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_typography',
-        'type'     => 'select',
-        'choices'  => array(
-            'Playfair Display' => 'Playfair Display',
-            'Poppins'          => 'Poppins',
-            'Merriweather'     => 'Merriweather',
-            'Montserrat'       => 'Montserrat',
-        ),
-    ) );
-
-    // Base Font Size
-    $wp_customize->add_setting( 'cozyrecipes_base_font_size', array(
-        'default'           => '16',
-        'sanitize_callback' => 'absint',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_base_font_size', array(
-        'label'       => __( 'Base Font Size (px)', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_typography',
-        'type'        => 'number',
-        'input_attrs' => array(
-            'min'  => 14,
-            'max'  => 20,
-            'step' => 1,
-        ),
-    ) );
 
     // ========================================
     // HERO SECTION (Search Bar Only)
@@ -919,23 +857,16 @@ function cozyrecipes_customizer_css() {
     $footer_bg = get_theme_mod( 'cozyrecipes_footer_bg_color', '#2a2a2a' );
     $footer_text = get_theme_mod( 'cozyrecipes_footer_text_color', '#cccccc' );
     $category_badge_color = get_theme_mod( 'cozyrecipes_category_badge_color', '#ff6b6b' );
-    $body_font = get_theme_mod( 'cozyrecipes_body_font', 'Inter' );
-    $heading_font = get_theme_mod( 'cozyrecipes_heading_font', 'Playfair Display' );
-    $font_size = get_theme_mod( 'cozyrecipes_base_font_size', '16' );
 
     ?>
     <style type="text/css">
-        html {
-            font-size: <?php echo absint( $font_size ); ?>px;
-        }
-
         body {
-            font-family: '<?php echo esc_attr( $body_font ); ?>', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background-color: <?php echo esc_attr( $body_bg ); ?>;
         }
 
         h1, h2, h3, h4, h5, h6 {
-            font-family: '<?php echo esc_attr( $heading_font ); ?>', serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .site-header {
