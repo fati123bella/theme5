@@ -350,6 +350,7 @@ ul, ol {
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #ff6b6b;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -424,17 +425,20 @@ ul, ol {
 
 .hero-search-form button {
     background: #ff6b6b;
-    color: #fff;
+    color: #ffffff;
     border: none;
     padding: 1rem 2rem;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-shadow: none;
 }
 
 .hero-search-form button:hover {
     background: #ff5252;
+    transform: translateX(-2px);
 }
 
 .hero-cta {
@@ -766,14 +770,21 @@ ul, ol {
 
 .single-recipe-image {
     margin: 0 auto 3rem;
-    max-width: 900px;
-    border-radius: 12px;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-shadow: none;
+}
+
+.single-recipe-image img {
+    width: 100%;
+    height: auto;
+    display: block;
 }
 
 .single-recipe-content {
-    max-width: 760px;
+    max-width: 960px;
     margin: 0 auto 3rem;
     background: #fff;
     padding: 3rem;
@@ -972,7 +983,7 @@ ul, ol {
 ======================================== */
 
 .comments-area {
-    max-width: 760px;
+    max-width: 960px;
     margin: 3rem auto;
     background: #fff;
     padding: 3rem;
@@ -1013,13 +1024,26 @@ ul, ol {
         font-size: 1rem;
     }
 
+    .hero-search {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
     .hero-search-form {
         flex-direction: column;
         border-radius: 12px;
+        width: 100%;
+    }
+
+    .hero-search-form input[type="search"] {
+        width: 100%;
+        padding: 1rem;
     }
 
     .hero-search-form button {
+        width: 100%;
         border-radius: 0 0 12px 12px;
+        padding: 1rem;
     }
 
     .section-title {
@@ -1032,6 +1056,23 @@ ul, ol {
 
     .single-recipe-content {
         padding: 1.5rem;
+    }
+
+    .comments-area {
+        padding: 1.5rem;
+    }
+}
+
+/* Medium phones and small tablets */
+@media (max-width: 767px) {
+    .hero-search-form {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .hero-content {
+        width: 100%;
+        padding: 0 1rem;
     }
 }
 

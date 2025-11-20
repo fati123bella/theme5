@@ -624,6 +624,27 @@ function cozyrecipes_customize_register( $wp_customize ) {
             'wide'   => __( 'Wide (1400px)', 'cozyrecipes' ),
         ),
     ) );
+
+    // ========================================
+    // SINGLE POST SETTINGS
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_single_post', array(
+        'title'    => __( 'Single Post Settings', 'cozyrecipes' ),
+        'priority' => 55,
+    ) );
+
+    // Show/Hide Featured Image on Single Posts
+    $wp_customize->add_setting( 'cozyrecipes_single_featured_image', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_single_featured_image', array(
+        'label'    => __( 'Show Featured Image on Single Posts', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_single_post',
+        'type'     => 'checkbox',
+    ) );
 }
 add_action( 'customize_register', 'cozyrecipes_customize_register' );
 
@@ -719,7 +740,6 @@ function cozyrecipes_customizer_css() {
         a,
         .main-navigation a:hover,
         .recipe-link,
-        .hero-search-form button,
         .recipe-category-badge {
             color: <?php echo esc_attr( $accent_color ); ?>;
         }
@@ -727,8 +747,39 @@ function cozyrecipes_customizer_css() {
         .hero-search-form button,
         .search-form button,
         .pagination a:hover,
-        .pagination .current {
+        .pagination .current,
+        .recipe-category-badge {
             background-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .recipe-card-title a:hover,
+        .site-title a:hover {
+            color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .hero-cta:hover {
+            border-color: <?php echo esc_attr( $accent_color ); ?>;
+            background-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .footer-widget-area .widget ul li a:hover {
+            color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .site-info a:hover {
+            color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .header-search-toggle:hover {
+            color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .footer-widget-area .widget-title {
+            color: #fff;
+        }
+
+        .footer-widget-area .widget ul li a {
+            color: <?php echo esc_attr( $footer_text ); ?>;
         }
     </style>
     <?php

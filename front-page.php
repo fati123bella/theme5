@@ -11,18 +11,20 @@ get_header();
 <?php
 // Hero Section
 $hero_image = get_theme_mod( 'cozyrecipes_hero_image', '' );
-if ( empty( $hero_image ) ) {
-    $hero_image = 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1920&h=1080&fit=crop';
-}
 $hero_tagline = get_theme_mod( 'cozyrecipes_hero_tagline', 'Easy, cozy recipes for every day' );
 $hero_title = get_theme_mod( 'cozyrecipes_hero_title', 'Discover Delicious Recipes' );
 $hero_subtitle = get_theme_mod( 'cozyrecipes_hero_subtitle', 'Find the perfect recipe for any occasion' );
 $search_placeholder = get_theme_mod( 'cozyrecipes_search_placeholder', 'Search for recipes...' );
 $cta_text = get_theme_mod( 'cozyrecipes_cta_text', 'Browse All Recipes' );
 $cta_url = get_theme_mod( 'cozyrecipes_cta_url', '/blog/' );
+
+$hero_style = '';
+if ( ! empty( $hero_image ) ) {
+    $hero_style = 'style="background-image: url(\'' . esc_url( $hero_image ) . '\');"';
+}
 ?>
 
-<section class="hero-section" style="background-image: url('<?php echo esc_url( $hero_image ); ?>');">
+<section class="hero-section" <?php echo $hero_style; ?>>
     <div class="hero-content">
         <?php if ( ! empty( $hero_tagline ) ) : ?>
             <p class="hero-tagline"><?php echo esc_html( $hero_tagline ); ?></p>

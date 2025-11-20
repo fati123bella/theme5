@@ -59,7 +59,10 @@ get_header();
                 </div>
             </header><!-- .single-recipe-header -->
 
-            <?php if ( has_post_thumbnail() ) : ?>
+            <?php
+            $show_featured_image = get_theme_mod( 'cozyrecipes_single_featured_image', true );
+            if ( $show_featured_image && has_post_thumbnail() ) :
+                ?>
                 <div class="single-recipe-image">
                     <?php the_post_thumbnail( 'cozyrecipes-featured', array( 'alt' => the_title_attribute( array( 'echo' => false ) ) ) ); ?>
                 </div>
