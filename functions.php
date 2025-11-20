@@ -154,14 +154,13 @@ function cozyrecipes_critical_css() {
         .header-container{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;max-width:1200px;margin:0 auto}
         .site-title{font-size:1.75rem;margin:0;font-weight:700}
         .site-title a{color:#222;text-decoration:none}
-        .hero-section{position:relative;width:100%;min-height:500px;display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;padding:4rem 0;text-align:center;overflow:hidden}
-        .hero-section::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.5));z-index:1}
-        .hero-content{position:relative;z-index:2;max-width:700px;width:100%;padding:0 1.5rem;margin:0 auto;color:#fff}
-        .hero-title{font-size:3.5rem;font-weight:700;margin-bottom:1.5rem;color:#fff;line-height:1.2}
+        .hero-section{position:relative;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:3rem 0;text-align:center;border-bottom:1px solid #eee}
+        .hero-content{max-width:700px;width:100%;padding:0 1.5rem;margin:0 auto}
+        .hero-title{font-size:2.5rem;font-weight:700;margin-bottom:2rem;color:#222;line-height:1.3}
         .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
         img{max-width:100%;height:auto;display:block}
         @media (max-width:768px){
-            .hero-title{font-size:2rem}
+            .hero-title{font-size:1.75rem}
         }
     </style>
     <?php
@@ -186,15 +185,7 @@ add_action( 'wp_head', 'cozyrecipes_resource_hints', 2 );
  * Preload LCP image for better performance
  */
 function cozyrecipes_preload_lcp_image() {
-    // Preload hero image on front page
-    if ( is_front_page() ) {
-        $hero_image = get_theme_mod( 'cozyrecipes_hero_image', '' );
-        if ( ! empty( $hero_image ) ) {
-            echo '<link rel="preload" as="image" href="' . esc_url( $hero_image ) . '" fetchpriority="high">' . "\n";
-        }
-    }
-
-    // Preload featured image on single posts
+    // Preload featured image on single posts (hero no longer uses images)
     if ( is_singular( 'post' ) && has_post_thumbnail() ) {
         $featured_image = get_the_post_thumbnail_url( get_the_ID(), 'full' );
         if ( $featured_image ) {

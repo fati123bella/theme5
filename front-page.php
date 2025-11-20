@@ -9,34 +9,13 @@ get_header();
 ?>
 
 <?php
-// Hero Section
-$hero_image = get_theme_mod( 'cozyrecipes_hero_image', '' );
-$hero_tagline = get_theme_mod( 'cozyrecipes_hero_tagline', 'Easy, cozy recipes for every day' );
-$hero_title = get_theme_mod( 'cozyrecipes_hero_title', 'Discover Delicious Recipes' );
-$hero_subtitle = get_theme_mod( 'cozyrecipes_hero_subtitle', 'Find the perfect recipe for any occasion' );
+// Hero Section - Simplified (Search bar only)
 $search_placeholder = get_theme_mod( 'cozyrecipes_search_placeholder', 'Search for recipes...' );
-$cta_text = get_theme_mod( 'cozyrecipes_cta_text', 'Browse All Recipes' );
-$cta_url = get_theme_mod( 'cozyrecipes_cta_url', '/blog/' );
-
-$hero_style = '';
-if ( ! empty( $hero_image ) ) {
-    $hero_style = 'style="background-image: url(\'' . esc_url( $hero_image ) . '\');"';
-}
 ?>
 
-<section class="hero-section" <?php echo $hero_style; ?>>
+<section class="hero-section hero-section-simple">
     <div class="hero-content">
-        <?php if ( ! empty( $hero_tagline ) ) : ?>
-            <p class="hero-tagline"><?php echo esc_html( $hero_tagline ); ?></p>
-        <?php endif; ?>
-
-        <?php if ( ! empty( $hero_title ) ) : ?>
-            <h1 class="hero-title"><?php echo esc_html( $hero_title ); ?></h1>
-        <?php endif; ?>
-
-        <?php if ( ! empty( $hero_subtitle ) ) : ?>
-            <p class="hero-subtitle"><?php echo esc_html( $hero_subtitle ); ?></p>
-        <?php endif; ?>
+        <h1 class="hero-title"><?php esc_html_e( 'Find Your Perfect Recipe', 'cozyrecipes' ); ?></h1>
 
         <div class="hero-search">
             <form role="search" method="get" class="hero-search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Main search form', 'cozyrecipes' ); ?>">
@@ -52,12 +31,6 @@ if ( ! empty( $hero_image ) ) {
                 <button type="submit" aria-label="<?php esc_attr_e( 'Submit search', 'cozyrecipes' ); ?>" title="<?php esc_attr_e( 'Search', 'cozyrecipes' ); ?>"><?php esc_html_e( 'Search', 'cozyrecipes' ); ?></button>
             </form>
         </div>
-
-        <?php if ( ! empty( $cta_text ) && ! empty( $cta_url ) ) : ?>
-            <a href="<?php echo esc_url( $cta_url ); ?>" class="hero-cta" aria-label="<?php echo esc_attr( $cta_text ); ?>" title="<?php echo esc_attr( $cta_text ); ?>">
-                <?php echo esc_html( $cta_text ); ?>
-            </a>
-        <?php endif; ?>
     </div><!-- .hero-content -->
 </section><!-- .hero-section -->
 
