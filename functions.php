@@ -172,10 +172,9 @@ function cozyrecipes_critical_css() {
         .hamburger{width:24px;height:20px;display:flex;flex-direction:column;justify-content:space-between}
         .hamburger span{display:block;height:2px;width:100%;background:#333;transition:all .3s ease}
 
-        /* Hero Section */
-        .hero-section{position:relative;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:3rem 0;text-align:center;border-bottom:1px solid #eee}
+        /* Hero Section (Search only) */
+        .hero-section{position:relative;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:2rem 0;text-align:center;border-bottom:1px solid #eee}
         .hero-content{max-width:700px;width:100%;padding:0 1.5rem;margin:0 auto}
-        .hero-title{font-size:2.5rem;font-weight:700;margin-bottom:2rem;color:#222;line-height:1.3}
         .hero-search{margin:0}
         .hero-search-form{display:flex;max-width:600px;margin:0 auto;background:#fff;border:2px solid #e0e0e0;border-radius:50px;overflow:hidden;transition:all .3s ease}
         .hero-search-form:focus-within{border-color:#ff6b6b;box-shadow:0 0 0 3px rgba(255,107,107,.1)}
@@ -190,7 +189,7 @@ function cozyrecipes_critical_css() {
 
         /* Mobile */
         @media (max-width:768px){
-            .hero-title{font-size:1.75rem;margin-bottom:1.5rem}
+            .hero-section{padding:1.5rem 0}
             .hero-search-form{max-width:100%}
             .hero-search-form input[type="search"]{padding:.875rem 1.25rem;font-size:.95rem}
             .hero-search-form button{padding:.875rem 1.5rem;font-size:.95rem}
@@ -469,10 +468,10 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_hero_bg_color', array(
-        'label'    => __( 'Hero Background Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_hero_bg_color',
-        'description' => __( 'Background color for hero section when no image is set', 'cozyrecipes' ),
+        'label'       => __( 'Hero Background Color', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_hero_bg_color',
+        'description' => __( 'Background color for the hero search section', 'cozyrecipes' ),
     ) ) );
 
     // Footer Background Color
@@ -564,60 +563,13 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     // ========================================
-    // HERO SECTION
+    // HERO SECTION (Search Bar Only)
     // ========================================
 
     $wp_customize->add_section( 'cozyrecipes_hero', array(
-        'title'    => __( 'Hero Section', 'cozyrecipes' ),
-        'priority' => 40,
-    ) );
-
-    // Hero Background Image
-    $wp_customize->add_setting( 'cozyrecipes_hero_image', array(
-        'default'           => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ) );
-
-    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'cozyrecipes_hero_image', array(
-        'label'    => __( 'Hero Background Image', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_hero',
-        'settings' => 'cozyrecipes_hero_image',
-    ) ) );
-
-    // Hero Tagline
-    $wp_customize->add_setting( 'cozyrecipes_hero_tagline', array(
-        'default'           => 'Easy, cozy recipes for every day',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_hero_tagline', array(
-        'label'    => __( 'Hero Tagline', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_hero',
-        'type'     => 'text',
-    ) );
-
-    // Hero Title
-    $wp_customize->add_setting( 'cozyrecipes_hero_title', array(
-        'default'           => 'Discover Delicious Recipes',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_hero_title', array(
-        'label'    => __( 'Hero Title', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_hero',
-        'type'     => 'text',
-    ) );
-
-    // Hero Subtitle
-    $wp_customize->add_setting( 'cozyrecipes_hero_subtitle', array(
-        'default'           => 'Find the perfect recipe for any occasion',
-        'sanitize_callback' => 'sanitize_textarea_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_hero_subtitle', array(
-        'label'    => __( 'Hero Subtitle', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_hero',
-        'type'     => 'textarea',
+        'title'       => __( 'Hero Section', 'cozyrecipes' ),
+        'description' => __( 'The hero section displays a search bar for recipes.', 'cozyrecipes' ),
+        'priority'    => 40,
     ) );
 
     // Search Placeholder
@@ -630,30 +582,6 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'label'    => __( 'Search Placeholder Text', 'cozyrecipes' ),
         'section'  => 'cozyrecipes_hero',
         'type'     => 'text',
-    ) );
-
-    // CTA Button Text
-    $wp_customize->add_setting( 'cozyrecipes_cta_text', array(
-        'default'           => 'Browse All Recipes',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_cta_text', array(
-        'label'    => __( 'CTA Button Text', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_hero',
-        'type'     => 'text',
-    ) );
-
-    // CTA Button URL
-    $wp_customize->add_setting( 'cozyrecipes_cta_url', array(
-        'default'           => '/blog/',
-        'sanitize_callback' => 'esc_url_raw',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_cta_url', array(
-        'label'    => __( 'CTA Button URL', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_hero',
-        'type'     => 'url',
     ) );
 
     // ========================================
@@ -959,11 +887,6 @@ function cozyrecipes_customizer_css() {
         .recipe-card-title a:hover,
         .site-title a:hover {
             color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
-        .hero-cta:hover {
-            border-color: <?php echo esc_attr( $accent_color ); ?>;
-            background-color: <?php echo esc_attr( $accent_color ); ?>;
         }
 
         .footer-widget-area .widget ul li a:hover {

@@ -15,8 +15,6 @@ $search_placeholder = get_theme_mod( 'cozyrecipes_search_placeholder', 'Search f
 
 <section class="hero-section hero-section-simple">
     <div class="hero-content">
-        <h1 class="hero-title"><?php esc_html_e( 'Find Your Perfect Recipe', 'cozyrecipes' ); ?></h1>
-
         <div class="hero-search">
             <form role="search" method="get" class="hero-search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Main search form', 'cozyrecipes' ); ?>">
                 <label for="hero-search-input" class="screen-reader-text"><?php esc_html_e( 'Search for recipes', 'cozyrecipes' ); ?></label>
