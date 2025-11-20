@@ -135,15 +135,44 @@ function cozyrecipes_widgets_init() {
 add_action( 'widgets_init', 'cozyrecipes_widgets_init' );
 
 /**
- * Add preconnect and DNS prefetch for external resources
+ * Add critical inline CSS for instant rendering
+ */
+function cozyrecipes_critical_css() {
+    ?>
+    <style id="cozyrecipes-critical-css">
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#333;background:#f8f8f8}
+        .site-header{background:#fff;position:sticky;top:0;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+        .header-container{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;max-width:1200px;margin:0 auto}
+        .site-title{font-size:1.75rem;margin:0;font-weight:700}
+        .site-title a{color:#222;text-decoration:none}
+        .hero-section{position:relative;width:100%;min-height:500px;display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;padding:4rem 0;text-align:center;overflow:hidden}
+        .hero-section::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.5));z-index:1}
+        .hero-content{position:relative;z-index:2;max-width:700px;width:100%;padding:0 1.5rem;margin:0 auto;color:#fff}
+        .hero-title{font-size:3.5rem;font-weight:700;margin-bottom:1.5rem;color:#fff;line-height:1.2}
+        .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+        img{max-width:100%;height:auto;display:block}
+        @media (max-width:768px){
+            .hero-title{font-size:2rem}
+        }
+    </style>
+    <?php
+}
+add_action( 'wp_head', 'cozyrecipes_critical_css', 1 );
+
+/**
+ * Add preconnect and optimized font loading
  */
 function cozyrecipes_resource_hints() {
-    echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
-    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-    echo '<link rel="dns-prefetch" href="//fonts.googleapis.com">' . "\n";
-    echo '<link rel="dns-prefetch" href="//fonts.gstatic.com">' . "\n";
+    ?>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin"></noscript>
+    <?php
 }
-add_action( 'wp_head', 'cozyrecipes_resource_hints', 1 );
+add_action( 'wp_head', 'cozyrecipes_resource_hints', 2 );
 
 /**
  * Preload LCP image for better performance
@@ -171,11 +200,11 @@ add_action( 'wp_head', 'cozyrecipes_preload_lcp_image', 2 );
  * Enqueue Scripts and Styles
  */
 function cozyrecipes_scripts() {
-    // Enqueue Google Fonts with optimized loading
-    wp_enqueue_style( 'cozyrecipes-google-fonts', 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin', array(), null );
+    // Remove Google Fonts from wp_enqueue (we'll add it with better method)
+    // wp_enqueue_style removed - using preload instead
 
-    // Enqueue theme stylesheet
-    wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
+    // Enqueue theme stylesheet with media print trick for non-blocking
+    wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ), 'all' );
 
     // Enqueue theme JavaScript with defer
     wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), wp_get_theme()->get( 'Version' ), true );
@@ -188,6 +217,59 @@ function cozyrecipes_scripts() {
 add_action( 'wp_enqueue_scripts', 'cozyrecipes_scripts' );
 
 /**
+ * Remove unnecessary WordPress default styles and scripts
+ */
+function cozyrecipes_remove_wp_block_library_css() {
+    // Remove block library CSS (Gutenberg styles)
+    wp_dequeue_style( 'wp-block-library' );
+    wp_dequeue_style( 'wp-block-library-theme' );
+
+    // Remove classic theme styles
+    wp_dequeue_style( 'classic-theme-styles' );
+
+    // Remove global styles
+    wp_dequeue_style( 'global-styles' );
+}
+add_action( 'wp_enqueue_scripts', 'cozyrecipes_remove_wp_block_library_css', 100 );
+
+/**
+ * Remove WordPress emoji scripts
+ */
+function cozyrecipes_disable_emojis() {
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+    remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+    remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+    remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+}
+add_action( 'init', 'cozyrecipes_disable_emojis' );
+
+/**
+ * Remove WordPress embed script
+ */
+function cozyrecipes_deregister_scripts() {
+    wp_deregister_script( 'wp-embed' );
+}
+add_action( 'wp_footer', 'cozyrecipes_deregister_scripts' );
+
+/**
+ * Remove unnecessary header meta tags for better performance
+ */
+function cozyrecipes_remove_head_links() {
+    remove_action( 'wp_head', 'wp_generator' );
+    remove_action( 'wp_head', 'wlwmanifest_link' );
+    remove_action( 'wp_head', 'rsd_link' );
+    remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+    remove_action( 'wp_head', 'adjacent_posts_rel_link_wp_head', 10 );
+    remove_action( 'wp_head', 'rest_output_link_wp_head' );
+    remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+    remove_action( 'template_redirect', 'rest_output_link_header', 11 );
+}
+add_action( 'init', 'cozyrecipes_remove_head_links' );
+
+/**
  * Add defer attribute to scripts
  */
 function cozyrecipes_defer_scripts( $tag, $handle ) {
@@ -197,6 +279,18 @@ function cozyrecipes_defer_scripts( $tag, $handle ) {
     return $tag;
 }
 add_filter( 'script_loader_tag', 'cozyrecipes_defer_scripts', 10, 2 );
+
+/**
+ * Defer non-critical CSS using media print trick
+ */
+function cozyrecipes_defer_css( $html, $handle ) {
+    if ( 'cozyrecipes-style' === $handle ) {
+        $html = str_replace( "media='all'", "media='print' onload=\"this.media='all'\"", $html );
+        $html .= '<noscript><link rel="stylesheet" href="' . get_stylesheet_uri() . '"></noscript>';
+    }
+    return $html;
+}
+add_filter( 'style_loader_tag', 'cozyrecipes_defer_css', 10, 2 );
 
 /**
  * Remove query strings from static resources
