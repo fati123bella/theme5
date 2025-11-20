@@ -150,17 +150,54 @@ function cozyrecipes_critical_css() {
     <style id="cozyrecipes-critical-css">
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#333;background:#f8f8f8}
-        .site-header{background:#fff;position:sticky;top:0;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+        a{text-decoration:none;transition:color .3s ease}
+
+        /* Header */
+        .site-header{background:#fff;position:sticky;top:0;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.05);transition:box-shadow .3s ease}
+        .site-header.scrolled{box-shadow:0 2px 15px rgba(0,0,0,.1)}
         .header-container{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;max-width:1200px;margin:0 auto}
         .site-title{font-size:1.75rem;margin:0;font-weight:700}
-        .site-title a{color:#222;text-decoration:none}
+        .site-title a{color:#222}
+
+        /* Navigation */
+        .main-navigation{display:flex}
+        .main-navigation ul{list-style:none;margin:0;padding:0;display:flex;gap:2rem}
+        .main-navigation li{position:relative}
+        .main-navigation a{color:#333;font-weight:500;font-size:.95rem;padding:.5rem 0;display:block}
+
+        /* Header Actions */
+        .header-actions{display:flex;gap:1rem;align-items:center}
+        .header-search-toggle,.mobile-menu-toggle{background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.5rem;color:#333;transition:color .3s ease}
+        .mobile-menu-toggle{display:none}
+        .hamburger{width:24px;height:20px;display:flex;flex-direction:column;justify-content:space-between}
+        .hamburger span{display:block;height:2px;width:100%;background:#333;transition:all .3s ease}
+
+        /* Hero Section */
         .hero-section{position:relative;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:3rem 0;text-align:center;border-bottom:1px solid #eee}
         .hero-content{max-width:700px;width:100%;padding:0 1.5rem;margin:0 auto}
         .hero-title{font-size:2.5rem;font-weight:700;margin-bottom:2rem;color:#222;line-height:1.3}
+        .hero-search{margin:0}
+        .hero-search-form{display:flex;max-width:600px;margin:0 auto;background:#fff;border:2px solid #e0e0e0;border-radius:50px;overflow:hidden;transition:all .3s ease}
+        .hero-search-form:focus-within{border-color:#ff6b6b;box-shadow:0 0 0 3px rgba(255,107,107,.1)}
+        .hero-search-form input[type="search"]{flex:1;padding:1rem 1.5rem;border:none;font-size:1rem;outline:none;background:transparent;color:#333}
+        .hero-search-form input[type="search"]::placeholder{color:#999}
+        .hero-search-form button{background:#ff6b6b;color:#fff;border:none;padding:1rem 2rem;font-size:1rem;font-weight:600;cursor:pointer;transition:all .3s ease;white-space:nowrap}
+
+        /* Utilities */
         .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+        .screen-reader-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
         img{max-width:100%;height:auto;display:block}
+
+        /* Mobile */
         @media (max-width:768px){
-            .hero-title{font-size:1.75rem}
+            .hero-title{font-size:1.75rem;margin-bottom:1.5rem}
+            .hero-search-form{max-width:100%}
+            .hero-search-form input[type="search"]{padding:.875rem 1.25rem;font-size:.95rem}
+            .hero-search-form button{padding:.875rem 1.5rem;font-size:.95rem}
+            .main-navigation{display:none}
+            .mobile-menu-toggle{display:flex;flex-direction:column;align-items:center;justify-content:center}
+            .site-title{font-size:1.5rem}
+            .header-container{padding:.875rem 1rem}
         }
     </style>
     <?php
@@ -172,6 +209,10 @@ add_action( 'wp_head', 'cozyrecipes_critical_css', 1 );
  */
 function cozyrecipes_resource_hints() {
     ?>
+    <!-- Preload main stylesheet for faster loading -->
+    <link rel="preload" as="style" href="<?php echo esc_url( get_stylesheet_uri() ); ?>">
+
+    <!-- Preconnect to font resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin">
@@ -280,12 +321,14 @@ function cozyrecipes_defer_scripts( $tag, $handle ) {
 add_filter( 'script_loader_tag', 'cozyrecipes_defer_scripts', 10, 2 );
 
 /**
- * Defer non-critical CSS using media print trick
+ * Defer non-critical CSS using media print trick with fetchpriority
  */
 function cozyrecipes_defer_css( $html, $handle ) {
     if ( 'cozyrecipes-style' === $handle ) {
-        $html = str_replace( "media='all'", "media='print' onload=\"this.media='all'\"", $html );
-        $html .= '<noscript><link rel="stylesheet" href="' . get_stylesheet_uri() . '"></noscript>';
+        // Use media print trick for non-blocking load
+        $html = str_replace( "media='all'", "media='print' onload=\"this.media='all'\" fetchpriority='low'", $html );
+        // Add noscript fallback
+        $html .= '<noscript><link rel="stylesheet" href="' . esc_url( get_stylesheet_uri() ) . '"></noscript>';
     }
     return $html;
 }
