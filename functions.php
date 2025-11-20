@@ -89,6 +89,49 @@ function cozyrecipes_setup() {
 add_action( 'after_setup_theme', 'cozyrecipes_setup' );
 
 /**
+ * Custom document title
+ */
+function cozyrecipes_document_title_parts( $title ) {
+    // Homepage
+    if ( is_front_page() && is_home() ) {
+        $title['title'] = get_bloginfo( 'name' );
+        $title['tagline'] = get_bloginfo( 'description' );
+    }
+    // Homepage (when static page is set)
+    elseif ( is_front_page() ) {
+        $title['title'] = get_bloginfo( 'name' );
+        $title['tagline'] = get_bloginfo( 'description' );
+    }
+    // Blog page
+    elseif ( is_home() ) {
+        $title['title'] = single_post_title( '', false );
+    }
+    // Single post
+    elseif ( is_single() ) {
+        $title['title'] = single_post_title( '', false );
+        $title['site'] = get_bloginfo( 'name' );
+    }
+    // Category archive
+    elseif ( is_category() ) {
+        $title['title'] = single_cat_title( '', false ) . ' Recipes';
+        $title['site'] = get_bloginfo( 'name' );
+    }
+    // Search results
+    elseif ( is_search() ) {
+        $title['title'] = sprintf( 'Search Results for: %s', get_search_query() );
+        $title['site'] = get_bloginfo( 'name' );
+    }
+    // 404 page
+    elseif ( is_404() ) {
+        $title['title'] = 'Page Not Found';
+        $title['site'] = get_bloginfo( 'name' );
+    }
+
+    return $title;
+}
+add_filter( 'document_title_parts', 'cozyrecipes_document_title_parts' );
+
+/**
  * Set content width
  */
 function cozyrecipes_content_width() {
