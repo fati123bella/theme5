@@ -25,9 +25,11 @@ function cozyrecipes_setup() {
     // Set post thumbnail size
     set_post_thumbnail_size( 800, 1200, true ); // 2:3 ratio
 
-    // Add additional image sizes
+    // Add additional image sizes for responsive images
     add_image_size( 'cozyrecipes-featured', 1200, 800, true );
     add_image_size( 'cozyrecipes-thumbnail', 600, 900, true );
+    add_image_size( 'cozyrecipes-medium', 800, 600, true );
+    add_image_size( 'cozyrecipes-small', 400, 300, true );
 
     // Register navigation menus
     register_nav_menus( array(
@@ -133,13 +135,37 @@ function cozyrecipes_widgets_init() {
 add_action( 'widgets_init', 'cozyrecipes_widgets_init' );
 
 /**
- * Add preconnect for Google Fonts
+ * Add preconnect and DNS prefetch for external resources
  */
-function cozyrecipes_preconnect_fonts() {
+function cozyrecipes_resource_hints() {
     echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
     echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+    echo '<link rel="dns-prefetch" href="//fonts.googleapis.com">' . "\n";
+    echo '<link rel="dns-prefetch" href="//fonts.gstatic.com">' . "\n";
 }
-add_action( 'wp_head', 'cozyrecipes_preconnect_fonts', 1 );
+add_action( 'wp_head', 'cozyrecipes_resource_hints', 1 );
+
+/**
+ * Preload LCP image for better performance
+ */
+function cozyrecipes_preload_lcp_image() {
+    // Preload hero image on front page
+    if ( is_front_page() ) {
+        $hero_image = get_theme_mod( 'cozyrecipes_hero_image', '' );
+        if ( ! empty( $hero_image ) ) {
+            echo '<link rel="preload" as="image" href="' . esc_url( $hero_image ) . '" fetchpriority="high">' . "\n";
+        }
+    }
+
+    // Preload featured image on single posts
+    if ( is_singular( 'post' ) && has_post_thumbnail() ) {
+        $featured_image = get_the_post_thumbnail_url( get_the_ID(), 'full' );
+        if ( $featured_image ) {
+            echo '<link rel="preload" as="image" href="' . esc_url( $featured_image ) . '" fetchpriority="high">' . "\n";
+        }
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_preload_lcp_image', 2 );
 
 /**
  * Enqueue Scripts and Styles
@@ -171,6 +197,18 @@ function cozyrecipes_defer_scripts( $tag, $handle ) {
     return $tag;
 }
 add_filter( 'script_loader_tag', 'cozyrecipes_defer_scripts', 10, 2 );
+
+/**
+ * Remove query strings from static resources
+ */
+function cozyrecipes_remove_query_strings( $src ) {
+    if ( strpos( $src, '?ver=' ) ) {
+        $src = remove_query_arg( 'ver', $src );
+    }
+    return $src;
+}
+add_filter( 'style_loader_src', 'cozyrecipes_remove_query_strings', 10, 1 );
+add_filter( 'script_loader_src', 'cozyrecipes_remove_query_strings', 10, 1 );
 
 /**
  * Custom excerpt length
@@ -846,13 +884,28 @@ function cozyrecipes_get_container_class() {
 }
 
 /**
- * Add lazy loading to images
+ * Add lazy loading and fetchpriority to images
  */
-function cozyrecipes_add_lazy_loading( $attr, $attachment, $size ) {
-    $attr['loading'] = 'lazy';
+function cozyrecipes_optimize_images( $attr, $attachment, $size ) {
+    // Don't lazy load featured image on single posts (it's the LCP element)
+    if ( is_singular( 'post' ) && get_post_thumbnail_id() === $attachment->ID ) {
+        $attr['fetchpriority'] = 'high';
+        $attr['loading'] = 'eager';
+    } else {
+        $attr['loading'] = 'lazy';
+    }
+
+    // Add decoding="async" for better performance
+    $attr['decoding'] = 'async';
+
     return $attr;
 }
-add_filter( 'wp_get_attachment_image_attributes', 'cozyrecipes_add_lazy_loading', 10, 3 );
+add_filter( 'wp_get_attachment_image_attributes', 'cozyrecipes_optimize_images', 10, 3 );
+
+/**
+ * Enable automatic width and height attributes on images
+ */
+add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_true' );
 
 /**
  * Add Open Graph and SEO meta tags
