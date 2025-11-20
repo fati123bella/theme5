@@ -133,16 +133,25 @@ function cozyrecipes_widgets_init() {
 add_action( 'widgets_init', 'cozyrecipes_widgets_init' );
 
 /**
+ * Add preconnect for Google Fonts
+ */
+function cozyrecipes_preconnect_fonts() {
+    echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_preconnect_fonts', 1 );
+
+/**
  * Enqueue Scripts and Styles
  */
 function cozyrecipes_scripts() {
-    // Enqueue Google Fonts
-    wp_enqueue_style( 'cozyrecipes-google-fonts', 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap', array(), null );
+    // Enqueue Google Fonts with optimized loading
+    wp_enqueue_style( 'cozyrecipes-google-fonts', 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap&subset=latin', array(), null );
 
     // Enqueue theme stylesheet
     wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
 
-    // Enqueue theme JavaScript
+    // Enqueue theme JavaScript with defer
     wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), wp_get_theme()->get( 'Version' ), true );
 
     // Enqueue comment reply script
@@ -151,6 +160,17 @@ function cozyrecipes_scripts() {
     }
 }
 add_action( 'wp_enqueue_scripts', 'cozyrecipes_scripts' );
+
+/**
+ * Add defer attribute to scripts
+ */
+function cozyrecipes_defer_scripts( $tag, $handle ) {
+    if ( 'cozyrecipes-navigation' === $handle ) {
+        return str_replace( ' src', ' defer src', $tag );
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'cozyrecipes_defer_scripts', 10, 2 );
 
 /**
  * Custom excerpt length
@@ -265,6 +285,20 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'label'    => __( 'Body Background Color', 'cozyrecipes' ),
         'section'  => 'cozyrecipes_colors',
         'settings' => 'cozyrecipes_body_bg_color',
+    ) ) );
+
+    // Hero Background Color
+    $wp_customize->add_setting( 'cozyrecipes_hero_bg_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_hero_bg_color', array(
+        'label'    => __( 'Hero Background Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_colors',
+        'settings' => 'cozyrecipes_hero_bg_color',
+        'description' => __( 'Background color for hero section when no image is set', 'cozyrecipes' ),
     ) ) );
 
     // Footer Background Color
@@ -693,6 +727,7 @@ function cozyrecipes_customizer_css() {
     $header_bg = get_theme_mod( 'cozyrecipes_header_bg_color', '#ffffff' );
     $header_text = get_theme_mod( 'cozyrecipes_header_text_color', '#333333' );
     $body_bg = get_theme_mod( 'cozyrecipes_body_bg_color', '#f8f8f8' );
+    $hero_bg = get_theme_mod( 'cozyrecipes_hero_bg_color', '#ff6b6b' );
     $footer_bg = get_theme_mod( 'cozyrecipes_footer_bg_color', '#2a2a2a' );
     $footer_text = get_theme_mod( 'cozyrecipes_footer_text_color', '#cccccc' );
     $body_font = get_theme_mod( 'cozyrecipes_body_font', 'Inter' );
@@ -701,15 +736,6 @@ function cozyrecipes_customizer_css() {
 
     ?>
     <style type="text/css">
-        :root {
-            --accent-color: <?php echo esc_attr( $accent_color ); ?>;
-            --header-bg: <?php echo esc_attr( $header_bg ); ?>;
-            --header-text: <?php echo esc_attr( $header_text ); ?>;
-            --body-bg: <?php echo esc_attr( $body_bg ); ?>;
-            --footer-bg: <?php echo esc_attr( $footer_bg ); ?>;
-            --footer-text: <?php echo esc_attr( $footer_text ); ?>;
-        }
-
         html {
             font-size: <?php echo absint( $font_size ); ?>px;
         }
@@ -730,6 +756,10 @@ function cozyrecipes_customizer_css() {
         .main-navigation a,
         .site-title a {
             color: <?php echo esc_attr( $header_text ); ?>;
+        }
+
+        .hero-section {
+            background-color: <?php echo esc_attr( $hero_bg ); ?>;
         }
 
         .site-footer {
@@ -814,3 +844,107 @@ function cozyrecipes_get_container_class() {
     $width = get_theme_mod( 'cozyrecipes_container_width', 'normal' );
     return 'container' . ( 'wide' === $width ? ' wide' : '' );
 }
+
+/**
+ * Add lazy loading to images
+ */
+function cozyrecipes_add_lazy_loading( $attr, $attachment, $size ) {
+    $attr['loading'] = 'lazy';
+    return $attr;
+}
+add_filter( 'wp_get_attachment_image_attributes', 'cozyrecipes_add_lazy_loading', 10, 3 );
+
+/**
+ * Add Open Graph and SEO meta tags
+ */
+function cozyrecipes_seo_meta_tags() {
+    if ( is_singular( 'post' ) ) {
+        global $post;
+        setup_postdata( $post );
+
+        $title = get_the_title();
+        $description = get_the_excerpt();
+        $image = has_post_thumbnail() ? get_the_post_thumbnail_url( $post->ID, 'large' ) : '';
+        $url = get_permalink();
+
+        ?>
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:type" content="article">
+        <meta property="og:title" content="<?php echo esc_attr( $title ); ?>">
+        <meta property="og:description" content="<?php echo esc_attr( wp_trim_words( $description, 20 ) ); ?>">
+        <meta property="og:url" content="<?php echo esc_url( $url ); ?>">
+        <?php if ( $image ) : ?>
+        <meta property="og:image" content="<?php echo esc_url( $image ); ?>">
+        <?php endif; ?>
+        <meta property="og:site_name" content="<?php bloginfo( 'name' ); ?>">
+
+        <!-- Twitter Card Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="<?php echo esc_attr( $title ); ?>">
+        <meta name="twitter:description" content="<?php echo esc_attr( wp_trim_words( $description, 20 ) ); ?>">
+        <?php if ( $image ) : ?>
+        <meta name="twitter:image" content="<?php echo esc_url( $image ); ?>">
+        <?php endif; ?>
+
+        <!-- SEO Meta Tags -->
+        <meta name="description" content="<?php echo esc_attr( wp_trim_words( $description, 30 ) ); ?>">
+        <?php
+        wp_reset_postdata();
+    } elseif ( is_front_page() || is_home() ) {
+        $title = get_bloginfo( 'name' );
+        $description = get_bloginfo( 'description' );
+        ?>
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="<?php echo esc_attr( $title ); ?>">
+        <meta property="og:description" content="<?php echo esc_attr( $description ); ?>">
+        <meta property="og:url" content="<?php echo esc_url( home_url( '/' ) ); ?>">
+        <meta name="description" content="<?php echo esc_attr( $description ); ?>">
+        <?php
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_seo_meta_tags', 5 );
+
+/**
+ * Add Recipe Schema markup for single posts
+ */
+function cozyrecipes_recipe_schema() {
+    if ( ! is_singular( 'post' ) ) {
+        return;
+    }
+
+    global $post;
+    setup_postdata( $post );
+
+    $title = get_the_title();
+    $description = get_the_excerpt();
+    $image = has_post_thumbnail() ? get_the_post_thumbnail_url( $post->ID, 'large' ) : '';
+    $author = get_the_author();
+    $published = get_the_date( 'c' );
+    $modified = get_the_modified_date( 'c' );
+
+    $schema = array(
+        '@context'      => 'https://schema.org/',
+        '@type'         => 'Recipe',
+        'name'          => $title,
+        'description'   => wp_trim_words( $description, 30 ),
+        'author'        => array(
+            '@type' => 'Person',
+            'name'  => $author,
+        ),
+        'datePublished' => $published,
+        'dateModified'  => $modified,
+    );
+
+    if ( $image ) {
+        $schema['image'] = $image;
+    }
+
+    ?>
+    <script type="application/ld+json">
+    <?php echo wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ); ?>
+    </script>
+    <?php
+
+    wp_reset_postdata();
+}
+add_action( 'wp_head', 'cozyrecipes_recipe_schema', 10 );
