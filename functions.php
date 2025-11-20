@@ -77,6 +77,14 @@ function cozyrecipes_setup() {
 
     // Add support for responsive embeds
     add_theme_support( 'responsive-embeds' );
+
+    // Add support for accessibility improvements
+    add_theme_support( 'automatic-feed-links' );
+    add_theme_support( 'align-wide' );
+
+    // Remove unnecessary WordPress features for performance
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
 }
 add_action( 'after_setup_theme', 'cozyrecipes_setup' );
 
@@ -1095,3 +1103,55 @@ function cozyrecipes_recipe_schema() {
     wp_reset_postdata();
 }
 add_action( 'wp_head', 'cozyrecipes_recipe_schema', 10 );
+
+/**
+ * Improve accessibility of pagination links
+ */
+function cozyrecipes_pagination_aria( $output ) {
+    $output = str_replace( '<a class=', '<a aria-label="Page" class=', $output );
+    $output = str_replace( 'class="prev page-numbers"', 'class="prev page-numbers" aria-label="Previous page"', $output );
+    $output = str_replace( 'class="next page-numbers"', 'class="next page-numbers" aria-label="Next page"', $output );
+    return $output;
+}
+add_filter( 'navigation_markup_template', 'cozyrecipes_pagination_aria' );
+
+/**
+ * Add async/defer to third-party scripts
+ */
+function cozyrecipes_async_scripts( $tag, $handle, $src ) {
+    $async_scripts = array( 'jquery-core', 'jquery-migrate' );
+
+    if ( in_array( $handle, $async_scripts ) ) {
+        return str_replace( ' src', ' async defer src', $tag );
+    }
+
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'cozyrecipes_async_scripts', 10, 3 );
+
+/**
+ * Disable unnecessary REST API endpoints for performance
+ */
+function cozyrecipes_disable_rest_endpoints( $endpoints ) {
+    if ( ! is_user_logged_in() ) {
+        if ( isset( $endpoints['/wp/v2/users'] ) ) {
+            unset( $endpoints['/wp/v2/users'] );
+        }
+        if ( isset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] ) ) {
+            unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+        }
+    }
+    return $endpoints;
+}
+add_filter( 'rest_endpoints', 'cozyrecipes_disable_rest_endpoints' );
+
+/**
+ * Add language attribute to html tag for better accessibility
+ */
+function cozyrecipes_language_attributes( $output ) {
+    if ( ! is_admin() ) {
+        $output .= ' lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"';
+    }
+    return $output;
+}
+add_filter( 'language_attributes', 'cozyrecipes_language_attributes' );

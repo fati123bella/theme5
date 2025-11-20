@@ -52,8 +52,9 @@
                 ?>
 
                 <div class="header-search">
-                    <button class="header-search-toggle" aria-label="<?php esc_attr_e( 'Search', 'cozyrecipes' ); ?>" aria-expanded="false">
-                        <span>🔍</span>
+                    <button class="header-search-toggle" aria-label="<?php esc_attr_e( 'Open search form', 'cozyrecipes' ); ?>" aria-expanded="false" title="<?php esc_attr_e( 'Search', 'cozyrecipes' ); ?>">
+                        <span aria-hidden="true">🔍</span>
+                        <span class="screen-reader-text"><?php esc_html_e( 'Search', 'cozyrecipes' ); ?></span>
                     </button>
                     <div class="header-search-form">
                         <?php get_search_form(); ?>
@@ -61,8 +62,9 @@
                 </div>
             </nav><!-- #site-navigation -->
 
-            <button class="mobile-menu-toggle" aria-label="<?php esc_attr_e( 'Menu', 'cozyrecipes' ); ?>" aria-expanded="false">
-                <div class="hamburger">
+            <button class="mobile-menu-toggle" aria-label="<?php esc_attr_e( 'Open navigation menu', 'cozyrecipes' ); ?>" aria-expanded="false" aria-controls="site-navigation" title="<?php esc_attr_e( 'Menu', 'cozyrecipes' ); ?>">
+                <span class="screen-reader-text"><?php esc_html_e( 'Menu', 'cozyrecipes' ); ?></span>
+                <div class="hamburger" aria-hidden="true">
                     <span></span>
                     <span></span>
                     <span></span>

@@ -39,18 +39,22 @@ if ( ! empty( $hero_image ) ) {
         <?php endif; ?>
 
         <div class="hero-search">
-            <form role="search" method="get" class="hero-search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+            <form role="search" method="get" class="hero-search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Main search form', 'cozyrecipes' ); ?>">
+                <label for="hero-search-input" class="screen-reader-text"><?php esc_html_e( 'Search for recipes', 'cozyrecipes' ); ?></label>
                 <input type="search"
+                       id="hero-search-input"
                        name="s"
                        placeholder="<?php echo esc_attr( $search_placeholder ); ?>"
                        value="<?php echo get_search_query(); ?>"
+                       aria-label="<?php esc_attr_e( 'Search recipes', 'cozyrecipes' ); ?>"
+                       title="<?php esc_attr_e( 'Search', 'cozyrecipes' ); ?>"
                        required>
-                <button type="submit"><?php esc_html_e( 'Search', 'cozyrecipes' ); ?></button>
+                <button type="submit" aria-label="<?php esc_attr_e( 'Submit search', 'cozyrecipes' ); ?>" title="<?php esc_attr_e( 'Search', 'cozyrecipes' ); ?>"><?php esc_html_e( 'Search', 'cozyrecipes' ); ?></button>
             </form>
         </div>
 
         <?php if ( ! empty( $cta_text ) && ! empty( $cta_url ) ) : ?>
-            <a href="<?php echo esc_url( $cta_url ); ?>" class="hero-cta">
+            <a href="<?php echo esc_url( $cta_url ); ?>" class="hero-cta" aria-label="<?php echo esc_attr( $cta_text ); ?>" title="<?php echo esc_attr( $cta_text ); ?>">
                 <?php echo esc_html( $cta_text ); ?>
             </a>
         <?php endif; ?>
