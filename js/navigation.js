@@ -2,6 +2,7 @@
  * Navigation JavaScript
  *
  * Handles mobile menu toggle, submenu functionality, and header search
+ * Optimized to prevent forced layout reflows
  */
 
 (function() {
@@ -9,6 +10,13 @@
 
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', function() {
+
+        // ========================================
+        // MEDIA QUERY HELPERS (prevents layout reflows)
+        // ========================================
+
+        const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
+        const desktopMediaQuery = window.matchMedia('(min-width: 768px)');
 
         // ========================================
         // MOBILE MENU TOGGLE
@@ -79,58 +87,59 @@
 
         const menuItemsWithChildren = document.querySelectorAll('.main-navigation .menu-item-has-children');
 
-        if (window.innerWidth < 768) {
-            menuItemsWithChildren.forEach(function(menuItem) {
-                const link = menuItem.querySelector('a');
-                const submenu = menuItem.querySelector('.sub-menu');
+        function initMobileSubmenus() {
+            if (mobileMediaQuery.matches) {
+                menuItemsWithChildren.forEach(function(menuItem) {
+                    const link = menuItem.querySelector('a');
+                    const submenu = menuItem.querySelector('.sub-menu');
 
-                if (link && submenu) {
-                    // Clone the link to remove existing event listeners
-                    const newLink = link.cloneNode(true);
-                    link.parentNode.replaceChild(newLink, link);
+                    if (link && submenu) {
+                        // Clone the link to remove existing event listeners
+                        const newLink = link.cloneNode(true);
+                        link.parentNode.replaceChild(newLink, link);
 
-                    // Add click event to toggle submenu
-                    newLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
+                        // Add click event to toggle submenu
+                        newLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
 
-                        // Toggle active class on parent
-                        menuItem.classList.toggle('active');
+                            // Toggle active class on parent
+                            menuItem.classList.toggle('active');
 
-                        // Toggle submenu visibility
-                        if (menuItem.classList.contains('active')) {
-                            submenu.style.display = 'block';
-                        } else {
-                            submenu.style.display = 'none';
-                        }
-                    });
-                }
-            });
+                            // Toggle submenu visibility
+                            if (menuItem.classList.contains('active')) {
+                                submenu.style.display = 'block';
+                            } else {
+                                submenu.style.display = 'none';
+                            }
+                        });
+                    }
+                });
+            }
         }
 
-        // Re-initialize submenu toggles on window resize
-        let resizeTimer;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(function() {
-                // If switching to desktop, close mobile menu
-                if (window.innerWidth >= 768) {
-                    if (mainNavigation && mainNavigation.classList.contains('active')) {
-                        closeMobileMenu();
-                    }
+        // Initialize on load
+        initMobileSubmenus();
 
-                    // Remove inline styles from submenus
-                    const submenus = document.querySelectorAll('.main-navigation .sub-menu');
-                    submenus.forEach(function(submenu) {
-                        submenu.style.display = '';
-                    });
-
-                    // Remove active classes from menu items
-                    menuItemsWithChildren.forEach(function(item) {
-                        item.classList.remove('active');
-                    });
+        // Handle media query changes using matchMedia listener
+        desktopMediaQuery.addEventListener('change', function(e) {
+            if (e.matches) {
+                // Switched to desktop
+                if (mainNavigation && mainNavigation.classList.contains('active')) {
+                    closeMobileMenu();
                 }
-            }, 250);
+
+                // Remove inline styles from submenus
+                const submenus = document.querySelectorAll('.main-navigation .sub-menu');
+                submenus.forEach(function(submenu) {
+                    submenu.style.display = '';
+                });
+
+                // Remove active classes from menu items
+                menuItemsWithChildren.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+            }
         });
 
         // ========================================
@@ -186,29 +195,40 @@
         }
 
         // ========================================
-        // STICKY HEADER ON SCROLL
+        // STICKY HEADER ON SCROLL (Optimized)
         // ========================================
 
         const siteHeader = document.querySelector('.site-header');
+        let scrolling = false;
         let lastScrollTop = 0;
 
         if (siteHeader) {
+            // Use passive event listener for better scroll performance
             window.addEventListener('scroll', function() {
+                if (!scrolling) {
+                    scrolling = true;
+                    // Use requestAnimationFrame to batch DOM updates
+                    requestAnimationFrame(updateHeaderOnScroll);
+                }
+            }, { passive: true });
+
+            function updateHeaderOnScroll() {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-                // Add shadow when scrolling
+                // Use CSS class instead of inline styles to prevent layout reflows
                 if (scrollTop > 10) {
-                    siteHeader.style.boxShadow = '0 2px 15px rgba(0,0,0,0.1)';
+                    siteHeader.classList.add('scrolled');
                 } else {
-                    siteHeader.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)';
+                    siteHeader.classList.remove('scrolled');
                 }
 
                 lastScrollTop = scrollTop;
-            });
+                scrolling = false;
+            }
         }
 
         // ========================================
-        // SMOOTH SCROLL FOR ANCHOR LINKS
+        // SMOOTH SCROLL FOR ANCHOR LINKS (Optimized)
         // ========================================
 
         const anchorLinks = document.querySelectorAll('a[href^="#"]');
@@ -232,22 +252,26 @@
                         closeMobileMenu();
                     }
 
-                    // Smooth scroll to target
-                    const headerHeight = siteHeader ? siteHeader.offsetHeight : 0;
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                    // Batch read operations first, then write
+                    requestAnimationFrame(function() {
+                        // Read phase
+                        const headerHeight = siteHeader ? siteHeader.offsetHeight : 0;
+                        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight;
 
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
+                        // Write phase
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+
+                        // Update focus
+                        target.focus();
+
+                        // Update URL
+                        if (history.pushState) {
+                            history.pushState(null, null, href);
+                        }
                     });
-
-                    // Update focus
-                    target.focus();
-
-                    // Update URL
-                    if (history.pushState) {
-                        history.pushState(null, null, href);
-                    }
                 }
             });
         });
