@@ -1383,6 +1383,84 @@ function cozyrecipes_is_category_slider_enabled() {
     return get_theme_mod( 'cozyrecipes_enable_category_slider', true );
 }
 
+/**
+ * Get selected categories for slider
+ * Returns array of category IDs
+ */
+function cozyrecipes_get_selected_categories() {
+    $selected = get_theme_mod( 'cozyrecipes_slider_categories', array() );
+
+    // If empty, return all categories
+    if ( empty( $selected ) ) {
+        $all_categories = get_categories( array( 'hide_empty' => true ) );
+        return wp_list_pluck( $all_categories, 'term_id' );
+    }
+
+    // Return selected category IDs as integers
+    return array_map( 'absint', (array) $selected );
+}
+
+/**
+ * Sanitize category array for multi-checkbox
+ */
+function cozyrecipes_sanitize_category_array( $input ) {
+    if ( ! is_array( $input ) ) {
+        $input = explode( ',', $input );
+    }
+    return array_map( 'absint', array_filter( $input ) );
+}
+
+/* ========================================
+   CATEGORY SLIDER - CUSTOMIZER PANEL
+======================================== */
+
+/**
+ * Custom Customizer Control for Multi-Checkbox
+ */
+class CozyRecipes_Multi_Checkbox_Control extends WP_Customize_Control {
+    public $type = 'multi-checkbox';
+
+    public function render_content() {
+        if ( empty( $this->choices ) ) {
+            return;
+        }
+
+        $multi_values = ! is_array( $this->value() ) ? explode( ',', $this->value() ) : $this->value();
+        ?>
+        <label>
+            <span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+            <?php if ( ! empty( $this->description ) ) : ?>
+                <span class="description customize-control-description"><?php echo esc_html( $this->description ); ?></span>
+            <?php endif; ?>
+            <ul style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-top: 5px;">
+                <?php foreach ( $this->choices as $value => $label ) : ?>
+                    <li style="margin-bottom: 5px;">
+                        <label>
+                            <input type="checkbox"
+                                   value="<?php echo esc_attr( $value ); ?>"
+                                   <?php checked( in_array( $value, $multi_values ) ); ?>
+                                   style="margin-right: 5px;" />
+                            <?php echo esc_html( $label ); ?>
+                        </label>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </label>
+        <script>
+        jQuery(document).ready(function($) {
+            $('[data-customize-setting-link="<?php echo esc_attr( $this->id ); ?>"] input[type="checkbox"]').on('change', function() {
+                var values = [];
+                $('[data-customize-setting-link="<?php echo esc_attr( $this->id ); ?>"] input:checked').each(function() {
+                    values.push($(this).val());
+                });
+                $(this).parents('label').first().find('input[type="hidden"]').val(values.join(',')).trigger('change');
+            });
+        });
+        </script>
+        <?php
+    }
+}
+
 /* ========================================
    CATEGORY SLIDER - CUSTOMIZER PANEL
 ======================================== */
@@ -1483,13 +1561,33 @@ function cozyrecipes_category_slider_customizer( $wp_customize ) {
             'step' => 500,
         ),
     ) );
-    
+
     // Get all categories
     $categories = get_categories( array(
         'orderby'    => 'count',
         'order'      => 'DESC',
         'hide_empty' => true,
     ) );
+
+    // Build category choices for multi-checkbox
+    $category_choices = array();
+    foreach ( $categories as $category ) {
+        $category_choices[ $category->term_id ] = $category->name . ' (' . $category->count . ')';
+    }
+
+    // Category Selection Multi-Checkbox
+    $wp_customize->add_setting( 'cozyrecipes_slider_categories', array(
+        'default'           => array(),
+        'sanitize_callback' => 'cozyrecipes_sanitize_category_array',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new CozyRecipes_Multi_Checkbox_Control( $wp_customize, 'cozyrecipes_slider_categories', array(
+        'label'       => __( 'Select Categories to Display', 'cozyrecipes' ),
+        'description' => __( 'Choose which categories appear in the slider. Leave all unchecked to show all categories.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_category_slider_general',
+        'choices'     => $category_choices,
+    ) ) );
     
     // Create a section for each category
     foreach ( $categories as $index => $category ) {

@@ -15,12 +15,16 @@ $slider_title = get_theme_mod( 'cozyrecipes_category_slider_title', 'Browse by C
 $slider_subtitle = get_theme_mod( 'cozyrecipes_category_slider_subtitle', 'Discover delicious recipes organized by category' );
 $categories_count = get_theme_mod( 'cozyrecipes_category_slider_count', 8 );
 
-// Get categories
+// Get selected categories
+$selected_cat_ids = cozyrecipes_get_selected_categories();
+
+// Get categories - filtered by selection
 $categories = get_categories( array(
     'orderby'    => 'count',
     'order'      => 'DESC',
     'number'     => absint( $categories_count ),
     'hide_empty' => true,
+    'include'    => $selected_cat_ids,
 ) );
 
 if ( empty( $categories ) ) {
