@@ -1838,3 +1838,248 @@ function cozyrecipes_defer_category_slider_script( $tag, $handle ) {
     return $tag;
 }
 add_filter( 'script_loader_tag', 'cozyrecipes_defer_category_slider_script', 10, 2 );
+
+/* ========================================
+   EDITOR'S PICKS - ENQUEUE ASSETS
+======================================== */
+
+/**
+ * Enqueue Editor's Picks styles and scripts
+ */
+function cozyrecipes_enqueue_editors_picks() {
+    // Only load on front page or if template part is used
+    if ( ! is_front_page() ) {
+        return;
+    }
+
+    $css_file = get_template_directory() . '/assets/css/editors-picks.css';
+    $js_file = get_template_directory() . '/assets/js/editors-picks.js';
+
+    // Enqueue CSS
+    if ( file_exists( $css_file ) ) {
+        $css_version = filemtime( $css_file );
+        wp_enqueue_style(
+            'cozyrecipes-editors-picks',
+            get_template_directory_uri() . '/assets/css/editors-picks.css',
+            array(),
+            $css_version
+        );
+    }
+
+    // Enqueue JS
+    if ( file_exists( $js_file ) ) {
+        $js_version = filemtime( $js_file );
+        wp_enqueue_script(
+            'cozyrecipes-editors-picks',
+            get_template_directory_uri() . '/assets/js/editors-picks.js',
+            array(),
+            $js_version,
+            true
+        );
+    }
+}
+add_action( 'wp_enqueue_scripts', 'cozyrecipes_enqueue_editors_picks' );
+
+/**
+ * Add defer attribute to editor's picks script
+ */
+function cozyrecipes_defer_editors_picks_script( $tag, $handle ) {
+    if ( 'cozyrecipes-editors-picks' === $handle ) {
+        return str_replace( ' src', ' defer src', $tag );
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'cozyrecipes_defer_editors_picks_script', 10, 2 );
+
+/* ========================================
+   EDITOR'S PICKS - CUSTOMIZER SETTINGS
+======================================== */
+
+/**
+ * Add Editor's Picks Customizer Settings
+ */
+function cozyrecipes_editors_picks_customizer( $wp_customize ) {
+
+    // Add Section
+    $wp_customize->add_section( 'cozyrecipes_editors_picks', array(
+        'title'       => __( 'Editor\'s Picks Section', 'cozyrecipes' ),
+        'description' => __( 'Configure the Editor\'s Picks section and Author Box', 'cozyrecipes' ),
+        'priority'    => 47,
+    ) );
+
+    // === EDITOR'S PICKS SETTINGS ===
+
+    // Show/Hide Editor's Picks Section
+    $wp_customize->add_setting( 'cozyrecipes_show_editors_picks', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_editors_picks', array(
+        'label'    => __( 'Show Editor\'s Picks Section', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'checkbox',
+    ) );
+
+    // Section Title
+    $wp_customize->add_setting( 'cozyrecipes_editors_picks_title', array(
+        'default'           => 'Editor\'s Picks',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_editors_picks_title', array(
+        'label'    => __( 'Section Title', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'text',
+    ) );
+
+    // Section Subtitle
+    $wp_customize->add_setting( 'cozyrecipes_editors_picks_subtitle', array(
+        'default'           => 'Our favorite recipes selected just for you',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_editors_picks_subtitle', array(
+        'label'    => __( 'Section Subtitle', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'text',
+    ) );
+
+    // Number of Posts
+    $wp_customize->add_setting( 'cozyrecipes_editors_picks_count', array(
+        'default'           => '4',
+        'sanitize_callback' => 'absint',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_editors_picks_count', array(
+        'label'       => __( 'Number of Posts', 'cozyrecipes' ),
+        'description' => __( 'How many editor\'s pick posts to display', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 2,
+            'max'  => 8,
+            'step' => 1,
+        ),
+    ) );
+
+    // Source Type
+    $wp_customize->add_setting( 'cozyrecipes_editors_picks_source', array(
+        'default'           => 'tag',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_editors_picks_source', array(
+        'label'       => __( 'Post Source', 'cozyrecipes' ),
+        'description' => __( 'Choose how to select featured posts', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'type'        => 'select',
+        'choices'     => array(
+            'tag'      => __( 'By Tag (featured)', 'cozyrecipes' ),
+            'category' => __( 'By Category', 'cozyrecipes' ),
+        ),
+    ) );
+
+    // Category Selection
+    $wp_customize->add_setting( 'cozyrecipes_editors_picks_category', array(
+        'default'           => '',
+        'sanitize_callback' => 'absint',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_editors_picks_category', array(
+        'label'       => __( 'Featured Category', 'cozyrecipes' ),
+        'description' => __( 'Select category if "By Category" is chosen above', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'type'        => 'select',
+        'choices'     => cozyrecipes_get_categories_choices(),
+    ) );
+
+    // === AUTHOR BOX SETTINGS ===
+
+    // Show/Hide Author Box
+    $wp_customize->add_setting( 'cozyrecipes_show_author_box', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_author_box', array(
+        'label'    => __( 'Show Author Box', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'checkbox',
+    ) );
+
+    // Author Image
+    $wp_customize->add_setting( 'cozyrecipes_author_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'cozyrecipes_author_image', array(
+        'label'       => __( 'Author Photo', 'cozyrecipes' ),
+        'description' => __( 'Upload a profile photo. Recommended: 240x240px square', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'settings'    => 'cozyrecipes_author_image',
+    ) ) );
+
+    // Author Name
+    $wp_customize->add_setting( 'cozyrecipes_author_name', array(
+        'default'           => 'Chef Name',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_name', array(
+        'label'    => __( 'Author Name', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'text',
+    ) );
+
+    // Author Bio
+    $wp_customize->add_setting( 'cozyrecipes_author_bio', array(
+        'default'           => 'Passionate recipe creator sharing delicious meals and culinary adventures.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_bio', array(
+        'label'       => __( 'Author Bio', 'cozyrecipes' ),
+        'description' => __( 'Short bio (2-3 lines recommended)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'type'        => 'textarea',
+    ) );
+
+    // Instagram URL
+    $wp_customize->add_setting( 'cozyrecipes_author_instagram', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_instagram', array(
+        'label'    => __( 'Instagram URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'url',
+    ) );
+
+    // Pinterest URL
+    $wp_customize->add_setting( 'cozyrecipes_author_pinterest', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_pinterest', array(
+        'label'    => __( 'Pinterest URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'url',
+    ) );
+
+    // Facebook URL
+    $wp_customize->add_setting( 'cozyrecipes_author_facebook', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_facebook', array(
+        'label'    => __( 'Facebook URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'url',
+    ) );
+}
+add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
