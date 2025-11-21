@@ -571,6 +571,124 @@ ul, ol {
 }
 
 /* ========================================
+   FEATURED WITH SIDEBAR LAYOUT
+======================================== */
+
+.featured-with-sidebar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (min-width: 992px) {
+    .featured-with-sidebar {
+        grid-template-columns: 1fr 350px;
+        gap: 3rem;
+    }
+}
+
+.featured-main {
+    min-width: 0; /* Prevent grid blowout */
+}
+
+.featured-sidebar {
+    position: relative;
+}
+
+/* ========================================
+   ABOUT AUTHOR CARD
+======================================== */
+
+.about-author-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.about-author-card .author-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.about-author-card .author-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.about-author-card .author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.about-author-card .author-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #222;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.about-author-card .author-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ff6b6b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.about-author-card .author-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #666;
+    margin: 0;
+}
+
+.about-author-card .author-button {
+    display: inline-block;
+    background: #ff6b6b;
+    color: #fff;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.about-author-card .author-button:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+}
+
+/* Mobile: Full width card */
+@media (max-width: 991px) {
+    .about-author-card {
+        position: relative;
+        top: 0;
+    }
+
+    .about-author-card .author-image {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}
+
+/* ========================================
    CATEGORIES GRID
 ======================================== */
 

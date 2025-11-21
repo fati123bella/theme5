@@ -74,19 +74,61 @@ if ( $show_featured ) :
                     <?php endif; ?>
                 </div>
 
-                <div class="recipes-grid">
-                    <?php
-                    // D. Reset card index for LCP optimization (first card in grid)
-                    global $cozyrecipes_card_index;
-                    $cozyrecipes_card_index = 0;
+                <div class="featured-with-sidebar">
+                    <div class="featured-main">
+                        <div class="recipes-grid">
+                            <?php
+                            // D. Reset card index for LCP optimization (first card in grid)
+                            global $cozyrecipes_card_index;
+                            $cozyrecipes_card_index = 0;
 
-                    while ( $featured_query->have_posts() ) :
-                        $featured_query->the_post();
-                        get_template_part( 'template-parts/content', 'card' );
-                    endwhile;
-                    wp_reset_postdata();
-                    ?>
-                </div><!-- .recipes-grid -->
+                            while ( $featured_query->have_posts() ) :
+                                $featured_query->the_post();
+                                get_template_part( 'template-parts/content', 'card' );
+                            endwhile;
+                            wp_reset_postdata();
+                            ?>
+                        </div><!-- .recipes-grid -->
+                    </div><!-- .featured-main -->
+
+                    <?php
+                    // About Author Sidebar
+                    $show_author = get_theme_mod( 'cozyrecipes_show_about_author', true );
+                    if ( $show_author ) :
+                        $author_image = get_theme_mod( 'cozyrecipes_author_image', '' );
+                        $author_name = get_theme_mod( 'cozyrecipes_author_name', 'Chef Name' );
+                        $author_title = get_theme_mod( 'cozyrecipes_author_title', 'Recipe Creator' );
+                        $author_description = get_theme_mod( 'cozyrecipes_author_description', 'Passionate about creating delicious recipes and sharing culinary adventures.' );
+                        $author_button_text = get_theme_mod( 'cozyrecipes_author_button_text', 'Read More' );
+                        $author_button_link = get_theme_mod( 'cozyrecipes_author_button_link', '#' );
+                        ?>
+                        <aside class="featured-sidebar about-author-card">
+                            <?php if ( ! empty( $author_image ) ) : ?>
+                                <div class="author-image">
+                                    <img src="<?php echo esc_url( $author_image ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" loading="lazy" decoding="async">
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="author-info">
+                                <?php if ( ! empty( $author_name ) ) : ?>
+                                    <h3 class="author-name"><?php echo esc_html( $author_name ); ?></h3>
+                                <?php endif; ?>
+
+                                <?php if ( ! empty( $author_title ) ) : ?>
+                                    <p class="author-title"><?php echo esc_html( $author_title ); ?></p>
+                                <?php endif; ?>
+
+                                <?php if ( ! empty( $author_description ) ) : ?>
+                                    <p class="author-description"><?php echo esc_html( $author_description ); ?></p>
+                                <?php endif; ?>
+
+                                <?php if ( ! empty( $author_button_text ) && ! empty( $author_button_link ) ) : ?>
+                                    <a href="<?php echo esc_url( $author_button_link ); ?>" class="author-button"><?php echo esc_html( $author_button_text ); ?></a>
+                                <?php endif; ?>
+                            </div>
+                        </aside>
+                    <?php endif; ?>
+                </div><!-- .featured-with-sidebar -->
             </div><!-- .container -->
         </section><!-- .featured-recipes -->
         <?php

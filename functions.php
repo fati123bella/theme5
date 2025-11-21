@@ -846,6 +846,102 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     // ========================================
+    // ABOUT AUTHOR SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_about_author', array(
+        'title'       => __( 'About Author (Featured Section)', 'cozyrecipes' ),
+        'description' => __( 'Customize the About Author sidebar that appears next to Featured Recipes', 'cozyrecipes' ),
+        'priority'    => 46,
+    ) );
+
+    // Show About Author
+    $wp_customize->add_setting( 'cozyrecipes_show_about_author', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_about_author', array(
+        'label'    => __( 'Show About Author Section', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_about_author',
+        'type'     => 'checkbox',
+    ) );
+
+    // Author Image
+    $wp_customize->add_setting( 'cozyrecipes_author_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'cozyrecipes_author_image', array(
+        'label'       => __( 'Author Image', 'cozyrecipes' ),
+        'description' => __( 'Upload an image of the author. Recommended size: 300x300px', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_about_author',
+        'settings'    => 'cozyrecipes_author_image',
+    ) ) );
+
+    // Author Name
+    $wp_customize->add_setting( 'cozyrecipes_author_name', array(
+        'default'           => 'Chef Name',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_name', array(
+        'label'    => __( 'Author Name', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_about_author',
+        'type'     => 'text',
+    ) );
+
+    // Author Title
+    $wp_customize->add_setting( 'cozyrecipes_author_title', array(
+        'default'           => 'Recipe Creator',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_title', array(
+        'label'    => __( 'Author Title/Role', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_about_author',
+        'type'     => 'text',
+    ) );
+
+    // Author Description
+    $wp_customize->add_setting( 'cozyrecipes_author_description', array(
+        'default'           => 'Passionate about creating delicious recipes and sharing culinary adventures.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_description', array(
+        'label'    => __( 'Author Description', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_about_author',
+        'type'     => 'textarea',
+    ) );
+
+    // Button Text
+    $wp_customize->add_setting( 'cozyrecipes_author_button_text', array(
+        'default'           => 'Read More',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_button_text', array(
+        'label'    => __( 'Button Text', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_about_author',
+        'type'     => 'text',
+    ) );
+
+    // Button Link
+    $wp_customize->add_setting( 'cozyrecipes_author_button_link', array(
+        'default'           => '#',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_button_link', array(
+        'label'       => __( 'Button Link URL', 'cozyrecipes' ),
+        'description' => __( 'URL for the "Read More" button (e.g., /about/ or author page)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_about_author',
+        'type'        => 'url',
+    ) );
+
+    // ========================================
     // LAYOUT SECTION
     // ========================================
 
