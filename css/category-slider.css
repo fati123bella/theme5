@@ -54,41 +54,40 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
-    /* Background color applied via inline style */
+    background: none;
     border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-    color: #fff;
+    color: rgba(0, 0, 0, 0.3);
 }
 
 .category-slider-arrow:hover {
-    filter: brightness(0.9);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    transform: translateY(-50%) scale(1.1);
+    color: rgba(0, 0, 0, 0.6);
+    transform: translateY(-50%) scale(1.15);
 }
 
 .category-slider-arrow:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: translateY(-50%) scale(0.9);
 }
 
 .category-slider-arrow:focus {
-    outline: 2px solid currentColor;
+    outline: 2px solid rgba(0, 0, 0, 0.3);
     outline-offset: 2px;
+    border-radius: 4px;
 }
 
 .category-slider-arrow-prev {
-    left: 0;
+    left: 10px;
 }
 
 .category-slider-arrow-next {
-    right: 0;
+    right: 10px;
 }
 
 /* Hide arrows when slider doesn't need scrolling */
@@ -97,30 +96,19 @@
     pointer-events: none;
 }
 
-/* Desktop: Position arrows outside slider area */
+/* Desktop: Position arrows on the sides */
 @media (min-width: 769px) {
     .category-slider-arrow {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
     }
 
     .category-slider-arrow-prev {
-        left: -60px;
+        left: 0;
     }
 
     .category-slider-arrow-next {
-        right: -60px;
-    }
-}
-
-/* Mobile: Keep arrows inside slider */
-@media (max-width: 768px) {
-    .category-slider-arrow-prev {
-        left: 10px;
-    }
-
-    .category-slider-arrow-next {
-        right: 10px;
+        right: 0;
     }
 }
 
