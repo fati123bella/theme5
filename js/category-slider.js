@@ -1,6 +1,7 @@
 /**
- * Category Slider - Mobile Carousel with Auto-scroll
- * Vertical on desktop (no JS needed), horizontal carousel on mobile
+ * Category Slider - Mobile Horizontal Scroll with Auto-scroll
+ * Desktop: No JS needed (vertical list)
+ * Mobile: Horizontal scroll with auto-scroll and swipe
  *
  * @package CozyRecipes
  */
@@ -51,9 +52,9 @@
          */
         function getItemWidth() {
             if (items.length === 0) return 0;
-            const itemStyle = window.getComputedStyle(items[0]);
             const itemWidth = items[0].offsetWidth;
-            const gap = parseFloat(itemStyle.marginRight) || 16;
+            const trackStyle = window.getComputedStyle(track);
+            const gap = parseFloat(trackStyle.gap) || 32; // 2rem default
             return itemWidth + gap;
         }
 
@@ -85,8 +86,7 @@
             currentIndex++;
 
             // Loop back to start when reaching the end
-            // Show 2 items at a time, so max index is items.length - 2
-            if (currentIndex >= items.length - 1) {
+            if (currentIndex >= items.length) {
                 currentIndex = 0;
             }
 
@@ -291,7 +291,7 @@
             track.addEventListener('touchmove', handleTouchMove, { passive: true });
             track.addEventListener('touchend', handleTouchEnd);
 
-            // Mouse drag events (optional, for desktop testing)
+            // Mouse drag events (for mobile simulation)
             track.addEventListener('mousedown', handleMouseDown);
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
