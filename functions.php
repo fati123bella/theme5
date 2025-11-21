@@ -385,14 +385,6 @@ function cozyrecipes_scripts() {
     // C. Enqueue theme JavaScript (will be deferred via filter below)
     wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), $js_version, true );
 
-    // Enqueue categories slider script on front page
-    $slider_file = get_template_directory() . '/js/slider.js';
-    $slider_version = file_exists( $slider_file ) ? filemtime( $slider_file ) : $theme_version;
-
-    if ( is_front_page() || is_home() ) {
-        wp_enqueue_script( 'cozyrecipes-slider', get_template_directory_uri() . '/js/slider.js', array(), $slider_version, true );
-    }
-
     // Enqueue comment reply script only when needed
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
         wp_enqueue_script( 'comment-reply' );
@@ -457,7 +449,7 @@ add_action( 'init', 'cozyrecipes_remove_head_links' );
  * Add defer attribute to scripts
  */
 function cozyrecipes_defer_scripts( $tag, $handle ) {
-    $defer_scripts = array( 'cozyrecipes-navigation', 'cozyrecipes-slider' );
+    $defer_scripts = array( 'cozyrecipes-navigation' );
 
     if ( in_array( $handle, $defer_scripts, true ) ) {
         return str_replace( ' src', ' defer src', $tag );
@@ -1281,3 +1273,374 @@ function cozyrecipes_language_attributes( $output ) {
     return $output;
 }
 add_filter( 'language_attributes', 'cozyrecipes_language_attributes' );
+
+/* ========================================
+   CATEGORY SLIDER - TERM META REGISTRATION
+======================================== */
+
+/**
+ * Register custom term meta fields for categories
+ */
+function cozyrecipes_register_category_meta() {
+    register_term_meta( 'category', 'category_icon', array(
+        'type'              => 'string',
+        'description'       => 'Custom icon URL for category',
+        'single'            => true,
+        'sanitize_callback' => 'esc_url_raw',
+        'show_in_rest'      => true,
+    ) );
+
+    register_term_meta( 'category', 'category_color', array(
+        'type'              => 'string',
+        'description'       => 'Custom color for category icon background',
+        'single'            => true,
+        'sanitize_callback' => 'sanitize_hex_color',
+        'show_in_rest'      => true,
+    ) );
+
+    register_term_meta( 'category', 'category_custom_count', array(
+        'type'              => 'integer',
+        'description'       => 'Custom badge number for category (optional)',
+        'single'            => true,
+        'sanitize_callback' => 'absint',
+        'show_in_rest'      => true,
+    ) );
+}
+add_action( 'init', 'cozyrecipes_register_category_meta' );
+
+/* ========================================
+   CATEGORY SLIDER - HELPER FUNCTIONS
+======================================== */
+
+/**
+ * Get category icon URL with fallback to emoji
+ */
+function cozyrecipes_get_category_icon( $category_id, $category_slug = '' ) {
+    $icon_url = get_term_meta( $category_id, 'category_icon', true );
+    
+    if ( ! empty( $icon_url ) ) {
+        return $icon_url;
+    }
+    
+    // Fallback emoji mapping
+    $emoji_map = array(
+        'breakfast'  => '🍳',
+        'lunch'      => '🥗',
+        'dinner'     => '🍽️',
+        'dessert'    => '🍰',
+        'desserts'   => '🍰',
+        'appetizer'  => '🥙',
+        'appetizers' => '🥙',
+        'salad'      => '🥗',
+        'salads'     => '🥗',
+        'soup'       => '🍲',
+        'soups'      => '🍲',
+        'pasta'      => '🍝',
+        'pizza'      => '🍕',
+        'burger'     => '🍔',
+        'burgers'    => '🍔',
+        'sandwich'   => '🥪',
+        'sandwiches' => '🥪',
+        'vegan'      => '🌱',
+        'vegetarian' => '🥕',
+        'seafood'    => '🐟',
+        'chicken'    => '🍗',
+        'beef'       => '🥩',
+        'pork'       => '🥓',
+        'bread'      => '🍞',
+        'baking'     => '🥖',
+        'cookies'    => '🍪',
+        'cake'       => '🎂',
+        'cakes'      => '🎂',
+        'drinks'     => '🥤',
+        'smoothie'   => '🥤',
+        'smoothies'  => '🥤',
+    );
+    
+    return isset( $emoji_map[ $category_slug ] ) ? $emoji_map[ $category_slug ] : '🍴';
+}
+
+/**
+ * Get category color with fallback
+ */
+function cozyrecipes_get_category_color( $category_id ) {
+    $color = get_term_meta( $category_id, 'category_color', true );
+    return ! empty( $color ) ? $color : '#ff6b6b';
+}
+
+/**
+ * Get category badge count (custom or real post count)
+ */
+function cozyrecipes_get_category_count( $category_id, $real_count = 0 ) {
+    $custom_count = get_term_meta( $category_id, 'category_custom_count', true );
+    return ! empty( $custom_count ) ? absint( $custom_count ) : absint( $real_count );
+}
+
+/**
+ * Check if category slider is enabled
+ */
+function cozyrecipes_is_category_slider_enabled() {
+    return get_theme_mod( 'cozyrecipes_enable_category_slider', true );
+}
+
+/* ========================================
+   CATEGORY SLIDER - CUSTOMIZER PANEL
+======================================== */
+
+/**
+ * Add Category Slider Customizer Panel and Controls
+ */
+function cozyrecipes_category_slider_customizer( $wp_customize ) {
+    
+    // Add Category Slider Panel
+    $wp_customize->add_panel( 'cozyrecipes_category_slider', array(
+        'title'       => __( 'Category Slider Settings', 'cozyrecipes' ),
+        'description' => __( 'Customize category icons, colors, and badge numbers', 'cozyrecipes' ),
+        'priority'    => 35,
+    ) );
+    
+    // General Settings Section
+    $wp_customize->add_section( 'cozyrecipes_category_slider_general', array(
+        'title'       => __( 'General Settings', 'cozyrecipes' ),
+        'panel'       => 'cozyrecipes_category_slider',
+        'priority'    => 10,
+    ) );
+    
+    // Enable/Disable Category Slider
+    $wp_customize->add_setting( 'cozyrecipes_enable_category_slider', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+        'transport'         => 'refresh',
+    ) );
+    
+    $wp_customize->add_control( 'cozyrecipes_enable_category_slider', array(
+        'label'       => __( 'Enable Category Slider', 'cozyrecipes' ),
+        'description' => __( 'Show/hide the category slider on homepage', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_category_slider_general',
+        'type'        => 'checkbox',
+    ) );
+    
+    // Slider Title
+    $wp_customize->add_setting( 'cozyrecipes_category_slider_title', array(
+        'default'           => 'Browse by Category',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ) );
+    
+    $wp_customize->add_control( 'cozyrecipes_category_slider_title', array(
+        'label'       => __( 'Slider Title', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_category_slider_general',
+        'type'        => 'text',
+    ) );
+    
+    // Slider Subtitle
+    $wp_customize->add_setting( 'cozyrecipes_category_slider_subtitle', array(
+        'default'           => 'Discover delicious recipes organized by category',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ) );
+    
+    $wp_customize->add_control( 'cozyrecipes_category_slider_subtitle', array(
+        'label'       => __( 'Slider Subtitle', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_category_slider_general',
+        'type'        => 'text',
+    ) );
+    
+    // Number of categories to show
+    $wp_customize->add_setting( 'cozyrecipes_category_slider_count', array(
+        'default'           => 8,
+        'sanitize_callback' => 'absint',
+        'transport'         => 'refresh',
+    ) );
+    
+    $wp_customize->add_control( 'cozyrecipes_category_slider_count', array(
+        'label'       => __( 'Number of Categories', 'cozyrecipes' ),
+        'description' => __( 'How many categories to display in the slider', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_category_slider_general',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 1,
+            'max'  => 20,
+            'step' => 1,
+        ),
+    ) );
+    
+    // Auto-scroll speed (mobile)
+    $wp_customize->add_setting( 'cozyrecipes_category_slider_speed', array(
+        'default'           => 3000,
+        'sanitize_callback' => 'absint',
+        'transport'         => 'refresh',
+    ) );
+    
+    $wp_customize->add_control( 'cozyrecipes_category_slider_speed', array(
+        'label'       => __( 'Auto-scroll Speed (ms)', 'cozyrecipes' ),
+        'description' => __( 'Mobile carousel auto-scroll interval in milliseconds', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_category_slider_general',
+        'type'        => 'number',
+        'input_attrs' => array(
+            'min'  => 1000,
+            'max'  => 10000,
+            'step' => 500,
+        ),
+    ) );
+    
+    // Get all categories
+    $categories = get_categories( array(
+        'orderby'    => 'count',
+        'order'      => 'DESC',
+        'hide_empty' => true,
+    ) );
+    
+    // Create a section for each category
+    foreach ( $categories as $index => $category ) {
+        $section_id = 'cozyrecipes_category_' . $category->term_id;
+        
+        // Add section for this category
+        $wp_customize->add_section( $section_id, array(
+            'title'       => sprintf( __( '%s Settings', 'cozyrecipes' ), $category->name ),
+            'panel'       => 'cozyrecipes_category_slider',
+            'priority'    => 20 + $index,
+        ) );
+        
+        // Category Icon Upload
+        $wp_customize->add_setting( $section_id . '_icon', array(
+            'default'           => '',
+            'sanitize_callback' => 'esc_url_raw',
+            'transport'         => 'refresh',
+        ) );
+        
+        $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, $section_id . '_icon', array(
+            'label'       => __( 'Category Icon', 'cozyrecipes' ),
+            'description' => __( 'Upload a custom icon (SVG, PNG, or JPG). Recommended size: 128x128px', 'cozyrecipes' ),
+            'section'     => $section_id,
+            'settings'    => $section_id . '_icon',
+        ) ) );
+        
+        // Category Color
+        $wp_customize->add_setting( $section_id . '_color', array(
+            'default'           => '#ff6b6b',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'refresh',
+        ) );
+        
+        $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, $section_id . '_color', array(
+            'label'       => __( 'Icon Background Color', 'cozyrecipes' ),
+            'description' => __( 'Choose a color for the icon background', 'cozyrecipes' ),
+            'section'     => $section_id,
+            'settings'    => $section_id . '_color',
+        ) ) );
+        
+        // Custom Badge Number
+        $wp_customize->add_setting( $section_id . '_count', array(
+            'default'           => '',
+            'sanitize_callback' => 'absint',
+            'transport'         => 'refresh',
+        ) );
+        
+        $wp_customize->add_control( $section_id . '_count', array(
+            'label'       => __( 'Custom Badge Number', 'cozyrecipes' ),
+            'description' => sprintf( __( 'Leave empty to show real post count (%d posts)', 'cozyrecipes' ), $category->count ),
+            'section'     => $section_id,
+            'type'        => 'number',
+            'input_attrs' => array(
+                'min'         => 0,
+                'placeholder' => $category->count,
+            ),
+        ) );
+    }
+}
+add_action( 'customize_register', 'cozyrecipes_category_slider_customizer' );
+
+/**
+ * Save Customizer values to term meta
+ */
+function cozyrecipes_save_category_customizer_values() {
+    $categories = get_categories( array( 'hide_empty' => true ) );
+    
+    foreach ( $categories as $category ) {
+        $section_id = 'cozyrecipes_category_' . $category->term_id;
+        
+        // Save icon
+        $icon = get_theme_mod( $section_id . '_icon', '' );
+        if ( ! empty( $icon ) ) {
+            update_term_meta( $category->term_id, 'category_icon', esc_url_raw( $icon ) );
+        }
+        
+        // Save color
+        $color = get_theme_mod( $section_id . '_color', '' );
+        if ( ! empty( $color ) ) {
+            update_term_meta( $category->term_id, 'category_color', sanitize_hex_color( $color ) );
+        }
+        
+        // Save custom count
+        $count = get_theme_mod( $section_id . '_count', '' );
+        if ( ! empty( $count ) ) {
+            update_term_meta( $category->term_id, 'category_custom_count', absint( $count ) );
+        } else {
+            delete_term_meta( $category->term_id, 'category_custom_count' );
+        }
+    }
+}
+add_action( 'customize_save_after', 'cozyrecipes_save_category_customizer_values' );
+
+/* ========================================
+   CATEGORY SLIDER - ENQUEUE ASSETS
+======================================== */
+
+/**
+ * Enqueue category slider assets
+ */
+function cozyrecipes_enqueue_category_slider() {
+    // Only enqueue on pages where slider is shown
+    if ( ! is_front_page() && ! is_home() ) {
+        return;
+    }
+    
+    // Check if slider is enabled
+    if ( ! cozyrecipes_is_category_slider_enabled() ) {
+        return;
+    }
+    
+    $theme_version = wp_get_theme()->get( 'Version' );
+    
+    // Enqueue CSS
+    $css_file = get_template_directory() . '/css/category-slider.css';
+    $css_version = file_exists( $css_file ) ? filemtime( $css_file ) : $theme_version;
+    
+    wp_enqueue_style( 
+        'cozyrecipes-category-slider', 
+        get_template_directory_uri() . '/css/category-slider.css', 
+        array(), 
+        $css_version, 
+        'all' 
+    );
+    
+    // Enqueue JS
+    $js_file = get_template_directory() . '/js/category-slider.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
+    
+    wp_enqueue_script( 
+        'cozyrecipes-category-slider', 
+        get_template_directory_uri() . '/js/category-slider.js', 
+        array(), 
+        $js_version, 
+        true 
+    );
+    
+    // Pass settings to JS
+    wp_localize_script( 'cozyrecipes-category-slider', 'categorySliderSettings', array(
+        'autoScrollSpeed' => get_theme_mod( 'cozyrecipes_category_slider_speed', 3000 ),
+    ) );
+}
+add_action( 'wp_enqueue_scripts', 'cozyrecipes_enqueue_category_slider' );
+
+/**
+ * Add defer attribute to category slider script
+ */
+function cozyrecipes_defer_category_slider_script( $tag, $handle ) {
+    if ( 'cozyrecipes-category-slider' === $handle ) {
+        return str_replace( ' src', ' defer src', $tag );
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'cozyrecipes_defer_category_slider_script', 10, 2 );

@@ -1,0 +1,324 @@
+/**
+ * Category Slider Styles
+ * Vertical layout on desktop, horizontal carousel on mobile
+ *
+ * @package CozyRecipes
+ */
+
+/* ========================================
+   SECTION CONTAINER
+======================================== */
+
+.category-slider-section {
+    padding: 2rem 0 3rem;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+.category-slider-section .section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.category-slider-section .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #222;
+}
+
+.category-slider-section .section-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+}
+
+/* ========================================
+   SLIDER CONTAINER
+======================================== */
+
+.category-slider {
+    position: relative;
+    width: 100%;
+}
+
+.category-slider-track {
+    display: flex;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   DESKTOP LAYOUT - VERTICAL
+======================================== */
+
+@media (min-width: 769px) {
+    .category-slider-track {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .category-slider-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 1rem 1.5rem;
+        background: #fff;
+        border: 2px solid #f0f0f0;
+        border-radius: 16px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .category-slider-item:hover {
+        border-color: #ff6b6b;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
+        transform: translateX(8px);
+    }
+
+    .category-slider-item:focus {
+        outline: 2px solid #ff6b6b;
+        outline-offset: 2px;
+    }
+
+    .category-icon {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .category-slider-item:hover .category-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .category-name {
+        flex: 1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #222;
+        margin: 0;
+    }
+
+    .category-badge {
+        flex-shrink: 0;
+        background: #ff6b6b;
+        color: #fff;
+        padding: 0.375rem 0.875rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        min-width: 40px;
+        text-align: center;
+    }
+}
+
+/* ========================================
+   MOBILE LAYOUT - HORIZONTAL CAROUSEL
+======================================== */
+
+@media (max-width: 768px) {
+    .category-slider {
+        overflow: hidden;
+        position: relative;
+    }
+
+    .category-slider-track {
+        flex-direction: row;
+        gap: 1rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE and Edge */
+        padding: 0 0.5rem 0.5rem;
+    }
+
+    /* Hide scrollbar for Chrome/Safari */
+    .category-slider-track::-webkit-scrollbar {
+        display: none;
+    }
+
+    .category-slider-item {
+        flex-shrink: 0;
+        width: calc(50% - 0.5rem);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.25rem 1rem;
+        background: #fff;
+        border: 2px solid #f0f0f0;
+        border-radius: 16px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        scroll-snap-align: start;
+        position: relative;
+    }
+
+    .category-slider-item:active {
+        transform: scale(0.98);
+        border-color: #ff6b6b;
+    }
+
+    .category-icon {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .category-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #222;
+        margin: 0 0 0.5rem;
+        line-height: 1.3;
+    }
+
+    .category-badge {
+        background: #ff6b6b;
+        color: #fff;
+        padding: 0.25rem 0.75rem;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 32px;
+        text-align: center;
+    }
+}
+
+/* ========================================
+   ICON CONTENT
+======================================== */
+
+.category-emoji {
+    font-size: 2.25rem;
+    line-height: 1;
+    display: block;
+}
+
+.category-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ========================================
+   EXTRA SMALL MOBILE
+======================================== */
+
+@media (max-width: 480px) {
+    .category-slider-section {
+        padding: 1.5rem 0 2rem;
+    }
+
+    .category-slider-section .section-title {
+        font-size: 1.5rem;
+    }
+
+    .category-slider-section .section-subtitle {
+        font-size: 1rem;
+    }
+
+    .category-slider-item {
+        padding: 1rem 0.75rem;
+    }
+
+    .category-icon {
+        width: 56px;
+        height: 56px;
+    }
+
+    .category-emoji {
+        font-size: 2rem;
+    }
+
+    .category-name {
+        font-size: 0.95rem;
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+.category-slider-item:focus-visible {
+    outline: 2px solid #ff6b6b;
+    outline-offset: 2px;
+    border-color: #ff6b6b;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .category-slider-track,
+    .category-slider-item,
+    .category-icon {
+        transition: none;
+    }
+}
+
+/* ========================================
+   LOADING STATE
+======================================== */
+
+.category-slider-item.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ========================================
+   NO CLS - FIXED SIZES
+======================================== */
+
+/* Reserve space for icons to prevent layout shift */
+.category-icon {
+    position: relative;
+}
+
+.category-icon::before {
+    content: '';
+    display: block;
+    padding-top: 100%; /* 1:1 aspect ratio */
+}
+
+.category-icon > * {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ========================================
+   PRINT STYLES
+======================================== */
+
+@media print {
+    .category-slider-section {
+        page-break-inside: avoid;
+    }
+
+    .category-slider-item {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+
+    .category-slider-item:hover {
+        transform: none !important;
+    }
+}
