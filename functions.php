@@ -186,7 +186,8 @@ function cozyrecipes_widgets_init() {
 add_action( 'widgets_init', 'cozyrecipes_widgets_init' );
 
 /**
- * Add critical inline CSS for instant rendering
+ * A. Add critical inline CSS for instant rendering - PREVENTS CLS
+ * Expanded to include recipe grid aspect-ratio for above-the-fold content
  */
 function cozyrecipes_critical_css() {
     ?>
@@ -215,8 +216,8 @@ function cozyrecipes_critical_css() {
         .hamburger{width:24px;height:20px;display:flex;flex-direction:column;justify-content:space-between}
         .hamburger span{display:block;height:2px;width:100%;background:#333;transition:all .3s ease}
 
-        /* Hero Section (Search only) */
-        .hero-section{position:relative;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;padding:2rem 0;text-align:center;border-bottom:1px solid #eee}
+        /* A. Hero Section - MIN-HEIGHT prevents CLS (140px on mobile, 180px desktop) */
+        .hero-section{position:relative;width:100%;min-height:140px;display:flex;align-items:center;justify-content:center;background:#fff;padding:2rem 0;text-align:center;border-bottom:1px solid #eee}
         .hero-content{max-width:700px;width:100%;padding:0 1.5rem;margin:0 auto}
         .hero-search{margin:0}
         .hero-search-form{display:flex;max-width:600px;margin:0 auto;background:#fff;border:2px solid #e0e0e0;border-radius:50px;overflow:hidden;transition:all .3s ease}
@@ -225,6 +226,18 @@ function cozyrecipes_critical_css() {
         .hero-search-form input[type="search"]::placeholder{color:#999}
         .hero-search-form button{background:#ff6b6b;color:#fff;border:none;padding:1rem 2rem;font-size:1rem;font-weight:600;cursor:pointer;transition:all .3s ease;white-space:nowrap}
 
+        /* A. Recipe Grid - ASPECT-RATIO prevents CLS on images (2:3 ratio = 600x900) */
+        .recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem;margin-top:2rem}
+        .recipe-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:all .3s ease}
+        .recipe-card-image{position:relative;aspect-ratio:2/3;width:100%;overflow:hidden;background:#f0f0f0}
+        .recipe-card-image img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+
+        /* D. Section Header spacing */
+        .content-section{padding:3rem 0}
+        .section-header{text-align:center;margin-bottom:2rem}
+        .section-title{font-size:2rem;margin-bottom:0.5rem;font-weight:700}
+        .section-subtitle{color:#666;font-size:1.1rem}
+
         /* Utilities */
         .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
         .screen-reader-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
@@ -232,7 +245,7 @@ function cozyrecipes_critical_css() {
 
         /* Mobile */
         @media (max-width:768px){
-            .hero-section{padding:1.5rem 0}
+            .hero-section{padding:1.5rem 0;min-height:120px}
             .hero-search-form{max-width:100%}
             .hero-search-form input[type="search"]{padding:.875rem 1.25rem;font-size:.95rem}
             .hero-search-form button{padding:.875rem 1.5rem;font-size:.95rem}
@@ -240,6 +253,9 @@ function cozyrecipes_critical_css() {
             .mobile-menu-toggle{display:flex;flex-direction:column;align-items:center;justify-content:center}
             .site-title{font-size:1.5rem}
             .header-container{padding:.875rem 1rem}
+            .recipes-grid{grid-template-columns:1fr;gap:1.5rem}
+            .content-section{padding:2rem 0}
+            .section-title{font-size:1.5rem}
         }
     </style>
     <?php
@@ -247,17 +263,24 @@ function cozyrecipes_critical_css() {
 add_action( 'wp_head', 'cozyrecipes_critical_css', 1 );
 
 /**
- * Add preconnect and optimized font loading
+ * E. Add DNS prefetch and resource hints - SAVES ~100ms per origin
+ * F. Direct WOFF2 font preload - FASTER than CSS @font-face
  */
 function cozyrecipes_resource_hints() {
     ?>
-    <!-- Preload main stylesheet for faster loading -->
-    <link rel="preload" as="style" href="<?php echo esc_url( get_stylesheet_uri() ); ?>">
+    <!-- F. DNS Prefetch saves ~100ms per origin -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
 
-    <!-- Preconnect to font resources -->
+    <!-- E. Preconnect to font resources (with crossorigin for fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+    <!-- E. Direct WOFF2 preload - MUST have crossorigin for fonts -->
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" crossorigin>
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2" crossorigin>
+
+    <!-- E. Defer font CSS with media print trick -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
     <?php
@@ -265,33 +288,104 @@ function cozyrecipes_resource_hints() {
 add_action( 'wp_head', 'cozyrecipes_resource_hints', 2 );
 
 /**
- * Preload LCP image for better performance
+ * D. Preload LCP image with responsive srcset/sizes - CRITICAL for LCP
+ * Homepage: First recipe card image (usually Featured section)
+ * Single posts: Featured image
  */
 function cozyrecipes_preload_lcp_image() {
-    // Preload featured image on single posts (hero no longer uses images)
+    // D. Single posts: Featured image is LCP element
     if ( is_singular( 'post' ) && has_post_thumbnail() ) {
-        $featured_image = get_the_post_thumbnail_url( get_the_ID(), 'full' );
-        if ( $featured_image ) {
-            echo '<link rel="preload" as="image" href="' . esc_url( $featured_image ) . '" fetchpriority="high">' . "\n";
+        $post_id = get_the_ID();
+        $attachment_id = get_post_thumbnail_id( $post_id );
+
+        if ( $attachment_id ) {
+            $image_meta = wp_get_attachment_metadata( $attachment_id );
+            $full_src = wp_get_attachment_image_src( $attachment_id, 'full' );
+
+            if ( $full_src ) {
+                // Generate responsive srcset
+                $srcset = wp_get_attachment_image_srcset( $attachment_id, 'full' );
+                $sizes = wp_get_attachment_image_sizes( $attachment_id, 'full' );
+
+                if ( $srcset && $sizes ) {
+                    echo '<link rel="preload" as="image" href="' . esc_url( $full_src[0] ) . '" imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="' . esc_attr( $sizes ) . '" fetchpriority="high">' . "\n";
+                } else {
+                    echo '<link rel="preload" as="image" href="' . esc_url( $full_src[0] ) . '" fetchpriority="high">' . "\n";
+                }
+            }
         }
+    }
+    // D. Homepage: First recipe card image is LCP element
+    elseif ( is_front_page() || is_home() ) {
+        // Query first featured/latest recipe to preload its thumbnail
+        $show_featured = get_theme_mod( 'cozyrecipes_show_featured', true );
+        $featured_category = get_theme_mod( 'cozyrecipes_featured_category', '' );
+
+        $lcp_args = array(
+            'post_type'      => 'post',
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+        );
+
+        // Use same logic as front-page.php
+        if ( $show_featured ) {
+            if ( ! empty( $featured_category ) ) {
+                $lcp_args['cat'] = absint( $featured_category );
+            } else {
+                $lcp_args['tag'] = 'featured';
+            }
+        }
+
+        $lcp_query = new WP_Query( $lcp_args );
+
+        if ( ! empty( $lcp_query->posts ) ) {
+            $first_post_id = $lcp_query->posts[0];
+            $attachment_id = get_post_thumbnail_id( $first_post_id );
+
+            if ( $attachment_id ) {
+                $thumbnail_src = wp_get_attachment_image_src( $attachment_id, 'cozyrecipes-thumbnail' );
+
+                if ( $thumbnail_src ) {
+                    // Generate responsive srcset for 2:3 ratio thumbnail (600x900)
+                    $srcset = wp_get_attachment_image_srcset( $attachment_id, 'cozyrecipes-thumbnail' );
+                    $sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px';
+
+                    if ( $srcset ) {
+                        echo '<link rel="preload" as="image" href="' . esc_url( $thumbnail_src[0] ) . '" imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="' . esc_attr( $sizes ) . '" fetchpriority="high">' . "\n";
+                    } else {
+                        echo '<link rel="preload" as="image" href="' . esc_url( $thumbnail_src[0] ) . '" fetchpriority="high">' . "\n";
+                    }
+                }
+            }
+        }
+
+        wp_reset_postdata();
     }
 }
 add_action( 'wp_head', 'cozyrecipes_preload_lcp_image', 2 );
 
 /**
- * Enqueue Scripts and Styles
+ * C & F. Enqueue Scripts and Styles with filemtime() versioning
+ * filemtime() = intelligent cache busting (only updates when file changes)
  */
 function cozyrecipes_scripts() {
-    // Remove Google Fonts from wp_enqueue (we'll add it with better method)
-    // wp_enqueue_style removed - using preload instead
+    $theme_version = wp_get_theme()->get( 'Version' );
 
-    // Enqueue theme stylesheet with media print trick for non-blocking
-    wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ), 'all' );
+    // F. Use file modification time for intelligent cache busting
+    $style_file = get_template_directory() . '/style.css';
+    $style_version = file_exists( $style_file ) ? filemtime( $style_file ) : $theme_version;
 
-    // Enqueue theme JavaScript with defer
-    wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), wp_get_theme()->get( 'Version' ), true );
+    $js_file = get_template_directory() . '/js/navigation.js';
+    $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
 
-    // Enqueue comment reply script
+    // B. Enqueue theme stylesheet (will be deferred via filter below)
+    wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), $style_version, 'all' );
+
+    // C. Enqueue theme JavaScript (will be deferred via filter below)
+    wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), $js_version, true );
+
+    // Enqueue comment reply script only when needed
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
         wp_enqueue_script( 'comment-reply' );
     }
