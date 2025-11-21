@@ -1426,6 +1426,7 @@ class CozyRecipes_Multi_Checkbox_Control extends WP_Customize_Control {
         }
 
         $multi_values = ! is_array( $this->value() ) ? explode( ',', $this->value() ) : $this->value();
+        $name = '_customize-multi-checkbox-' . $this->id;
         ?>
         <label>
             <span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
@@ -1437,7 +1438,9 @@ class CozyRecipes_Multi_Checkbox_Control extends WP_Customize_Control {
                     <li style="margin-bottom: 5px;">
                         <label>
                             <input type="checkbox"
+                                   name="<?php echo esc_attr( $name ); ?>"
                                    value="<?php echo esc_attr( $value ); ?>"
+                                   class="<?php echo esc_attr( $name ); ?>"
                                    <?php checked( in_array( $value, $multi_values ) ); ?>
                                    style="margin-right: 5px;" />
                             <?php echo esc_html( $label ); ?>
@@ -1445,15 +1448,19 @@ class CozyRecipes_Multi_Checkbox_Control extends WP_Customize_Control {
                     </li>
                 <?php endforeach; ?>
             </ul>
+            <input type="hidden" <?php $this->link(); ?> value="<?php echo esc_attr( implode( ',', $multi_values ) ); ?>" />
         </label>
         <script>
         jQuery(document).ready(function($) {
-            $('[data-customize-setting-link="<?php echo esc_attr( $this->id ); ?>"] input[type="checkbox"]').on('change', function() {
+            var checkboxes = $('.<?php echo esc_js( $name ); ?>');
+            var hiddenInput = $('input[data-customize-setting-link="<?php echo esc_js( $this->settings['default']->id ); ?>"]');
+
+            checkboxes.on('change', function() {
                 var values = [];
-                $('[data-customize-setting-link="<?php echo esc_attr( $this->id ); ?>"] input:checked').each(function() {
+                checkboxes.filter(':checked').each(function() {
                     values.push($(this).val());
                 });
-                $(this).parents('label').first().find('input[type="hidden"]').val(values.join(',')).trigger('change');
+                hiddenInput.val(values.join(',')).trigger('change');
             });
         });
         </script>
