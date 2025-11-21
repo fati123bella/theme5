@@ -21,6 +21,8 @@
 
         const track = slider.querySelector('.category-slider-track');
         const items = Array.from(track.querySelectorAll('.category-slider-item'));
+        const prevArrow = slider.querySelector('.category-slider-arrow-prev');
+        const nextArrow = slider.querySelector('.category-slider-arrow-next');
 
         if (!track || items.length === 0) return;
 
@@ -80,6 +82,38 @@
             }
 
             scrollToIndex(currentIndex);
+        }
+
+        /**
+         * Go to previous item
+         */
+        function goToPrevious() {
+            currentIndex--;
+
+            // Loop to end when at the start
+            if (currentIndex < 0) {
+                currentIndex = items.length - 1;
+            }
+
+            scrollToIndex(currentIndex);
+        }
+
+        /**
+         * Update arrow visibility based on scroll overflow
+         */
+        function updateArrowVisibility() {
+            if (!prevArrow || !nextArrow) return;
+
+            // Check if content overflows
+            const hasOverflow = track.scrollWidth > track.clientWidth;
+
+            if (hasOverflow) {
+                prevArrow.classList.remove('hidden');
+                nextArrow.classList.remove('hidden');
+            } else {
+                prevArrow.classList.add('hidden');
+                nextArrow.classList.add('hidden');
+            }
         }
 
         /**
@@ -237,12 +271,32 @@
             const itemWidth = getItemWidth();
             currentIndex = Math.round(track.scrollLeft / itemWidth);
             scrollToIndex(currentIndex, false);
+
+            // Update arrow visibility
+            updateArrowVisibility();
         }
 
         /**
          * Initialize event listeners
          */
         function initEvents() {
+            // Arrow click events
+            if (prevArrow) {
+                prevArrow.addEventListener('click', function() {
+                    pauseAutoScroll();
+                    goToPrevious();
+                    setTimeout(resumeAutoScroll, 3000);
+                });
+            }
+
+            if (nextArrow) {
+                nextArrow.addEventListener('click', function() {
+                    pauseAutoScroll();
+                    goToNext();
+                    setTimeout(resumeAutoScroll, 3000);
+                });
+            }
+
             // Hover events
             slider.addEventListener('mouseenter', handleMouseEnter);
             slider.addEventListener('mouseleave', handleMouseLeave);
@@ -286,6 +340,9 @@
         function init() {
             // Set initial scroll position
             scrollToIndex(0, false);
+
+            // Update arrow visibility
+            updateArrowVisibility();
 
             // Start auto-scroll
             startAutoScroll();

@@ -14,6 +14,7 @@ if ( ! cozyrecipes_is_category_slider_enabled() ) {
 $slider_title = get_theme_mod( 'cozyrecipes_category_slider_title', 'Browse by Category' );
 $slider_subtitle = get_theme_mod( 'cozyrecipes_category_slider_subtitle', 'Discover delicious recipes organized by category' );
 $categories_count = get_theme_mod( 'cozyrecipes_category_slider_count', 8 );
+$accent_color = get_theme_mod( 'cozyrecipes_accent_color', '#ff6b6b' );
 
 // Get selected categories
 $selected_cat_ids = cozyrecipes_get_selected_categories();
@@ -48,6 +49,12 @@ if ( empty( $categories ) ) {
         <?php endif; ?>
 
         <div class="category-slider" role="navigation" aria-label="<?php esc_attr_e( 'Category navigation', 'cozyrecipes' ); ?>">
+            <button class="category-slider-arrow category-slider-arrow-prev" style="background-color: <?php echo esc_attr( $accent_color ); ?>;" aria-label="<?php esc_attr_e( 'Previous categories', 'cozyrecipes' ); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+
             <div class="category-slider-track">
                 <?php foreach ( $categories as $category ) :
                     $category_link = get_category_link( $category->term_id );
@@ -90,6 +97,12 @@ if ( empty( $categories ) ) {
 
                 <?php endforeach; ?>
             </div><!-- .category-slider-track -->
+
+            <button class="category-slider-arrow category-slider-arrow-next" style="background-color: <?php echo esc_attr( $accent_color ); ?>;" aria-label="<?php esc_attr_e( 'Next categories', 'cozyrecipes' ); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
         </div><!-- .category-slider -->
 
     </div><!-- .container -->
