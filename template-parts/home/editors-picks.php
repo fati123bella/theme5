@@ -51,6 +51,10 @@ $author_bio = get_theme_mod( 'cozyrecipes_author_bio', 'Passionate recipe creato
 $author_instagram = get_theme_mod( 'cozyrecipes_author_instagram', '' );
 $author_pinterest = get_theme_mod( 'cozyrecipes_author_pinterest', '' );
 $author_facebook = get_theme_mod( 'cozyrecipes_author_facebook', '' );
+
+// Get color settings
+$badge_color = get_theme_mod( 'cozyrecipes_badge_color', '#ff6b6b' );
+$button_color = get_theme_mod( 'cozyrecipes_author_button_color', '#ff6b6b' );
 ?>
 
 <section class="editors-picks-section">
@@ -93,7 +97,7 @@ $author_facebook = get_theme_mod( 'cozyrecipes_author_facebook', '' );
                                                  decoding="async">
                                         </a>
                                         <?php if ( $first_category ) : ?>
-                                            <span class="pick-category-badge">
+                                            <span class="pick-category-badge" style="background-color: <?php echo esc_attr( $badge_color ); ?>;">
                                                 <?php echo esc_html( $first_category->name ); ?>
                                             </span>
                                         <?php endif; ?>
@@ -147,26 +151,40 @@ $author_facebook = get_theme_mod( 'cozyrecipes_author_facebook', '' );
             </section><!-- .editors-picks-content -->
 
             <!-- Right Column: Author Box -->
-            <?php if ( $show_author_box ) : ?>
+            <?php if ( $show_author_box ) :
+                $author_box_title = get_theme_mod( 'cozyrecipes_author_box_title', 'Meet the Author' );
+                $author_button_text = get_theme_mod( 'cozyrecipes_author_button_text', 'Read More' );
+                $author_button_url = get_theme_mod( 'cozyrecipes_author_button_url', '#' );
+            ?>
                 <aside class="author-box">
                     <div class="author-box-inner">
+                        <?php if ( ! empty( $author_box_title ) ) : ?>
+                            <h3 class="author-box-title"><?php echo esc_html( $author_box_title ); ?></h3>
+                        <?php endif; ?>
+
                         <?php if ( ! empty( $author_image ) ) : ?>
                             <div class="author-image">
                                 <img src="<?php echo esc_url( $author_image ); ?>"
                                      alt="<?php echo esc_attr( $author_name ); ?>"
-                                     width="120"
-                                     height="120"
+                                     width="300"
+                                     height="450"
                                      loading="lazy"
                                      decoding="async">
                             </div>
                         <?php endif; ?>
 
                         <?php if ( ! empty( $author_name ) ) : ?>
-                            <h3 class="author-name"><?php echo esc_html( $author_name ); ?></h3>
+                            <h4 class="author-name"><?php echo esc_html( $author_name ); ?></h4>
                         <?php endif; ?>
 
                         <?php if ( ! empty( $author_bio ) ) : ?>
                             <p class="author-bio"><?php echo esc_html( $author_bio ); ?></p>
+                        <?php endif; ?>
+
+                        <?php if ( ! empty( $author_button_text ) && ! empty( $author_button_url ) ) : ?>
+                            <a href="<?php echo esc_url( $author_button_url ); ?>" class="author-read-more" style="background-color: <?php echo esc_attr( $button_color ); ?>;">
+                                <?php echo esc_html( $author_button_text ); ?>
+                            </a>
                         <?php endif; ?>
 
                         <!-- Social Icons -->

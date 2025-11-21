@@ -2008,6 +2008,18 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
         'type'     => 'checkbox',
     ) );
 
+    // Author Box Title
+    $wp_customize->add_setting( 'cozyrecipes_author_box_title', array(
+        'default'           => 'Meet the Author',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_box_title', array(
+        'label'    => __( 'Author Box Title', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'text',
+    ) );
+
     // Author Image
     $wp_customize->add_setting( 'cozyrecipes_author_image', array(
         'default'           => '',
@@ -2046,6 +2058,31 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
         'type'        => 'textarea',
     ) );
 
+    // Author Button Text
+    $wp_customize->add_setting( 'cozyrecipes_author_button_text', array(
+        'default'           => 'Read More',
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_button_text', array(
+        'label'    => __( 'Button Text', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_editors_picks',
+        'type'     => 'text',
+    ) );
+
+    // Author Button URL
+    $wp_customize->add_setting( 'cozyrecipes_author_button_url', array(
+        'default'           => '#',
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_author_button_url', array(
+        'label'       => __( 'Button URL', 'cozyrecipes' ),
+        'description' => __( 'URL for the Read More button (e.g., /about/)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'type'        => 'url',
+    ) );
+
     // Instagram URL
     $wp_customize->add_setting( 'cozyrecipes_author_instagram', array(
         'default'           => '',
@@ -2081,5 +2118,33 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
         'section'  => 'cozyrecipes_editors_picks',
         'type'     => 'url',
     ) );
+
+    // === COLOR SETTINGS ===
+
+    // Badge Color
+    $wp_customize->add_setting( 'cozyrecipes_badge_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_badge_color', array(
+        'label'       => __( 'Category Badge Color', 'cozyrecipes' ),
+        'description' => __( 'Color for category badges on pick cards', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'settings'    => 'cozyrecipes_badge_color',
+    ) ) );
+
+    // Author Button Color
+    $wp_customize->add_setting( 'cozyrecipes_author_button_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_author_button_color', array(
+        'label'       => __( 'Author Button Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for the Read More button', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_editors_picks',
+        'settings'    => 'cozyrecipes_author_button_color',
+    ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
