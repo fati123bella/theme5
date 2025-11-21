@@ -53,48 +53,51 @@
 
 .category-slider-arrow {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0;
     z-index: 10;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    width: 36px;
-    height: 36px;
-    padding: 0;
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.25s ease;
-    color: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    color: #333;
+    opacity: 0.6;
 }
 
 .category-slider-arrow:hover {
-    color: rgba(0, 0, 0, 0.8);
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-50%) scale(1.1);
+    opacity: 1;
+    transform: scale(1.15);
 }
 
 .category-slider-arrow:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: scale(0.9);
 }
 
 .category-slider-arrow:focus {
-    outline: 2px solid rgba(0, 0, 0, 0.3);
+    outline: 2px solid #333;
     outline-offset: 2px;
+    border-radius: 4px;
 }
 
-/* Left arrow */
+.category-slider-arrow svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Left arrow - top left */
 .category-slider-arrow-prev {
-    left: 15px;
+    left: 0;
 }
 
-/* Right arrow */
+/* Right arrow - top right */
 .category-slider-arrow-next {
-    right: 15px;
+    right: 0;
 }
 
 /* Hide arrows when slider doesn't need scrolling */
@@ -102,24 +105,20 @@
     display: none;
 }
 
-/* Desktop: Larger arrows positioned at edges */
+/* Desktop: Better positioning and sizing */
 @media (min-width: 769px) {
     .category-slider-arrow {
-        width: 44px;
-        height: 44px;
-    }
-
-    .category-slider-arrow svg {
-        width: 24px;
-        height: 24px;
+        width: 48px;
+        height: 48px;
+        padding: 10px;
     }
 
     .category-slider-arrow-prev {
-        left: 20px;
+        left: 10px;
     }
 
     .category-slider-arrow-next {
-        right: 20px;
+        right: 10px;
     }
 }
 
@@ -133,7 +132,7 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    padding: 1rem 60px;
+    padding: 3rem 1rem 1rem 1rem;
 }
 
 /* Hide scrollbar for Chrome/Safari */
@@ -148,7 +147,7 @@
 @media (min-width: 769px) {
     .category-slider-track {
         gap: 2rem;
-        padding: 1.5rem 80px;
+        padding: 3.5rem 2rem 1.5rem 2rem;
         justify-content: flex-start;
     }
 
@@ -217,7 +216,7 @@
 @media (max-width: 768px) {
     .category-slider-track {
         gap: 1.5rem;
-        padding: 1rem 60px;
+        padding: 3rem 1rem 1rem 1rem;
         justify-content: flex-start;
     }
 
