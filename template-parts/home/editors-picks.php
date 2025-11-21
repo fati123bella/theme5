@@ -60,14 +60,6 @@ $button_color = get_theme_mod( 'cozyrecipes_author_button_color', '#ff6b6b' );
 <section class="editors-picks-section">
     <div class="<?php echo esc_attr( cozyrecipes_get_container_class() ); ?>">
 
-        <!-- Section Header -->
-        <div class="section-header">
-            <h2 class="section-title"><?php echo esc_html( $section_title ); ?></h2>
-            <?php if ( ! empty( $section_subtitle ) ) : ?>
-                <p class="section-subtitle"><?php echo esc_html( $section_subtitle ); ?></p>
-            <?php endif; ?>
-        </div>
-
         <!-- Two Column Layout -->
         <div class="editors-picks-layout">
 
@@ -96,11 +88,9 @@ $button_color = get_theme_mod( 'cozyrecipes_author_button_color', '#ff6b6b' );
                                                  loading="lazy"
                                                  decoding="async">
                                         </a>
-                                        <?php if ( $first_category ) : ?>
-                                            <span class="pick-category-badge" style="background-color: <?php echo esc_attr( $badge_color ); ?>;">
-                                                <?php echo esc_html( $first_category->name ); ?>
-                                            </span>
-                                        <?php endif; ?>
+                                        <span class="pick-category-badge" style="background-color: <?php echo esc_attr( $badge_color ); ?>;">
+                                            <?php esc_html_e( 'Editor\'s Picks', 'cozyrecipes' ); ?>
+                                        </span>
                                     </div>
                                 <?php endif; ?>
 
@@ -167,7 +157,7 @@ $button_color = get_theme_mod( 'cozyrecipes_author_button_color', '#ff6b6b' );
                                 <img src="<?php echo esc_url( $author_image ); ?>"
                                      alt="<?php echo esc_attr( $author_name ); ?>"
                                      width="300"
-                                     height="450"
+                                     height="375"
                                      loading="lazy"
                                      decoding="async">
                             </div>

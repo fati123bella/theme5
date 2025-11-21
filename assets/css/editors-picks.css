@@ -295,11 +295,11 @@
     line-height: 1.3;
 }
 
-/* Profile Image - 2:3 Aspect Ratio */
+/* Profile Image - 4:5 Aspect Ratio (matches post cards) */
 .author-image {
     position: relative;
     width: 100%;
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
     background: #f0f0f0;
 }
@@ -445,7 +445,7 @@
     }
 
     .author-image {
-        aspect-ratio: 2 / 3;
+        aspect-ratio: 4 / 5;
     }
 
     .author-name {
