@@ -71,6 +71,10 @@ if ( $show_featured ) :
 
                 <div class="recipes-grid">
                     <?php
+                    // D. Reset card index for LCP optimization (first card in grid)
+                    global $cozyrecipes_card_index;
+                    $cozyrecipes_card_index = 0;
+
                     while ( $featured_query->have_posts() ) :
                         $featured_query->the_post();
                         get_template_part( 'template-parts/content', 'card' );
@@ -118,6 +122,12 @@ if ( $latest_query->have_posts() ) :
 
             <div class="recipes-grid">
                 <?php
+                // D. Reset/maintain card index (if Featured is disabled, this is the first section)
+                global $cozyrecipes_card_index;
+                if ( ! get_theme_mod( 'cozyrecipes_show_featured', true ) ) {
+                    $cozyrecipes_card_index = 0; // Reset if this is the first visible section
+                }
+
                 while ( $latest_query->have_posts() ) :
                     $latest_query->the_post();
                     get_template_part( 'template-parts/content', 'card' );
