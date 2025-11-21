@@ -385,6 +385,14 @@ function cozyrecipes_scripts() {
     // C. Enqueue theme JavaScript (will be deferred via filter below)
     wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), $js_version, true );
 
+    // Enqueue categories slider script on front page
+    $slider_file = get_template_directory() . '/js/slider.js';
+    $slider_version = file_exists( $slider_file ) ? filemtime( $slider_file ) : $theme_version;
+
+    if ( is_front_page() || is_home() ) {
+        wp_enqueue_script( 'cozyrecipes-slider', get_template_directory_uri() . '/js/slider.js', array(), $slider_version, true );
+    }
+
     // Enqueue comment reply script only when needed
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
         wp_enqueue_script( 'comment-reply' );
@@ -449,7 +457,9 @@ add_action( 'init', 'cozyrecipes_remove_head_links' );
  * Add defer attribute to scripts
  */
 function cozyrecipes_defer_scripts( $tag, $handle ) {
-    if ( 'cozyrecipes-navigation' === $handle ) {
+    $defer_scripts = array( 'cozyrecipes-navigation', 'cozyrecipes-slider' );
+
+    if ( in_array( $handle, $defer_scripts, true ) ) {
         return str_replace( ' src', ' defer src', $tag );
     }
     return $tag;
