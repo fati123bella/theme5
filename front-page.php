@@ -38,19 +38,18 @@ get_template_part( 'template-parts/category-slider' );
 ?>
 
 <?php
-// Featured Recipes Section
+// Featured Recipes Section (Editor's Pick)
 $show_featured = get_theme_mod( 'cozyrecipes_show_featured', true );
 
 if ( $show_featured ) :
-    $featured_title = get_theme_mod( 'cozyrecipes_featured_title', 'Featured Recipes' );
-    $featured_subtitle = get_theme_mod( 'cozyrecipes_featured_subtitle', 'Our handpicked favorites just for you' );
+    $featured_title = get_theme_mod( 'cozyrecipes_featured_title', 'Editor\'s Pick' );
+    $featured_subtitle = get_theme_mod( 'cozyrecipes_featured_subtitle', 'Our top recipe recommendation just for you' );
     $featured_category = get_theme_mod( 'cozyrecipes_featured_category', '' );
-    $featured_count = get_theme_mod( 'cozyrecipes_featured_count', 6 );
 
-    // Query for featured posts
+    // Query for 1 featured post (Editor's Pick)
     $featured_args = array(
         'post_type'      => 'post',
-        'posts_per_page' => absint( $featured_count ),
+        'posts_per_page' => 1,
         'post_status'    => 'publish',
     );
 
@@ -65,7 +64,7 @@ if ( $show_featured ) :
 
     if ( $featured_query->have_posts() ) :
         ?>
-        <section class="content-section featured-recipes">
+        <section class="content-section featured-recipes editors-pick-section">
             <div class="<?php echo esc_attr( cozyrecipes_get_container_class() ); ?>">
                 <div class="section-header">
                     <h2 class="section-title"><?php echo esc_html( $featured_title ); ?></h2>
@@ -74,22 +73,55 @@ if ( $show_featured ) :
                     <?php endif; ?>
                 </div>
 
-                <div class="featured-with-sidebar">
-                    <div class="featured-main">
-                        <div class="recipes-grid">
-                            <?php
-                            // D. Reset card index for LCP optimization (first card in grid)
-                            global $cozyrecipes_card_index;
-                            $cozyrecipes_card_index = 0;
+                <div class="editors-pick-layout">
+                    <div class="editors-pick-main">
+                        <?php
+                        // Get the single featured post
+                        $featured_query->the_post();
+                        $post_id = get_the_ID();
+                        $thumbnail_url = get_the_post_thumbnail_url( $post_id, 'full' );
+                        $categories = get_the_category();
+                        $first_category = ! empty( $categories ) ? $categories[0] : null;
+                        ?>
+                        <article class="editors-pick-card">
+                            <?php if ( $thumbnail_url ) : ?>
+                                <div class="editors-pick-image">
+                                    <a href="<?php the_permalink(); ?>">
+                                        <img src="<?php echo esc_url( $thumbnail_url ); ?>"
+                                             alt="<?php the_title_attribute(); ?>"
+                                             loading="eager"
+                                             decoding="async">
+                                    </a>
+                                    <?php if ( $first_category ) : ?>
+                                        <span class="editors-pick-badge"><?php echo esc_html( $first_category->name ); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
 
-                            while ( $featured_query->have_posts() ) :
-                                $featured_query->the_post();
-                                get_template_part( 'template-parts/content', 'card' );
-                            endwhile;
-                            wp_reset_postdata();
-                            ?>
-                        </div><!-- .recipes-grid -->
-                    </div><!-- .featured-main -->
+                            <div class="editors-pick-content">
+                                <h3 class="editors-pick-title">
+                                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                                </h3>
+
+                                <div class="editors-pick-meta">
+                                    <span class="post-author">By <?php the_author(); ?></span>
+                                    <span class="meta-separator">•</span>
+                                    <time class="post-date"><?php echo get_the_date(); ?></time>
+                                </div>
+
+                                <div class="editors-pick-excerpt">
+                                    <?php echo wp_trim_words( get_the_excerpt(), 40, '...' ); ?>
+                                </div>
+
+                                <a href="<?php the_permalink(); ?>" class="editors-pick-button">
+                                    Read Full Recipe →
+                                </a>
+                            </div>
+                        </article>
+                        <?php
+                        wp_reset_postdata();
+                        ?>
+                    </div><!-- .editors-pick-main -->
 
                     <?php
                     // About Author Sidebar
@@ -102,7 +134,7 @@ if ( $show_featured ) :
                         $author_button_text = get_theme_mod( 'cozyrecipes_author_button_text', 'Read More' );
                         $author_button_link = get_theme_mod( 'cozyrecipes_author_button_link', '#' );
                         ?>
-                        <aside class="featured-sidebar about-author-card">
+                        <aside class="editors-pick-sidebar about-author-card">
                             <?php if ( ! empty( $author_image ) ) : ?>
                                 <div class="author-image">
                                     <img src="<?php echo esc_url( $author_image ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" loading="lazy" decoding="async">
@@ -128,9 +160,9 @@ if ( $show_featured ) :
                             </div>
                         </aside>
                     <?php endif; ?>
-                </div><!-- .featured-with-sidebar -->
+                </div><!-- .editors-pick-layout -->
             </div><!-- .container -->
-        </section><!-- .featured-recipes -->
+        </section><!-- .editors-pick-section -->
         <?php
     endif;
 endif;

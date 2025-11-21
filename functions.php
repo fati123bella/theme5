@@ -682,21 +682,22 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'type'     => 'checkbox',
     ) );
 
-    // Featured Section Title
+    // Featured Section Title (Editor's Pick)
     $wp_customize->add_setting( 'cozyrecipes_featured_title', array(
-        'default'           => 'Featured Recipes',
+        'default'           => 'Editor\'s Pick',
         'sanitize_callback' => 'sanitize_text_field',
     ) );
 
     $wp_customize->add_control( 'cozyrecipes_featured_title', array(
-        'label'    => __( 'Featured Section Title', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_homepage',
-        'type'     => 'text',
+        'label'       => __( 'Featured Section Title', 'cozyrecipes' ),
+        'description' => __( 'Shows 1 featured post with author sidebar', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_homepage',
+        'type'        => 'text',
     ) );
 
     // Featured Section Subtitle
     $wp_customize->add_setting( 'cozyrecipes_featured_subtitle', array(
-        'default'           => 'Our handpicked favorites just for you',
+        'default'           => 'Our top recipe recommendation just for you',
         'sanitize_callback' => 'sanitize_text_field',
     ) );
 
@@ -717,23 +718,6 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'section'  => 'cozyrecipes_homepage',
         'type'     => 'select',
         'choices'  => cozyrecipes_get_categories_choices(),
-    ) );
-
-    // Number of Featured Posts
-    $wp_customize->add_setting( 'cozyrecipes_featured_count', array(
-        'default'           => '6',
-        'sanitize_callback' => 'absint',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_featured_count', array(
-        'label'       => __( 'Number of Featured Posts', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_homepage',
-        'type'        => 'number',
-        'input_attrs' => array(
-            'min'  => 3,
-            'max'  => 12,
-            'step' => 1,
-        ),
     ) );
 
     // Show Popular Categories
