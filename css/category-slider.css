@@ -1,8 +1,8 @@
 /**
  * Category Slider Styles
- * Vertical carousel on both desktop and mobile
- * Desktop: Shows all items vertically stacked
- * Mobile: Shows only icons (bigger, no boxes)
+ * Horizontal scrolling slider on both desktop and mobile
+ * Desktop: Shows icons with names below (4-5 visible at once)
+ * Mobile: Shows only icons (bigger, 2-3 visible at once)
  *
  * @package CozyRecipes
  */
@@ -36,114 +36,108 @@
 }
 
 /* ========================================
-   SLIDER CONTAINER
+   SLIDER CONTAINER - HORIZONTAL FOR ALL
 ======================================== */
 
 .category-slider {
     position: relative;
     width: 100%;
+    overflow: hidden;
 }
 
 .category-slider-track {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.category-slider-track::-webkit-scrollbar {
+    display: none;
 }
 
 /* ========================================
-   DESKTOP LAYOUT - VERTICAL LIST
+   DESKTOP LAYOUT - HORIZONTAL SLIDER
 ======================================== */
 
 @media (min-width: 769px) {
+    .category-slider-track {
+        gap: 2rem;
+        padding: 1rem 0.5rem;
+        justify-content: flex-start;
+    }
+
+    /* Item container with icon and name */
     .category-slider-item {
+        flex-shrink: 0;
+        width: 140px;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
-        gap: 1.25rem;
-        padding: 1rem 1.5rem;
-        background: #fff;
-        border: 2px solid #f0f0f0;
-        border-radius: 16px;
+        text-align: center;
         text-decoration: none;
         color: inherit;
         transition: all 0.3s ease;
-        position: relative;
+        scroll-snap-align: start;
+        background: none;
+        border: none;
+        padding: 0;
     }
 
-    .category-slider-item:hover {
-        border-color: #ff6b6b;
-        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
-        transform: translateX(8px);
+    .category-slider-item:hover .category-icon {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     }
 
     .category-slider-item:focus {
         outline: 2px solid #ff6b6b;
         outline-offset: 2px;
+        border-radius: 50%;
     }
 
     /* Icon with custom background color */
     .category-icon {
         flex-shrink: 0;
-        width: 64px;
-        height: 64px;
+        width: 100px;
+        height: 100px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
         overflow: hidden;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 0.75rem;
         /* Background color is set inline via style attribute */
     }
 
-    .category-slider-item:hover .category-icon {
-        transform: scale(1.1) rotate(5deg);
-    }
-
     .category-name {
-        flex: 1;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 600;
         color: #222;
         margin: 0;
+        line-height: 1.3;
     }
 
+    /* Badge removed */
     .category-badge {
-        flex-shrink: 0;
-        background: #ff6b6b;
-        color: #fff;
-        padding: 0.375rem 0.875rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        min-width: 40px;
-        text-align: center;
+        display: none;
     }
 }
 
 /* ========================================
-   MOBILE LAYOUT - ICON ONLY, NO BOXES
+   MOBILE LAYOUT - ICON ONLY
 ======================================== */
 
 @media (max-width: 768px) {
-    .category-slider {
-        overflow: hidden;
-        position: relative;
-    }
-
     .category-slider-track {
-        flex-direction: row;
         gap: 2rem;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none;  /* IE and Edge */
         padding: 1rem 0.5rem;
         justify-content: flex-start;
-    }
-
-    /* Hide scrollbar for Chrome/Safari */
-    .category-slider-track::-webkit-scrollbar {
-        display: none;
     }
 
     /* Item container - no background, no border */
@@ -202,6 +196,12 @@
     display: block;
 }
 
+@media (min-width: 769px) {
+    .category-emoji {
+        font-size: 3rem;
+    }
+}
+
 .category-icon img {
     width: 64%;
     height: 64%;
@@ -249,18 +249,16 @@
     outline-offset: 2px;
 }
 
-@media (min-width: 769px) {
-    .category-slider-item:focus-visible {
-        border-color: #ff6b6b;
-    }
-}
-
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
     .category-slider-track,
     .category-slider-item,
     .category-icon {
         transition: none;
+    }
+
+    .category-slider-track {
+        scroll-behavior: auto;
     }
 }
 
@@ -282,17 +280,16 @@
         page-break-inside: avoid;
     }
 
+    .category-slider-track {
+        overflow-x: visible;
+        flex-wrap: wrap;
+    }
+
     .category-slider-item {
-        border: 1px solid #ddd !important;
         box-shadow: none !important;
     }
 
-    .category-slider-item:hover {
-        transform: none !important;
-    }
-
-    .category-name,
-    .category-badge {
+    .category-name {
         display: block !important;
     }
 }

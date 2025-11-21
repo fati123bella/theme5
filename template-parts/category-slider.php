@@ -82,10 +82,6 @@ if ( empty( $categories ) ) {
                     </div>
 
                     <span class="category-name"><?php echo esc_html( $category_name ); ?></span>
-
-                    <span class="category-badge" aria-label="<?php printf( esc_attr__( '%s recipes', 'cozyrecipes' ), $badge_count ); ?>">
-                        <?php echo absint( $badge_count ); ?>
-                    </span>
                 </a>
 
                 <?php endforeach; ?>

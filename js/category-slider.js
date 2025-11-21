@@ -1,7 +1,6 @@
 /**
- * Category Slider - Mobile Horizontal Scroll with Auto-scroll
- * Desktop: No JS needed (vertical list)
- * Mobile: Horizontal scroll with auto-scroll and swipe
+ * Category Slider - Horizontal Auto-scroll for All Devices
+ * Works on both desktop and mobile
  *
  * @package CozyRecipes
  */
@@ -32,20 +31,12 @@
         let currentIndex = 0;
         let autoScrollInterval = null;
         let isPaused = false;
-        let isMobile = false;
 
         // Touch/drag variables
         let isDragging = false;
         let startX = 0;
         let currentX = 0;
         let startScrollLeft = 0;
-
-        /**
-         * Check if we're on mobile
-         */
-        function checkMobile() {
-            isMobile = window.innerWidth <= 768;
-        }
 
         /**
          * Get the width of one item plus gap
@@ -59,11 +50,9 @@
         }
 
         /**
-         * Scroll to specific index (mobile only)
+         * Scroll to specific index
          */
         function scrollToIndex(index, smooth = true) {
-            if (!isMobile) return;
-
             const itemWidth = getItemWidth();
             const scrollLeft = index * itemWidth;
 
@@ -81,7 +70,7 @@
          * Go to next item
          */
         function goToNext() {
-            if (!isMobile || isPaused) return;
+            if (isPaused) return;
 
             currentIndex++;
 
@@ -97,8 +86,6 @@
          * Start auto-scroll
          */
         function startAutoScroll() {
-            if (!isMobile) return;
-
             stopAutoScroll(); // Clear any existing interval
 
             autoScrollInterval = setInterval(function() {
@@ -131,16 +118,13 @@
          */
         function resumeAutoScroll() {
             isPaused = false;
-            if (isMobile) {
-                startAutoScroll();
-            }
+            startAutoScroll();
         }
 
         /**
          * Handle mouse enter (pause on hover)
          */
         function handleMouseEnter() {
-            if (!isMobile) return;
             pauseAutoScroll();
         }
 
@@ -148,7 +132,6 @@
          * Handle mouse leave (resume)
          */
         function handleMouseLeave() {
-            if (!isMobile) return;
             resumeAutoScroll();
         }
 
@@ -156,8 +139,6 @@
          * Handle touch start
          */
         function handleTouchStart(e) {
-            if (!isMobile) return;
-
             isDragging = true;
             startX = e.touches[0].clientX;
             startScrollLeft = track.scrollLeft;
@@ -170,7 +151,7 @@
          * Handle touch move
          */
         function handleTouchMove(e) {
-            if (!isMobile || !isDragging) return;
+            if (!isDragging) return;
 
             currentX = e.touches[0].clientX;
             const deltaX = startX - currentX;
@@ -181,8 +162,6 @@
          * Handle touch end
          */
         function handleTouchEnd() {
-            if (!isMobile) return;
-
             isDragging = false;
             track.style.scrollSnapType = 'x mandatory'; // Re-enable snap
 
@@ -195,11 +174,9 @@
         }
 
         /**
-         * Handle mouse down (for desktop drag simulation)
+         * Handle mouse down (for drag)
          */
         function handleMouseDown(e) {
-            if (!isMobile) return;
-
             isDragging = true;
             startX = e.clientX;
             startScrollLeft = track.scrollLeft;
@@ -215,7 +192,7 @@
          * Handle mouse move
          */
         function handleMouseMove(e) {
-            if (!isMobile || !isDragging) return;
+            if (!isDragging) return;
 
             currentX = e.clientX;
             const deltaX = startX - currentX;
@@ -226,8 +203,6 @@
          * Handle mouse up
          */
         function handleMouseUp() {
-            if (!isMobile) return;
-
             isDragging = false;
             track.style.cursor = 'grab';
             track.style.scrollSnapType = 'x mandatory';
@@ -244,7 +219,6 @@
          * Handle focus on items (pause auto-scroll)
          */
         function handleItemFocus() {
-            if (!isMobile) return;
             pauseAutoScroll();
         }
 
@@ -252,7 +226,6 @@
          * Handle blur on items (resume auto-scroll)
          */
         function handleItemBlur() {
-            if (!isMobile) return;
             setTimeout(resumeAutoScroll, 1000);
         }
 
@@ -260,22 +233,10 @@
          * Handle window resize
          */
         function handleResize() {
-            const wasMobile = isMobile;
-            checkMobile();
-
-            if (wasMobile !== isMobile) {
-                // Mode changed
-                if (isMobile) {
-                    // Switched to mobile
-                    currentIndex = 0;
-                    scrollToIndex(0, false);
-                    startAutoScroll();
-                } else {
-                    // Switched to desktop
-                    stopAutoScroll();
-                    track.scrollLeft = 0;
-                }
-            }
+            // Recalculate and adjust scroll position
+            const itemWidth = getItemWidth();
+            currentIndex = Math.round(track.scrollLeft / itemWidth);
+            scrollToIndex(currentIndex, false);
         }
 
         /**
@@ -291,7 +252,7 @@
             track.addEventListener('touchmove', handleTouchMove, { passive: true });
             track.addEventListener('touchend', handleTouchEnd);
 
-            // Mouse drag events (for mobile simulation)
+            // Mouse drag events
             track.addEventListener('mousedown', handleMouseDown);
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
@@ -313,7 +274,7 @@
             document.addEventListener('visibilitychange', function() {
                 if (document.hidden) {
                     pauseAutoScroll();
-                } else if (isMobile && !isPaused) {
+                } else if (!isPaused) {
                     resumeAutoScroll();
                 }
             });
@@ -323,18 +284,14 @@
          * Initialize the slider
          */
         function init() {
-            checkMobile();
+            // Set initial scroll position
+            scrollToIndex(0, false);
 
-            if (isMobile) {
-                // Set initial scroll position
-                scrollToIndex(0, false);
+            // Start auto-scroll
+            startAutoScroll();
 
-                // Start auto-scroll
-                startAutoScroll();
-
-                // Add grab cursor hint
-                track.style.cursor = 'grab';
-            }
+            // Add grab cursor hint
+            track.style.cursor = 'grab';
 
             initEvents();
         }
@@ -345,9 +302,7 @@
         // Re-initialize after fonts load (prevents layout shift)
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function() {
-                if (isMobile) {
-                    scrollToIndex(currentIndex, false);
-                }
+                scrollToIndex(currentIndex, false);
             });
         }
     }
