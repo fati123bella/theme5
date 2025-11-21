@@ -1416,55 +1416,62 @@ function cozyrecipes_sanitize_category_array( $input ) {
 
 /**
  * Custom Customizer Control for Multi-Checkbox
+ * Only load if in Customizer context
  */
-class CozyRecipes_Multi_Checkbox_Control extends WP_Customize_Control {
-    public $type = 'multi-checkbox';
+if ( class_exists( 'WP_Customize_Control' ) ) {
+    class CozyRecipes_Multi_Checkbox_Control extends WP_Customize_Control {
+        public $type = 'multi-checkbox';
 
-    public function render_content() {
-        if ( empty( $this->choices ) ) {
-            return;
-        }
+        public function render_content() {
+            if ( empty( $this->choices ) ) {
+                return;
+            }
 
-        $multi_values = ! is_array( $this->value() ) ? explode( ',', $this->value() ) : $this->value();
-        $name = '_customize-multi-checkbox-' . $this->id;
-        ?>
-        <label>
-            <span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
-            <?php if ( ! empty( $this->description ) ) : ?>
-                <span class="description customize-control-description"><?php echo esc_html( $this->description ); ?></span>
-            <?php endif; ?>
-            <ul style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-top: 5px;">
-                <?php foreach ( $this->choices as $value => $label ) : ?>
-                    <li style="margin-bottom: 5px;">
-                        <label>
-                            <input type="checkbox"
-                                   name="<?php echo esc_attr( $name ); ?>"
-                                   value="<?php echo esc_attr( $value ); ?>"
-                                   class="<?php echo esc_attr( $name ); ?>"
-                                   <?php checked( in_array( $value, $multi_values ) ); ?>
-                                   style="margin-right: 5px;" />
-                            <?php echo esc_html( $label ); ?>
-                        </label>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-            <input type="hidden" <?php $this->link(); ?> value="<?php echo esc_attr( implode( ',', $multi_values ) ); ?>" />
-        </label>
-        <script>
-        jQuery(document).ready(function($) {
-            var checkboxes = $('.<?php echo esc_js( $name ); ?>');
-            var hiddenInput = $('input[data-customize-setting-link="<?php echo esc_js( $this->settings['default']->id ); ?>"]');
+            $value = $this->value();
+            if ( ! is_array( $value ) ) {
+                $value = ! empty( $value ) ? explode( ',', $value ) : array();
+            }
+            $multi_values = $value;
+            $name = '_customize-multi-checkbox-' . $this->id;
+            ?>
+            <label>
+                <span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+                <?php if ( ! empty( $this->description ) ) : ?>
+                    <span class="description customize-control-description"><?php echo esc_html( $this->description ); ?></span>
+                <?php endif; ?>
+                <ul style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-top: 5px;">
+                    <?php foreach ( $this->choices as $value => $label ) : ?>
+                        <li style="margin-bottom: 5px;">
+                            <label>
+                                <input type="checkbox"
+                                       name="<?php echo esc_attr( $name ); ?>"
+                                       value="<?php echo esc_attr( $value ); ?>"
+                                       class="<?php echo esc_attr( $name ); ?>"
+                                       <?php checked( in_array( $value, $multi_values ) ); ?>
+                                       style="margin-right: 5px;" />
+                                <?php echo esc_html( $label ); ?>
+                            </label>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <input type="hidden" <?php $this->link(); ?> value="<?php echo esc_attr( implode( ',', $multi_values ) ); ?>" />
+            </label>
+            <script>
+            jQuery(document).ready(function($) {
+                var checkboxes = $('.<?php echo esc_js( $name ); ?>');
+                var hiddenInput = $('input[data-customize-setting-link="<?php echo esc_js( $this->settings['default']->id ); ?>"]');
 
-            checkboxes.on('change', function() {
-                var values = [];
-                checkboxes.filter(':checked').each(function() {
-                    values.push($(this).val());
+                checkboxes.on('change', function() {
+                    var values = [];
+                    checkboxes.filter(':checked').each(function() {
+                        values.push($(this).val());
+                    });
+                    hiddenInput.val(values.join(',')).trigger('change');
                 });
-                hiddenInput.val(values.join(',')).trigger('change');
             });
-        });
-        </script>
-        <?php
+            </script>
+            <?php
+        }
     }
 }
 
@@ -1589,12 +1596,14 @@ function cozyrecipes_category_slider_customizer( $wp_customize ) {
         'transport'         => 'refresh',
     ) );
 
-    $wp_customize->add_control( new CozyRecipes_Multi_Checkbox_Control( $wp_customize, 'cozyrecipes_slider_categories', array(
-        'label'       => __( 'Select Categories to Display', 'cozyrecipes' ),
-        'description' => __( 'Choose which categories appear in the slider. Leave all unchecked to show all categories.', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_category_slider_general',
-        'choices'     => $category_choices,
-    ) ) );
+    if ( class_exists( 'CozyRecipes_Multi_Checkbox_Control' ) ) {
+        $wp_customize->add_control( new CozyRecipes_Multi_Checkbox_Control( $wp_customize, 'cozyrecipes_slider_categories', array(
+            'label'       => __( 'Select Categories to Display', 'cozyrecipes' ),
+            'description' => __( 'Choose which categories appear in the slider. Leave all unchecked to show all categories.', 'cozyrecipes' ),
+            'section'     => 'cozyrecipes_category_slider_general',
+            'choices'     => $category_choices,
+        ) ) );
+    }
     
     // Create a section for each category
     foreach ( $categories as $index => $category ) {
