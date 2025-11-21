@@ -43,6 +43,8 @@
     position: relative;
     width: 100%;
     overflow: hidden;
+    margin: 0 auto;
+    max-width: 100%;
 }
 
 /* ========================================
@@ -54,61 +56,70 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
-    background: none;
-    border: none;
-    width: 32px;
-    height: 32px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease;
+    color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .category-slider-arrow:hover {
-    color: rgba(0, 0, 0, 0.6);
-    transform: translateY(-50%) scale(1.15);
+    color: rgba(0, 0, 0, 0.8);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-50%) scale(1.1);
 }
 
 .category-slider-arrow:active {
-    transform: translateY(-50%) scale(0.9);
+    transform: translateY(-50%) scale(0.95);
 }
 
 .category-slider-arrow:focus {
     outline: 2px solid rgba(0, 0, 0, 0.3);
     outline-offset: 2px;
-    border-radius: 4px;
 }
 
+/* Left arrow */
 .category-slider-arrow-prev {
-    left: 10px;
+    left: 15px;
 }
 
+/* Right arrow */
 .category-slider-arrow-next {
-    right: 10px;
+    right: 15px;
 }
 
 /* Hide arrows when slider doesn't need scrolling */
 .category-slider-arrow.hidden {
-    opacity: 0;
-    pointer-events: none;
+    display: none;
 }
 
-/* Desktop: Position arrows on the sides */
+/* Desktop: Larger arrows positioned at edges */
 @media (min-width: 769px) {
     .category-slider-arrow {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .category-slider-arrow svg {
+        width: 24px;
+        height: 24px;
     }
 
     .category-slider-arrow-prev {
-        left: 0;
+        left: 20px;
     }
 
     .category-slider-arrow-next {
-        right: 0;
+        right: 20px;
     }
 }
 
@@ -116,10 +127,13 @@
     display: flex;
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
     scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem 60px;
 }
 
 /* Hide scrollbar for Chrome/Safari */
@@ -134,7 +148,7 @@
 @media (min-width: 769px) {
     .category-slider-track {
         gap: 2rem;
-        padding: 1rem 0.5rem;
+        padding: 1.5rem 80px;
         justify-content: flex-start;
     }
 
@@ -202,8 +216,8 @@
 
 @media (max-width: 768px) {
     .category-slider-track {
-        gap: 2rem;
-        padding: 1rem 0.5rem;
+        gap: 1.5rem;
+        padding: 1rem 60px;
         justify-content: flex-start;
     }
 

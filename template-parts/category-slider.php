@@ -50,7 +50,7 @@ if ( empty( $categories ) ) {
 
         <div class="category-slider" role="navigation" aria-label="<?php esc_attr_e( 'Category navigation', 'cozyrecipes' ); ?>">
             <button class="category-slider-arrow category-slider-arrow-prev" aria-label="<?php esc_attr_e( 'Previous categories', 'cozyrecipes' ); ?>">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
             </button>
@@ -99,7 +99,7 @@ if ( empty( $categories ) ) {
             </div><!-- .category-slider-track -->
 
             <button class="category-slider-arrow category-slider-arrow-next" aria-label="<?php esc_attr_e( 'Next categories', 'cozyrecipes' ); ?>">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </button>
