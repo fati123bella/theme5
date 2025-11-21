@@ -1,0 +1,171 @@
+# ==============================================================================
+# F. WordPress Theme Performance Optimization - .htaccess
+# ==============================================================================
+# This file configures server-side caching for theme assets
+# Works with filemtime() versioning in functions.php for intelligent cache busting
+# ==============================================================================
+
+<IfModule mod_headers.c>
+    # ------------------------------------------------------------------------------
+    # F. BROWSER CACHING - Long-term cache with immutable directive
+    # ------------------------------------------------------------------------------
+    # CSS and JavaScript files - 1 year cache (versioned with filemtime())
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+
+    # Font files - 1 year cache (fonts rarely change)
+    <FilesMatch "\.(woff2|woff|ttf|eot|otf)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+
+    # Images - 30 days cache (may be updated more frequently)
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+
+    # Media files - 30 days cache
+    <FilesMatch "\.(mp4|webm|ogg|mp3|wav)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+
+    # ------------------------------------------------------------------------------
+    # Security Headers
+    # ------------------------------------------------------------------------------
+    # Prevent MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+
+    # Enable XSS protection
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Clickjacking protection
+    Header set X-Frame-Options "SAMEORIGIN"
+
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_expires.c>
+    # ------------------------------------------------------------------------------
+    # F. EXPIRES HEADERS - Alternative/Fallback to Cache-Control
+    # ------------------------------------------------------------------------------
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+
+    # CSS and JavaScript
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+
+    # Fonts
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/x-font-ttf "access plus 1 year"
+
+    # Images
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+
+    # Media
+    ExpiresByType video/mp4 "access plus 1 month"
+    ExpiresByType video/webm "access plus 1 month"
+    ExpiresByType audio/mpeg "access plus 1 month"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    # ------------------------------------------------------------------------------
+    # GZIP COMPRESSION - Reduce file size for faster transfer
+    # ------------------------------------------------------------------------------
+    # Compress HTML, CSS, JavaScript, Text, XML, and fonts
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/atom+xml
+    AddOutputFilterByType DEFLATE application/font-woff
+    AddOutputFilterByType DEFLATE application/font-woff2
+    AddOutputFilterByType DEFLATE font/woff
+    AddOutputFilterByType DEFLATE font/woff2
+    AddOutputFilterByType DEFLATE image/svg+xml
+
+    # Don't compress images (already compressed)
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp)$ no-gzip
+</IfModule>
+
+<IfModule mod_mime.c>
+    # ------------------------------------------------------------------------------
+    # CORRECT MIME TYPES - Ensure proper content types
+    # ------------------------------------------------------------------------------
+    # JavaScript
+    AddType application/javascript js
+    AddType text/javascript js
+
+    # Fonts
+    AddType font/woff2 woff2
+    AddType font/woff woff
+    AddType font/ttf ttf
+    AddType font/otf otf
+    AddType application/font-woff2 woff2
+    AddType application/x-font-ttf ttf
+
+    # Images
+    AddType image/webp webp
+    AddType image/svg+xml svg
+
+    # CSS
+    AddType text/css css
+</IfModule>
+
+# ==============================================================================
+# F. ETags - Enable for cache validation (keeps file size and modification time)
+# ==============================================================================
+<IfModule mod_headers.c>
+    # Use ETags for cache validation (default behavior in Apache 2.4+)
+    # ETags are automatically generated based on inode, size, and mtime
+    # Useful when Cache-Control expires and browser checks if file changed
+    FileETag MTime Size
+</IfModule>
+
+# ==============================================================================
+# NOTES FOR DEPLOYMENT:
+# ==============================================================================
+# 1. This .htaccess file is optimized for Apache servers with mod_headers,
+#    mod_expires, mod_deflate, and mod_mime modules enabled.
+#
+# 2. Works in conjunction with filemtime() versioning in functions.php:
+#    - Files are versioned based on modification time
+#    - When a file changes, its URL changes (e.g., ?ver=1234567890)
+#    - Browser treats it as a new file and bypasses cache
+#    - Old version stays cached until browser naturally expires it
+#
+# 3. If hosting on WordPress.com, Kinsta, WP Engine, or similar:
+#    - Most rules are handled automatically by the host
+#    - This file may be ignored or override specific settings
+#    - Check your host's documentation for caching configuration
+#
+# 4. For Nginx servers:
+#    - Convert these rules to nginx.conf syntax
+#    - Add to server {} or location {} blocks
+#    - Restart nginx after changes
+#
+# 5. Test after deployment:
+#    - Use PageSpeed Insights to verify caching headers
+#    - Check Network tab in Chrome DevTools for Cache-Control headers
+#    - Verify GZIP compression is working (look for Content-Encoding: gzip)
+# ==============================================================================
