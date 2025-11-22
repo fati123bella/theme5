@@ -21,8 +21,8 @@
 
         const track = slider.querySelector('.category-slider-track');
         const items = Array.from(track.querySelectorAll('.category-slider-item'));
-        const prevArrow = slider.querySelector('.category-slider-arrow-prev');
-        const nextArrow = slider.querySelector('.category-slider-arrow-next');
+        const prevArrow = slider.querySelector('.category-slider__arrow--prev');
+        const nextArrow = slider.querySelector('.category-slider__arrow--next');
 
         if (!track || items.length === 0) return;
 
@@ -277,23 +277,49 @@
         }
 
         /**
+         * Handle arrow button activation (click or keyboard)
+         */
+        function handlePrevious() {
+            pauseAutoScroll();
+            goToPrevious();
+            setTimeout(resumeAutoScroll, 3000);
+        }
+
+        function handleNext() {
+            pauseAutoScroll();
+            goToNext();
+            setTimeout(resumeAutoScroll, 3000);
+        }
+
+        /**
          * Initialize event listeners
          */
         function initEvents() {
-            // Arrow click events
+            // Previous arrow events
             if (prevArrow) {
-                prevArrow.addEventListener('click', function() {
-                    pauseAutoScroll();
-                    goToPrevious();
-                    setTimeout(resumeAutoScroll, 3000);
+                // Click event
+                prevArrow.addEventListener('click', handlePrevious);
+
+                // Keyboard events (Enter and Space)
+                prevArrow.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePrevious();
+                    }
                 });
             }
 
+            // Next arrow events
             if (nextArrow) {
-                nextArrow.addEventListener('click', function() {
-                    pauseAutoScroll();
-                    goToNext();
-                    setTimeout(resumeAutoScroll, 3000);
+                // Click event
+                nextArrow.addEventListener('click', handleNext);
+
+                // Keyboard events (Enter and Space)
+                nextArrow.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleNext();
+                    }
                 });
             }
 
