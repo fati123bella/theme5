@@ -48,108 +48,36 @@
 }
 
 /* ========================================
-   NAVIGATION ARROWS
+   HORIZONTAL SCROLLING TRACK
 ======================================== */
 
-.category-slider__arrow {
-    position: absolute;
-    z-index: 10;
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #555;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-}
-
-.category-slider__arrow:hover {
-    background: #f5f5f5;
-    border-color: #d0d0d0;
-    color: #333;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-.category-slider__arrow:active {
-    transform: scale(0.95);
-}
-
-.category-slider__arrow:focus {
-    outline: 2px solid #333;
-    outline-offset: 2px;
-}
-
-.category-slider__arrow:focus:not(:focus-visible) {
-    outline: none;
-}
-
-.category-slider__arrow svg {
-    width: 18px;
-    height: 18px;
-    pointer-events: none;
-}
-
-/* Hide arrows when slider doesn't need scrolling */
-.category-slider__arrow.hidden {
-    display: none;
-}
-
-/* Mobile: Position arrows on sides with pulse animation */
+/* Visible scrollbar on mobile for better UX */
 @media (max-width: 768px) {
-    .category-slider__arrow {
-        top: 50%;
-        transform: translateY(-50%);
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        min-height: 40px;
-        animation: arrowPulse 2s ease-in-out infinite;
+    .category-slider-track::-webkit-scrollbar {
+        display: block;
+        height: 6px;
     }
 
-    .category-slider__arrow--prev {
-        left: 5px;
+    .category-slider-track::-webkit-scrollbar-track {
+        background: #f0f0f0;
+        border-radius: 10px;
+        margin: 0 20px;
     }
 
-    .category-slider__arrow--next {
-        right: 5px;
-        animation-delay: 0.5s;
+    .category-slider-track::-webkit-scrollbar-thumb {
+        background: #ff6b6b;
+        border-radius: 10px;
+        transition: background 0.3s ease;
     }
 
-    .category-slider__arrow svg {
-        width: 20px;
-        height: 20px;
+    .category-slider-track::-webkit-scrollbar-thumb:hover {
+        background: #ff5252;
     }
 
-    /* Stop pulse animation on user interaction */
-    .category-slider__arrow:active,
-    .category-slider-track.interacting ~ .category-slider__arrow {
-        animation: none;
-        opacity: 1;
-    }
-
-    /* Pulse animation to indicate swipe functionality */
-    @keyframes arrowPulse {
-        0%, 100% {
-            opacity: 0.6;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-        }
-        50% {
-            opacity: 1;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-    }
-}
-
-/* Desktop: Hide arrows (desktop uses auto-scroll) */
-@media (min-width: 769px) {
-    .category-slider__arrow {
-        display: none;
+    /* Firefox scrollbar */
+    .category-slider-track {
+        scrollbar-width: thin;
+        scrollbar-color: #ff6b6b #f0f0f0;
     }
 }
 
@@ -159,16 +87,9 @@
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* IE and Edge */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    padding: 1rem 50px;
-}
-
-/* Hide scrollbar for Chrome/Safari */
-.category-slider-track::-webkit-scrollbar {
-    display: none;
+    padding: 1rem 0;
 }
 
 /* ========================================
@@ -178,9 +99,20 @@
 @media (min-width: 769px) {
     .category-slider-track {
         gap: 2rem;
-        padding: 1.5rem 0;
+        padding: 1.5rem 1.5rem;
         justify-content: flex-start;
     }
+
+    /* Hide scrollbar on desktop (auto-scroll handles navigation) */
+    .category-slider-track::-webkit-scrollbar {
+        display: none;
+    }
+
+    .category-slider-track {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE and Edge */
+    }
+}
 
     /* Item container with icon and name */
     .category-slider-item {
@@ -252,16 +184,17 @@
 @media (max-width: 768px) {
     .category-slider-track {
         gap: 1rem;
-        padding: 1rem 50px;
+        padding: 1rem 1.5rem;
         justify-content: flex-start;
         scroll-snap-type: x mandatory;
+        padding-bottom: 1.5rem; /* Extra space for scrollbar */
     }
 
     /* Item container - exactly 2 items visible at a time */
     .category-slider-item {
         flex-shrink: 0;
         /* Calculate width to show exactly 2 items: (viewport - padding - gap) / 2 */
-        width: calc((100vw - 100px - 1rem) / 2);
+        width: calc((100vw - 3rem - 1rem) / 2);
         display: flex;
         flex-direction: column;
         align-items: center;
