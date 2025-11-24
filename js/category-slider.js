@@ -1,6 +1,7 @@
 /**
- * Category Slider - Horizontal Auto-scroll for All Devices
- * Works on both desktop and mobile
+ * Category Slider - Horizontal Auto-scroll for Desktop, Manual for Mobile
+ * Desktop: Auto-scroll enabled
+ * Mobile: Manual scroll only
  *
  * @package CozyRecipes
  */
@@ -29,6 +30,12 @@
         // Get settings from localized script
         const settings = window.categorySliderSettings || {};
         const autoScrollSpeed = parseInt(settings.autoScrollSpeed) || 3000;
+
+        // Mobile detection - disable auto-scroll on mobile devices
+        const isMobile = function() {
+            return window.innerWidth <= 768 ||
+                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        };
 
         let currentIndex = 0;
         let autoScrollInterval = null;
@@ -117,9 +124,12 @@
         }
 
         /**
-         * Start auto-scroll
+         * Start auto-scroll (only on desktop)
          */
         function startAutoScroll() {
+            // Don't start auto-scroll on mobile devices
+            if (isMobile()) return;
+
             stopAutoScroll(); // Clear any existing interval
 
             autoScrollInterval = setInterval(function() {
@@ -148,9 +158,12 @@
         }
 
         /**
-         * Resume auto-scroll
+         * Resume auto-scroll (only on desktop)
          */
         function resumeAutoScroll() {
+            // Don't resume auto-scroll on mobile devices
+            if (isMobile()) return;
+
             isPaused = false;
             startAutoScroll();
         }
@@ -350,8 +363,10 @@
                 resizeTimer = setTimeout(handleResize, 250);
             });
 
-            // Pause when page becomes hidden
+            // Pause when page becomes hidden (desktop only)
             document.addEventListener('visibilitychange', function() {
+                if (isMobile()) return; // Skip on mobile
+
                 if (document.hidden) {
                     pauseAutoScroll();
                 } else if (!isPaused) {
@@ -370,11 +385,13 @@
             // Update arrow visibility
             updateArrowVisibility();
 
-            // Start auto-scroll
+            // Start auto-scroll (only on desktop)
             startAutoScroll();
 
-            // Add grab cursor hint
-            track.style.cursor = 'grab';
+            // Add grab cursor hint (only on desktop)
+            if (!isMobile()) {
+                track.style.cursor = 'grab';
+            }
 
             initEvents();
         }
