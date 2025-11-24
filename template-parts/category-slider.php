@@ -49,6 +49,16 @@ if ( empty( $categories ) ) {
         <?php endif; ?>
 
         <div class="category-slider" role="navigation" aria-label="<?php esc_attr_e( 'Category navigation', 'cozyrecipes' ); ?>">
+            <button type="button"
+                    class="category-slider__arrow category-slider__arrow--prev"
+                    role="button"
+                    aria-label="<?php esc_attr_e( 'Previous categories', 'cozyrecipes' ); ?>"
+                    tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+
             <div class="category-slider-track">
                 <?php foreach ( $categories as $category ) :
                     $category_link = get_category_link( $category->term_id );
@@ -91,6 +101,16 @@ if ( empty( $categories ) ) {
 
                 <?php endforeach; ?>
             </div><!-- .category-slider-track -->
+
+            <button type="button"
+                    class="category-slider__arrow category-slider__arrow--next"
+                    role="button"
+                    aria-label="<?php esc_attr_e( 'Next categories', 'cozyrecipes' ); ?>"
+                    tabindex="0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
         </div><!-- .category-slider -->
 
     </div><!-- .container -->

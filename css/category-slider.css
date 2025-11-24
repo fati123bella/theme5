@@ -100,7 +100,7 @@
     display: none;
 }
 
-/* Mobile: Position arrows on sides with minimum touch target */
+/* Mobile: Position arrows on sides with pulse animation */
 @media (max-width: 768px) {
     .category-slider__arrow {
         top: 50%;
@@ -109,6 +109,7 @@
         height: 40px;
         min-width: 40px;
         min-height: 40px;
+        animation: arrowPulse 2s ease-in-out infinite;
     }
 
     .category-slider__arrow--prev {
@@ -117,31 +118,38 @@
 
     .category-slider__arrow--next {
         right: 5px;
+        animation-delay: 0.5s;
     }
 
     .category-slider__arrow svg {
         width: 20px;
         height: 20px;
     }
+
+    /* Stop pulse animation on user interaction */
+    .category-slider__arrow:active,
+    .category-slider-track.interacting ~ .category-slider__arrow {
+        animation: none;
+        opacity: 1;
+    }
+
+    /* Pulse animation to indicate swipe functionality */
+    @keyframes arrowPulse {
+        0%, 100% {
+            opacity: 0.6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        50% {
+            opacity: 1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+    }
 }
 
-/* Desktop: Position arrows outside slider, vertically centered */
+/* Desktop: Hide arrows (desktop uses auto-scroll) */
 @media (min-width: 769px) {
     .category-slider__arrow {
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    .category-slider__arrow:active {
-        transform: translateY(-50%) scale(0.95);
-    }
-
-    .category-slider__arrow--prev {
-        left: -50px;
-    }
-
-    .category-slider__arrow--next {
-        right: -50px;
+        display: none;
     }
 }
 
@@ -243,14 +251,17 @@
 
 @media (max-width: 768px) {
     .category-slider-track {
-        gap: 1.5rem;
+        gap: 1rem;
         padding: 1rem 50px;
         justify-content: flex-start;
+        scroll-snap-type: x mandatory;
     }
 
-    /* Item container - no background, no border */
+    /* Item container - exactly 2 items visible at a time */
     .category-slider-item {
         flex-shrink: 0;
+        /* Calculate width to show exactly 2 items: (viewport - padding - gap) / 2 */
+        width: calc((100vw - 100px - 1rem) / 2);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -258,7 +269,7 @@
         text-decoration: none;
         color: inherit;
         transition: all 0.3s ease;
-        scroll-snap-align: center;
+        scroll-snap-align: start;
         background: none;
         border: none;
         padding: 0;
