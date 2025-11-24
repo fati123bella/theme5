@@ -24,6 +24,7 @@
         const items = Array.from(track.querySelectorAll('.category-slider-item'));
         const prevArrow = slider.querySelector('.category-slider__arrow--prev');
         const nextArrow = slider.querySelector('.category-slider__arrow--next');
+        const railProgress = slider.querySelector('.rail-progress');
 
         if (!track || items.length === 0) return;
 
@@ -121,6 +122,24 @@
                 prevArrow.classList.add('hidden');
                 nextArrow.classList.add('hidden');
             }
+        }
+
+        /**
+         * Update rail slider progress based on scroll position
+         */
+        function updateRailProgress() {
+            if (!railProgress) return;
+
+            const scrollLeft = track.scrollLeft;
+            const scrollWidth = track.scrollWidth;
+            const clientWidth = track.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+
+            // Calculate progress percentage
+            const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+
+            // Update rail progress width
+            railProgress.style.width = progress + '%';
         }
 
         /**
@@ -350,6 +369,11 @@
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
 
+            // Scroll event for rail progress update
+            track.addEventListener('scroll', function() {
+                updateRailProgress();
+            }, { passive: true });
+
             // Focus events for accessibility
             items.forEach(function(item) {
                 item.addEventListener('focus', handleItemFocus);
@@ -360,7 +384,10 @@
             let resizeTimer;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(handleResize, 250);
+                resizeTimer = setTimeout(function() {
+                    handleResize();
+                    updateRailProgress(); // Update rail on resize
+                }, 250);
             });
 
             // Pause when page becomes hidden (desktop only)
@@ -384,6 +411,9 @@
 
             // Update arrow visibility
             updateArrowVisibility();
+
+            // Initialize rail progress
+            updateRailProgress();
 
             // Start auto-scroll (only on desktop)
             startAutoScroll();

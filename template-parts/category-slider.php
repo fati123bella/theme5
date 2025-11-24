@@ -91,6 +91,13 @@ if ( empty( $categories ) ) {
 
                 <?php endforeach; ?>
             </div><!-- .category-slider-track -->
+
+            <!-- Rail Slider UI - Mobile Only -->
+            <div class="category-rail-slider" aria-hidden="true">
+                <div class="rail-track">
+                    <div class="rail-progress"></div>
+                </div>
+            </div><!-- .category-rail-slider -->
         </div><!-- .category-slider -->
 
     </div><!-- .container -->
