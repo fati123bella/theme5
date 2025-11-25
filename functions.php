@@ -1637,25 +1637,6 @@ function cozyrecipes_category_slider_customizer( $wp_customize ) {
         ),
     ) );
     
-    // Auto-scroll speed (mobile)
-    $wp_customize->add_setting( 'cozyrecipes_category_slider_speed', array(
-        'default'           => 3000,
-        'sanitize_callback' => 'absint',
-        'transport'         => 'refresh',
-    ) );
-    
-    $wp_customize->add_control( 'cozyrecipes_category_slider_speed', array(
-        'label'       => __( 'Auto-scroll Speed (ms)', 'cozyrecipes' ),
-        'description' => __( 'Mobile carousel auto-scroll interval in milliseconds', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_category_slider_general',
-        'type'        => 'number',
-        'input_attrs' => array(
-            'min'  => 1000,
-            'max'  => 10000,
-            'step' => 500,
-        ),
-    ) );
-
     // Get all categories
     $categories = get_categories( array(
         'orderby'    => 'count',
@@ -1821,10 +1802,8 @@ function cozyrecipes_enqueue_category_slider() {
         true 
     );
     
-    // Pass settings to JS
-    wp_localize_script( 'cozyrecipes-category-slider', 'categorySliderSettings', array(
-        'autoScrollSpeed' => get_theme_mod( 'cozyrecipes_category_slider_speed', 3000 ),
-    ) );
+    // Pass settings to JS (empty for now, auto-scroll disabled)
+    wp_localize_script( 'cozyrecipes-category-slider', 'categorySliderSettings', array() );
 }
 add_action( 'wp_enqueue_scripts', 'cozyrecipes_enqueue_category_slider' );
 

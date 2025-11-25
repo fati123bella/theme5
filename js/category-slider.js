@@ -407,8 +407,8 @@
             // Update arrow visibility
             updateArrowVisibility();
 
-            // Start auto-scroll
-            startAutoScroll();
+            // Auto-scroll disabled - users can manually navigate with arrows or drag
+            // startAutoScroll();
 
             // Add grab cursor hint
             track.style.cursor = 'grab';

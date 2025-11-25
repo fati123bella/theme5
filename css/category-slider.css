@@ -100,28 +100,10 @@
     display: none;
 }
 
-/* Mobile: Position arrows on sides with minimum touch target */
+/* Mobile: Hide arrows for clean rail slider design */
 @media (max-width: 768px) {
     .category-slider__arrow {
-        top: 50%;
-        transform: translateY(-50%);
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        min-height: 40px;
-    }
-
-    .category-slider__arrow--prev {
-        left: 5px;
-    }
-
-    .category-slider__arrow--next {
-        right: 5px;
-    }
-
-    .category-slider__arrow svg {
-        width: 20px;
-        height: 20px;
+        display: none;
     }
 }
 
@@ -240,7 +222,7 @@
     .category-slider-track {
         /* Rail style: exactly 3 items visible at once */
         gap: 1rem;
-        padding: 1rem 50px;
+        padding: 1rem 1.5rem;
         justify-content: flex-start;
         scroll-snap-type: x mandatory;
     }
@@ -339,7 +321,7 @@
 
     .category-slider-track {
         gap: 0.8rem;
-        padding: 1rem 40px;
+        padding: 1rem 1rem;
     }
 
     .category-slider-item {
