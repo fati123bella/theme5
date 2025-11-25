@@ -282,8 +282,7 @@
 @media (prefers-reduced-motion: reduce) {
     .category-slider-track,
     .category-slider-item,
-    .category-icon,
-    .category-slider__arrow {
+    .category-icon {
         transition: none;
         animation: none;
     }
