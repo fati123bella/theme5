@@ -156,10 +156,12 @@ $button_color = get_theme_mod( 'cozyrecipes_author_button_color', '#ff6b6b' );
                             <div class="author-image">
                                 <img src="<?php echo esc_url( $author_image ); ?>"
                                      alt="<?php echo esc_attr( $author_name ); ?>"
-                                     width="300"
-                                     height="375"
+                                     width="280"
+                                     height="280"
                                      loading="lazy"
-                                     decoding="async">
+                                     decoding="async"
+                                     srcset="<?php echo esc_attr( $author_image ); ?> 280w, <?php echo esc_attr( $author_image ); ?>?q=80 280w"
+                                     sizes="280px">
                             </div>
                         <?php endif; ?>
 
