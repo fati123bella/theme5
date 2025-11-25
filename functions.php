@@ -268,21 +268,24 @@ add_action( 'wp_head', 'cozyrecipes_critical_css', 1 );
  */
 function cozyrecipes_resource_hints() {
     ?>
-    <!-- F. DNS Prefetch saves ~100ms per origin -->
+    <!-- DNS Prefetch saves ~100ms per origin -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
 
-    <!-- E. Preconnect to font resources (with crossorigin for fonts) -->
+    <!-- Preconnect to font resources (with crossorigin for fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- E. Direct WOFF2 preload - MUST have crossorigin for fonts -->
+    <!-- Direct WOFF2 preload for Inter fonts -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" crossorigin>
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2" crossorigin>
 
-    <!-- E. Defer font CSS with media print trick -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+    <!-- Preload Playfair Display bold for headers -->
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vgj4v2LVRMa8vLBxzKSEE4gxX5TGwO9QD9jKdVYAiZSWCkJ8EE.woff2" crossorigin>
+
+    <!-- Defer font CSS with media print trick - Combined request for both fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"></noscript>
     <?php
 }
 add_action( 'wp_head', 'cozyrecipes_resource_hints', 2 );
@@ -1869,6 +1872,51 @@ function cozyrecipes_defer_editors_picks_script( $tag, $handle ) {
     return $tag;
 }
 add_filter( 'script_loader_tag', 'cozyrecipes_defer_editors_picks_script', 10, 2 );
+
+/**
+ * Performance Optimizations - Reduce load time and improve PageSpeed
+ */
+function cozyrecipes_performance_optimizations() {
+    // Remove querystring from static resources for better caching
+    if ( ! is_admin() ) {
+        // Remove query strings from CSS and JS (better caching)
+        add_filter( 'script_loader_src', function( $src ) {
+            return remove_query_arg( 'ver', $src );
+        }, 10, 1 );
+        add_filter( 'style_loader_src', function( $src ) {
+            return remove_query_arg( 'ver', $src );
+        }, 10, 1 );
+    }
+
+    // Lazy load all images by default
+    add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+}
+add_action( 'wp_enqueue_scripts', 'cozyrecipes_performance_optimizations', 1 );
+
+/**
+ * Add async loading to non-critical scripts
+ */
+function cozyrecipes_async_scripts( $tag, $handle ) {
+    // Don't async navigation and slider - they're important for interactivity
+    $critical_scripts = array( 'cozyrecipes-navigation', 'cozyrecipes-category-slider' );
+
+    if ( ! in_array( $handle, $critical_scripts ) ) {
+        if ( strpos( $tag, 'src' ) && 'cozyrecipes-editors-picks' !== $handle ) {
+            return str_replace( ' src', ' async src', $tag );
+        }
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'cozyrecipes_async_scripts', 10, 2 );
+
+/**
+ * Cache transients cleanup - Delete old cached queries periodically
+ */
+function cozyrecipes_cleanup_transients() {
+    delete_transient( 'cozyrecipes_editors_picks_*' );
+    delete_transient( 'cozyrecipes_categories_*' );
+}
+add_action( 'wp_scheduled_event', 'cozyrecipes_cleanup_transients' );
 
 /* ========================================
    EDITOR'S PICKS - CUSTOMIZER SETTINGS

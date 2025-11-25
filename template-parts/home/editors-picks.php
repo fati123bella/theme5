@@ -41,7 +41,16 @@ if ( $source_type === 'category' && ! empty( $source_category ) ) {
     $query_args['tag'] = 'featured';
 }
 
-$editors_picks_query = new WP_Query( $query_args );
+// Try to get cached query results (cache for 1 hour)
+$cache_key = 'cozyrecipes_editors_picks_' . md5( serialize( $query_args ) );
+$editors_picks_query = get_transient( $cache_key );
+
+if ( false === $editors_picks_query ) {
+    // Cache miss - run query
+    $editors_picks_query = new WP_Query( $query_args );
+    // Cache the results for 1 hour (3600 seconds)
+    set_transient( $cache_key, $editors_picks_query, 3600 );
+}
 
 // Get author box settings
 $show_author_box = get_theme_mod( 'cozyrecipes_show_author_box', true );

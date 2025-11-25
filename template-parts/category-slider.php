@@ -19,14 +19,25 @@ $accent_color = get_theme_mod( 'cozyrecipes_accent_color', '#ff6b6b' );
 // Get selected categories
 $selected_cat_ids = cozyrecipes_get_selected_categories();
 
-// Get categories - filtered by selection
-$categories = get_categories( array(
-    'orderby'    => 'count',
-    'order'      => 'DESC',
-    'number'     => absint( $categories_count ),
-    'hide_empty' => true,
-    'include'    => $selected_cat_ids,
-) );
+// Try to get cached categories (cache for 12 hours)
+$cache_key = 'cozyrecipes_categories_' . md5( serialize( array( $categories_count, $selected_cat_ids ) ) );
+$categories = get_transient( $cache_key );
+
+if ( false === $categories ) {
+    // Cache miss - get categories from database
+    $categories = get_categories( array(
+        'orderby'    => 'count',
+        'order'      => 'DESC',
+        'number'     => absint( $categories_count ),
+        'hide_empty' => true,
+        'include'    => $selected_cat_ids,
+    ) );
+
+    // Cache the results for 12 hours (43200 seconds)
+    if ( ! empty( $categories ) ) {
+        set_transient( $cache_key, $categories, 43200 );
+    }
+}
 
 if ( empty( $categories ) ) {
     return;

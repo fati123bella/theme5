@@ -213,6 +213,7 @@
 /* Animated stars (when JS is active) */
 .pick-rating.animating .star {
     animation: starPop 0.4s ease forwards;
+    will-change: transform, opacity;
 }
 
 .pick-rating .star:nth-child(1) { animation-delay: 0.05s; }
