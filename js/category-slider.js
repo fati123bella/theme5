@@ -30,6 +30,9 @@
         const settings = window.categorySliderSettings || {};
         const autoScrollSpeed = parseInt(settings.autoScrollSpeed) || 3000;
 
+        // Detect if we're on mobile for rail-style 3-item view
+        let isMobile = window.innerWidth <= 768;
+
         let currentIndex = 0;
         let autoScrollInterval = null;
         let isPaused = false;
@@ -178,7 +181,9 @@
             startScrollLeft = track.scrollLeft;
             pauseAutoScroll();
 
-            track.style.scrollSnapType = 'none'; // Disable snap during drag
+            // Disable snap during drag for smooth sliding
+            track.style.scrollSnapType = 'none';
+            track.style.scrollBehavior = 'auto';
         }
 
         /**
@@ -193,15 +198,27 @@
         }
 
         /**
-         * Handle touch end
+         * Handle touch end with snap-based alignment
          */
         function handleTouchEnd() {
             isDragging = false;
-            track.style.scrollSnapType = 'x mandatory'; // Re-enable snap
+
+            // Re-enable snap scrolling after drag
+            track.style.scrollSnapType = 'x mandatory';
+            track.style.scrollBehavior = 'smooth';
 
             // Update current index based on scroll position
             const itemWidth = getItemWidth();
             currentIndex = Math.round(track.scrollLeft / itemWidth);
+
+            // Ensure we snap to the nearest item
+            const snapScroll = currentIndex * itemWidth;
+            if (Math.abs(track.scrollLeft - snapScroll) > 10) {
+                track.scrollTo({
+                    left: snapScroll,
+                    behavior: 'smooth'
+                });
+            }
 
             // Resume auto-scroll after a delay
             setTimeout(resumeAutoScroll, 2000);
@@ -218,6 +235,7 @@
 
             track.style.cursor = 'grabbing';
             track.style.scrollSnapType = 'none';
+            track.style.scrollBehavior = 'auto';
 
             e.preventDefault();
         }
@@ -234,16 +252,26 @@
         }
 
         /**
-         * Handle mouse up
+         * Handle mouse up with snap-based alignment
          */
         function handleMouseUp() {
             isDragging = false;
             track.style.cursor = 'grab';
             track.style.scrollSnapType = 'x mandatory';
+            track.style.scrollBehavior = 'smooth';
 
             // Update current index
             const itemWidth = getItemWidth();
             currentIndex = Math.round(track.scrollLeft / itemWidth);
+
+            // Ensure we snap to the nearest item
+            const snapScroll = currentIndex * itemWidth;
+            if (Math.abs(track.scrollLeft - snapScroll) > 10) {
+                track.scrollTo({
+                    left: snapScroll,
+                    behavior: 'smooth'
+                });
+            }
 
             // Resume auto-scroll after a delay
             setTimeout(resumeAutoScroll, 2000);
@@ -267,6 +295,15 @@
          * Handle window resize
          */
         function handleResize() {
+            // Check if we've switched between mobile and desktop
+            const wasMobile = isMobile;
+            const isNowMobile = window.innerWidth <= 768;
+
+            // If viewport changed between mobile and desktop, recalculate everything
+            if (wasMobile !== isNowMobile) {
+                isMobile = isNowMobile;
+            }
+
             // Recalculate and adjust scroll position
             const itemWidth = getItemWidth();
             currentIndex = Math.round(track.scrollLeft / itemWidth);

@@ -233,37 +233,45 @@
 }
 
 /* ========================================
-   MOBILE LAYOUT - ICON ONLY
+   MOBILE LAYOUT - RAIL STYLE (3 ITEMS PER VIEW)
 ======================================== */
 
 @media (max-width: 768px) {
     .category-slider-track {
-        gap: 1.5rem;
+        /* Rail style: exactly 3 items visible at once */
+        gap: 1rem;
         padding: 1rem 50px;
         justify-content: flex-start;
+        scroll-snap-type: x mandatory;
     }
 
-    /* Item container - no background, no border */
+    /* Item container - fixed width for 3-item rail view */
     .category-slider-item {
+        /* Calculate: (100% - 100px padding - 2rem gaps) / 3 items */
+        /* Approximately 30% width with proper spacing */
         flex-shrink: 0;
+        width: calc(33.333% - 0.67rem);
+        max-width: 110px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         text-align: center;
         text-decoration: none;
         color: inherit;
         transition: all 0.3s ease;
         scroll-snap-align: center;
+        scroll-snap-stop: always;
         background: none;
         border: none;
-        padding: 0;
+        padding: 0.5rem 0;
     }
 
     .category-slider-item:active .category-icon {
         transform: scale(0.9);
     }
 
-    /* Icon - bigger, with custom background color */
+    /* Icon - circular with custom background color */
     .category-icon {
         flex-shrink: 0;
         width: 80px;
@@ -313,7 +321,7 @@
 }
 
 /* ========================================
-   EXTRA SMALL MOBILE
+   EXTRA SMALL MOBILE (RAIL STYLE OPTIMIZED)
 ======================================== */
 
 @media (max-width: 480px) {
@@ -330,7 +338,13 @@
     }
 
     .category-slider-track {
-        gap: 1.5rem;
+        gap: 0.8rem;
+        padding: 1rem 40px;
+    }
+
+    .category-slider-item {
+        width: calc(33.333% - 0.53rem);
+        max-width: 95px;
     }
 
     .category-icon {
