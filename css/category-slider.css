@@ -1,8 +1,8 @@
 /**
- * Category Slider Styles
- * Horizontal scrolling slider on both desktop and mobile
+ * Category Slider Styles - Modern Momentum Scrolling
+ * No navigation arrows, smooth touch and desktop scrolling
  * Desktop: Shows icons with names below (4-5 visible at once)
- * Mobile: Shows only icons (bigger, 2-3 visible at once)
+ * Mobile: Shows only icons, 3 visible at once
  *
  * @package CozyRecipes
  */
@@ -47,86 +47,9 @@
     max-width: 100%;
 }
 
-/* ========================================
-   NAVIGATION ARROWS
-======================================== */
+/* Navigation arrows removed - using momentum scrolling instead */
 
-.category-slider__arrow {
-    position: absolute;
-    z-index: 10;
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #555;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-}
-
-.category-slider__arrow:hover {
-    background: #f5f5f5;
-    border-color: #d0d0d0;
-    color: #333;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-.category-slider__arrow:active {
-    transform: scale(0.95);
-}
-
-.category-slider__arrow:focus {
-    outline: 2px solid #333;
-    outline-offset: 2px;
-}
-
-.category-slider__arrow:focus:not(:focus-visible) {
-    outline: none;
-}
-
-.category-slider__arrow svg {
-    width: 18px;
-    height: 18px;
-    pointer-events: none;
-}
-
-/* Hide arrows when slider doesn't need scrolling */
-.category-slider__arrow.hidden {
-    display: none;
-}
-
-/* Mobile: Hide arrows for clean rail slider design */
-@media (max-width: 768px) {
-    .category-slider__arrow {
-        display: none;
-    }
-}
-
-/* Desktop: Position arrows outside slider, vertically centered */
-@media (min-width: 769px) {
-    .category-slider__arrow {
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    .category-slider__arrow:active {
-        transform: translateY(-50%) scale(0.95);
-    }
-
-    .category-slider__arrow--prev {
-        left: -50px;
-    }
-
-    .category-slider__arrow--next {
-        right: -50px;
-    }
-}
-
+/* Track with momentum scrolling and touch feedback */
 .category-slider-track {
     display: flex;
     flex-direction: row;
@@ -135,9 +58,16 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    padding: 1rem 50px;
+    scroll-behavior: auto; /* Let JS handle momentum, not browser smooth scroll */
+    -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+    padding: 1rem 1.5rem;
+    user-select: none; /* Prevent text selection during drag */
+    -webkit-user-select: none;
+    cursor: grab;
+}
+
+.category-slider-track:active {
+    cursor: grabbing;
 }
 
 /* Hide scrollbar for Chrome/Safari */
@@ -152,7 +82,7 @@
 @media (min-width: 769px) {
     .category-slider-track {
         gap: 2rem;
-        padding: 1.5rem 0;
+        padding: 1.5rem;
         justify-content: flex-start;
     }
 

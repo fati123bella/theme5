@@ -1,6 +1,7 @@
 /**
- * Category Slider - Horizontal Auto-scroll for All Devices
- * Works on both desktop and mobile
+ * Category Slider - Modern Touch-Friendly Momentum Scrolling
+ * No arrows, smooth inertial scrolling, and CSS snap alignment
+ * Works on mobile (swipe) and desktop (click-drag)
  *
  * @package CozyRecipes
  */
@@ -21,227 +22,52 @@
 
         const track = slider.querySelector('.category-slider-track');
         const items = Array.from(track.querySelectorAll('.category-slider-item'));
-        const prevArrow = slider.querySelector('.category-slider__arrow--prev');
-        const nextArrow = slider.querySelector('.category-slider__arrow--next');
 
         if (!track || items.length === 0) return;
 
-        // Get settings from localized script
-        const settings = window.categorySliderSettings || {};
-        const autoScrollSpeed = parseInt(settings.autoScrollSpeed) || 3000;
-
-        // Detect if we're on mobile for rail-style 3-item view
-        let isMobile = window.innerWidth <= 768;
-
-        let currentIndex = 0;
-        let autoScrollInterval = null;
-        let isPaused = false;
-
-        // Touch/drag variables
+        // Momentum scrolling variables
         let isDragging = false;
         let startX = 0;
         let currentX = 0;
         let startScrollLeft = 0;
+        let velocity = 0;
+        let lastX = 0;
+        let lastTime = 0;
+        let momentum = null;
+
+        // Configuration
+        const friction = 0.95; // Higher = more slide momentum (0.9-0.98)
+        const minVelocity = 0.5; // Minimum velocity to trigger momentum
 
         /**
-         * Get the width of one item plus gap
+         * Handle mouse down - start drag
          */
-        function getItemWidth() {
-            if (items.length === 0) return 0;
-            const itemWidth = items[0].offsetWidth;
-            const trackStyle = window.getComputedStyle(track);
-            const gap = parseFloat(trackStyle.gap) || 32; // 2rem default
-            return itemWidth + gap;
-        }
+        function handleMouseDown(e) {
+            // Only left mouse button
+            if (e.button !== 0) return;
 
-        /**
-         * Scroll to specific index
-         */
-        function scrollToIndex(index, smooth = true) {
-            const itemWidth = getItemWidth();
-            const scrollLeft = index * itemWidth;
-
-            if (smooth) {
-                track.scrollTo({
-                    left: scrollLeft,
-                    behavior: 'smooth'
-                });
-            } else {
-                track.scrollLeft = scrollLeft;
-            }
-        }
-
-        /**
-         * Go to next item
-         */
-        function goToNext() {
-            if (isPaused) return;
-
-            currentIndex++;
-
-            // Loop back to start when reaching the end
-            if (currentIndex >= items.length) {
-                currentIndex = 0;
-            }
-
-            scrollToIndex(currentIndex);
-        }
-
-        /**
-         * Go to previous item
-         */
-        function goToPrevious() {
-            currentIndex--;
-
-            // Loop to end when at the start
-            if (currentIndex < 0) {
-                currentIndex = items.length - 1;
-            }
-
-            scrollToIndex(currentIndex);
-        }
-
-        /**
-         * Update arrow visibility based on scroll overflow
-         */
-        function updateArrowVisibility() {
-            if (!prevArrow || !nextArrow) return;
-
-            // Check if content overflows
-            const hasOverflow = track.scrollWidth > track.clientWidth;
-
-            if (hasOverflow) {
-                prevArrow.classList.remove('hidden');
-                nextArrow.classList.remove('hidden');
-            } else {
-                prevArrow.classList.add('hidden');
-                nextArrow.classList.add('hidden');
-            }
-        }
-
-        /**
-         * Start auto-scroll
-         */
-        function startAutoScroll() {
-            stopAutoScroll(); // Clear any existing interval
-
-            autoScrollInterval = setInterval(function() {
-                if (!isPaused && !isDragging) {
-                    requestAnimationFrame(goToNext);
-                }
-            }, autoScrollSpeed);
-        }
-
-        /**
-         * Stop auto-scroll
-         */
-        function stopAutoScroll() {
-            if (autoScrollInterval) {
-                clearInterval(autoScrollInterval);
-                autoScrollInterval = null;
-            }
-        }
-
-        /**
-         * Pause auto-scroll temporarily
-         */
-        function pauseAutoScroll() {
-            isPaused = true;
-            stopAutoScroll();
-        }
-
-        /**
-         * Resume auto-scroll
-         */
-        function resumeAutoScroll() {
-            isPaused = false;
-            startAutoScroll();
-        }
-
-        /**
-         * Handle mouse enter (pause on hover)
-         */
-        function handleMouseEnter() {
-            pauseAutoScroll();
-        }
-
-        /**
-         * Handle mouse leave (resume)
-         */
-        function handleMouseLeave() {
-            resumeAutoScroll();
-        }
-
-        /**
-         * Handle touch start
-         */
-        function handleTouchStart(e) {
             isDragging = true;
-            startX = e.touches[0].clientX;
+            startX = e.clientX;
+            lastX = e.clientX;
+            lastTime = Date.now();
             startScrollLeft = track.scrollLeft;
-            pauseAutoScroll();
+            velocity = 0;
+
+            // Stop any ongoing momentum
+            if (momentum) {
+                cancelAnimationFrame(momentum);
+                momentum = null;
+            }
 
             // Disable snap during drag for smooth sliding
             track.style.scrollSnapType = 'none';
-            track.style.scrollBehavior = 'auto';
-        }
-
-        /**
-         * Handle touch move
-         */
-        function handleTouchMove(e) {
-            if (!isDragging) return;
-
-            currentX = e.touches[0].clientX;
-            const deltaX = startX - currentX;
-            track.scrollLeft = startScrollLeft + deltaX;
-        }
-
-        /**
-         * Handle touch end with snap-based alignment
-         */
-        function handleTouchEnd() {
-            isDragging = false;
-
-            // Re-enable snap scrolling after drag
-            track.style.scrollSnapType = 'x mandatory';
-            track.style.scrollBehavior = 'smooth';
-
-            // Update current index based on scroll position
-            const itemWidth = getItemWidth();
-            currentIndex = Math.round(track.scrollLeft / itemWidth);
-
-            // Ensure we snap to the nearest item
-            const snapScroll = currentIndex * itemWidth;
-            if (Math.abs(track.scrollLeft - snapScroll) > 10) {
-                track.scrollTo({
-                    left: snapScroll,
-                    behavior: 'smooth'
-                });
-            }
-
-            // Resume auto-scroll after a delay
-            setTimeout(resumeAutoScroll, 2000);
-        }
-
-        /**
-         * Handle mouse down (for drag)
-         */
-        function handleMouseDown(e) {
-            isDragging = true;
-            startX = e.clientX;
-            startScrollLeft = track.scrollLeft;
-            pauseAutoScroll();
-
             track.style.cursor = 'grabbing';
-            track.style.scrollSnapType = 'none';
-            track.style.scrollBehavior = 'auto';
 
             e.preventDefault();
         }
 
         /**
-         * Handle mouse move
+         * Handle mouse move - drag scrolling
          */
         function handleMouseMove(e) {
             if (!isDragging) return;
@@ -249,170 +75,153 @@
             currentX = e.clientX;
             const deltaX = startX - currentX;
             track.scrollLeft = startScrollLeft + deltaX;
+
+            // Calculate velocity for momentum
+            const now = Date.now();
+            const timeDelta = now - lastTime;
+            if (timeDelta > 0) {
+                velocity = (lastX - currentX) / timeDelta;
+            }
+            lastX = currentX;
+            lastTime = now;
         }
 
         /**
-         * Handle mouse up with snap-based alignment
+         * Handle mouse up - apply momentum
          */
         function handleMouseUp() {
+            if (!isDragging) return;
+
             isDragging = false;
             track.style.cursor = 'grab';
+
+            // Apply momentum scrolling
+            applyMomentum(velocity);
+        }
+
+        /**
+         * Handle touch start - start drag
+         */
+        function handleTouchStart(e) {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            lastX = e.touches[0].clientX;
+            lastTime = Date.now();
+            startScrollLeft = track.scrollLeft;
+            velocity = 0;
+
+            // Stop any ongoing momentum
+            if (momentum) {
+                cancelAnimationFrame(momentum);
+                momentum = null;
+            }
+
+            // Disable snap during drag for smooth sliding
+            track.style.scrollSnapType = 'none';
+        }
+
+        /**
+         * Handle touch move - drag scrolling
+         */
+        function handleTouchMove(e) {
+            if (!isDragging) return;
+
+            currentX = e.touches[0].clientX;
+            const deltaX = startX - currentX;
+            track.scrollLeft = startScrollLeft + deltaX;
+
+            // Calculate velocity for momentum
+            const now = Date.now();
+            const timeDelta = now - lastTime;
+            if (timeDelta > 0) {
+                velocity = (lastX - currentX) / timeDelta;
+            }
+            lastX = currentX;
+            lastTime = now;
+        }
+
+        /**
+         * Handle touch end - apply momentum
+         */
+        function handleTouchEnd() {
+            if (!isDragging) return;
+
+            isDragging = false;
+
+            // Apply momentum scrolling
+            applyMomentum(velocity);
+        }
+
+        /**
+         * Apply momentum scrolling with inertial deceleration
+         */
+        function applyMomentum(initialVelocity) {
+            // Re-enable snap scrolling
             track.style.scrollSnapType = 'x mandatory';
-            track.style.scrollBehavior = 'smooth';
 
-            // Update current index
-            const itemWidth = getItemWidth();
-            currentIndex = Math.round(track.scrollLeft / itemWidth);
-
-            // Ensure we snap to the nearest item
-            const snapScroll = currentIndex * itemWidth;
-            if (Math.abs(track.scrollLeft - snapScroll) > 10) {
-                track.scrollTo({
-                    left: snapScroll,
-                    behavior: 'smooth'
-                });
+            // Only apply momentum if velocity is significant enough
+            if (Math.abs(initialVelocity) < minVelocity) {
+                return;
             }
 
-            // Resume auto-scroll after a delay
-            setTimeout(resumeAutoScroll, 2000);
-        }
+            let currentVelocity = initialVelocity;
+            let lastScrollLeft = track.scrollLeft;
 
-        /**
-         * Handle focus on items (pause auto-scroll)
-         */
-        function handleItemFocus() {
-            pauseAutoScroll();
-        }
+            function animate() {
+                // Apply friction
+                currentVelocity *= friction;
 
-        /**
-         * Handle blur on items (resume auto-scroll)
-         */
-        function handleItemBlur() {
-            setTimeout(resumeAutoScroll, 1000);
-        }
+                // Stop animation if velocity is negligible
+                if (Math.abs(currentVelocity) < 0.01) {
+                    momentum = null;
+                    return;
+                }
 
-        /**
-         * Handle window resize
-         */
-        function handleResize() {
-            // Check if we've switched between mobile and desktop
-            const wasMobile = isMobile;
-            const isNowMobile = window.innerWidth <= 768;
+                // Update scroll position
+                const newScrollLeft = lastScrollLeft - (currentVelocity * 16); // 16ms typical frame time
+                track.scrollLeft = newScrollLeft;
+                lastScrollLeft = newScrollLeft;
 
-            // If viewport changed between mobile and desktop, recalculate everything
-            if (wasMobile !== isNowMobile) {
-                isMobile = isNowMobile;
+                // Continue animation
+                momentum = requestAnimationFrame(animate);
             }
 
-            // Recalculate and adjust scroll position
-            const itemWidth = getItemWidth();
-            currentIndex = Math.round(track.scrollLeft / itemWidth);
-            scrollToIndex(currentIndex, false);
-
-            // Update arrow visibility
-            updateArrowVisibility();
-        }
-
-        /**
-         * Handle arrow button activation (click or keyboard)
-         */
-        function handlePrevious() {
-            pauseAutoScroll();
-            goToPrevious();
-            setTimeout(resumeAutoScroll, 3000);
-        }
-
-        function handleNext() {
-            pauseAutoScroll();
-            goToNext();
-            setTimeout(resumeAutoScroll, 3000);
+            momentum = requestAnimationFrame(animate);
         }
 
         /**
          * Initialize event listeners
          */
         function initEvents() {
-            // Previous arrow events
-            if (prevArrow) {
-                // Click event
-                prevArrow.addEventListener('click', handlePrevious);
-
-                // Keyboard events (Enter and Space)
-                prevArrow.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handlePrevious();
-                    }
-                });
-            }
-
-            // Next arrow events
-            if (nextArrow) {
-                // Click event
-                nextArrow.addEventListener('click', handleNext);
-
-                // Keyboard events (Enter and Space)
-                nextArrow.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleNext();
-                    }
-                });
-            }
-
-            // Hover events
-            slider.addEventListener('mouseenter', handleMouseEnter);
-            slider.addEventListener('mouseleave', handleMouseLeave);
-
-            // Touch events
-            track.addEventListener('touchstart', handleTouchStart, { passive: true });
-            track.addEventListener('touchmove', handleTouchMove, { passive: true });
-            track.addEventListener('touchend', handleTouchEnd);
-
-            // Mouse drag events
+            // Mouse events (desktop)
             track.addEventListener('mousedown', handleMouseDown);
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
 
-            // Focus events for accessibility
-            items.forEach(function(item) {
-                item.addEventListener('focus', handleItemFocus);
-                item.addEventListener('blur', handleItemBlur);
-            });
+            // Touch events (mobile)
+            track.addEventListener('touchstart', handleTouchStart, { passive: true });
+            track.addEventListener('touchmove', handleTouchMove, { passive: true });
+            track.addEventListener('touchend', handleTouchEnd);
 
-            // Resize with debounce
-            let resizeTimer;
-            window.addEventListener('resize', function() {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(handleResize, 250);
-            });
-
-            // Pause when page becomes hidden
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    pauseAutoScroll();
-                } else if (!isPaused) {
-                    resumeAutoScroll();
+            // Prevent text selection while dragging
+            track.addEventListener('selectstart', function(e) {
+                if (isDragging) {
+                    e.preventDefault();
                 }
             });
+
+            // Set initial cursor style
+            track.style.cursor = 'grab';
         }
 
         /**
          * Initialize the slider
          */
         function init() {
-            // Set initial scroll position
-            scrollToIndex(0, false);
+            // Ensure smooth scrolling behavior
+            track.style.scrollBehavior = 'auto';
 
-            // Update arrow visibility
-            updateArrowVisibility();
-
-            // Auto-scroll disabled - users can manually navigate with arrows or drag
-            // startAutoScroll();
-
-            // Add grab cursor hint
-            track.style.cursor = 'grab';
-
+            // Initialize events
             initEvents();
         }
 
@@ -422,7 +231,7 @@
         // Re-initialize after fonts load (prevents layout shift)
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function() {
-                scrollToIndex(currentIndex, false);
+                // Nothing special needed, just ensure layout is stable
             });
         }
     }
