@@ -1317,20 +1317,6 @@ function cozyrecipes_pagination_aria( $output ) {
 add_filter( 'navigation_markup_template', 'cozyrecipes_pagination_aria' );
 
 /**
- * Add async/defer to third-party scripts
- */
-function cozyrecipes_async_scripts( $tag, $handle, $src ) {
-    $async_scripts = array( 'jquery-core', 'jquery-migrate' );
-
-    if ( in_array( $handle, $async_scripts ) ) {
-        return str_replace( ' src', ' async defer src', $tag );
-    }
-
-    return $tag;
-}
-add_filter( 'script_loader_tag', 'cozyrecipes_async_scripts', 10, 3 );
-
-/**
  * Disable unnecessary REST API endpoints for performance
  */
 function cozyrecipes_disable_rest_endpoints( $endpoints ) {
