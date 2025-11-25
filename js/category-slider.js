@@ -1,7 +1,7 @@
 /**
- * Category Slider - Advanced Carousel with Momentum & Snap
- * Optimized for mobile touch and desktop drag interactions
- * Features: Smart snapping, momentum scrolling, swipe detection
+ * Category Slider - Solid Mobile Carousel
+ * Simple, reliable scrolling with snap alignment
+ * Mobile-first design with proper touch handling
  *
  * @package CozyRecipes
  */
@@ -25,33 +25,13 @@
 
         if (!track || items.length === 0) return;
 
-        // Carousel state
+        let touchStartX = 0;
+        let touchEndX = 0;
         let isDragging = false;
-        let startX = 0;
-        let currentX = 0;
-        let startScrollLeft = 0;
-        let velocity = 0;
-        let lastX = 0;
-        let lastTime = 0;
-        let lastTimestamp = 0;
-        let momentum = null;
-
-        // Get viewport width to determine mobile vs desktop
-        const isMobile = () => window.innerWidth <= 768;
-
-        // Configuration - adjusted for mobile and desktop
-        const getMomentumConfig = () => {
-            return {
-                friction: isMobile() ? 0.92 : 0.95,      // More friction on mobile
-                minVelocity: isMobile() ? 0.3 : 0.5,     // Lower threshold on mobile
-                maxVelocity: isMobile() ? 3 : 5,         // Cap velocity
-                snapThreshold: isMobile() ? 0.2 : 0.15,  // Snap distance
-                decelerationFactor: 0.98                  // Smooth deceleration curve
-            };
-        };
+        let scrollTimeout;
 
         /**
-         * Get the width of one item plus gap
+         * Get item width including gap
          */
         function getItemWidth() {
             if (items.length === 0) return 0;
@@ -62,108 +42,33 @@
         }
 
         /**
-         * Snap to the nearest item
+         * Snap to nearest item
          */
-        function snapToNearestItem() {
-            const config = getMomentumConfig();
+        function snapToItem() {
             const itemWidth = getItemWidth();
             const currentScroll = track.scrollLeft;
-            const nearestIndex = Math.round(currentScroll / itemWidth);
-            const targetScroll = nearestIndex * itemWidth;
+            const itemIndex = Math.round(currentScroll / itemWidth);
+            const targetScroll = itemIndex * itemWidth;
 
-            // Only snap if distance is significant enough
-            const distance = Math.abs(currentScroll - targetScroll);
-            if (distance > 5) {
-                // Smooth scroll to snap position
-                track.scrollTo({
-                    left: targetScroll,
-                    behavior: 'smooth'
-                });
-            }
+            track.scrollTo({
+                left: targetScroll,
+                behavior: 'smooth',
+                top: 0
+            });
+
+            updateIndicators(itemIndex);
         }
 
         /**
-         * Handle mouse down - start drag
-         */
-        function handleMouseDown(e) {
-            // Only left mouse button
-            if (e.button !== 0) return;
-
-            isDragging = true;
-            startX = e.clientX;
-            lastX = e.clientX;
-            lastTime = Date.now();
-            lastTimestamp = Date.now();
-            startScrollLeft = track.scrollLeft;
-            velocity = 0;
-
-            // Stop any ongoing momentum
-            if (momentum) {
-                cancelAnimationFrame(momentum);
-                momentum = null;
-            }
-
-            // Disable snap during drag
-            track.style.scrollSnapType = 'none';
-            track.style.cursor = 'grabbing';
-
-            e.preventDefault();
-        }
-
-        /**
-         * Handle mouse move - drag scrolling
-         */
-        function handleMouseMove(e) {
-            if (!isDragging) return;
-
-            currentX = e.clientX;
-            const deltaX = startX - currentX;
-            track.scrollLeft = startScrollLeft + deltaX;
-
-            // Calculate velocity - using weighted average for smoother motion
-            const now = Date.now();
-            const timeDelta = now - lastTime;
-
-            if (timeDelta > 0 && timeDelta < 100) {
-                const pixelsDelta = lastX - currentX;
-                const currentVelocity = pixelsDelta / timeDelta;
-                // Smooth velocity with weighted average
-                velocity = velocity * 0.7 + currentVelocity * 0.3;
-            }
-
-            lastX = currentX;
-            lastTime = now;
-        }
-
-        /**
-         * Handle mouse up - apply momentum and snap
-         */
-        function handleMouseUp() {
-            if (!isDragging) return;
-
-            isDragging = false;
-            track.style.cursor = 'grab';
-
-            // Apply momentum then snap
-            applyMomentumWithSnap(velocity);
-        }
-
-        /**
-         * Handle touch start - start drag
+         * Handle touch start
          */
         function handleTouchStart(e) {
             isDragging = true;
-            startX = e.touches[0].clientX;
-            lastX = e.touches[0].clientX;
-            lastTime = Date.now();
-            lastTimestamp = Date.now();
-            startScrollLeft = track.scrollLeft;
-            velocity = 0;
+            touchStartX = e.touches[0].clientX;
 
-            // Stop any ongoing momentum
-            if (momentum) {
-                cancelAnimationFrame(momentum);
-                momentum = null;
+            // Cancel any pending snap
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
             }
 
             // Disable snap during drag
@@ -171,181 +76,143 @@
         }
 
         /**
-         * Handle touch move - drag scrolling with better velocity
+         * Handle touch move - allow natural scrolling
          */
         function handleTouchMove(e) {
-            if (!isDragging) return;
-
-            currentX = e.touches[0].clientX;
-            const deltaX = startX - currentX;
-            track.scrollLeft = startScrollLeft + deltaX;
-
-            // Calculate velocity with better time resolution
-            const now = Date.now();
-            const timeDelta = now - lastTime;
-
-            if (timeDelta > 0 && timeDelta < 150) {
-                const pixelsDelta = lastX - currentX;
-                const currentVelocity = pixelsDelta / timeDelta;
-                // Apply low-pass filter for smooth velocity
-                velocity = velocity * 0.6 + currentVelocity * 0.4;
-                // Cap velocity
-                const config = getMomentumConfig();
-                velocity = Math.max(-config.maxVelocity, Math.min(config.maxVelocity, velocity));
-            }
-
-            lastX = currentX;
-            lastTime = now;
+            // Native browser scrolling handles this
         }
 
         /**
-         * Handle touch end - apply momentum and snap
+         * Handle touch end - snap to item
          */
-        function handleTouchEnd() {
-            if (!isDragging) return;
-
+        function handleTouchEnd(e) {
             isDragging = false;
-
-            // Apply momentum then snap
-            applyMomentumWithSnap(velocity);
-        }
-
-        /**
-         * Apply momentum scrolling with inertial deceleration, then snap
-         */
-        function applyMomentumWithSnap(initialVelocity) {
-            const config = getMomentumConfig();
+            touchEndX = e.changedTouches[0].clientX;
 
             // Re-enable snap scrolling
             track.style.scrollSnapType = 'x mandatory';
 
-            // Check if velocity is significant
-            if (Math.abs(initialVelocity) < config.minVelocity) {
-                // Not enough velocity, just snap
-                snapToNearestItem();
-                return;
+            // Snap to nearest item after brief delay
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
             }
-
-            let currentVelocity = initialVelocity;
-            let lastScrollLeft = track.scrollLeft;
-            const maxScrollLeft = track.scrollWidth - track.clientWidth;
-
-            function animate() {
-                // Apply deceleration with smooth curve
-                currentVelocity *= config.decelerationFactor;
-
-                // Stop animation if velocity is negligible
-                if (Math.abs(currentVelocity) < 0.01) {
-                    momentum = null;
-                    // Snap to nearest item when momentum stops
-                    snapToNearestItem();
-                    return;
-                }
-
-                // Calculate new scroll position
-                const movement = currentVelocity * 16; // 16ms typical frame time
-                let newScrollLeft = lastScrollLeft - movement;
-
-                // Clamp to scroll boundaries
-                newScrollLeft = Math.max(0, Math.min(maxScrollLeft, newScrollLeft));
-
-                // If we hit the boundary, stop momentum
-                if (newScrollLeft <= 0 || newScrollLeft >= maxScrollLeft) {
-                    if (newScrollLeft <= 0 || newScrollLeft >= maxScrollLeft) {
-                        currentVelocity = 0;
-                    }
-                }
-
-                track.scrollLeft = newScrollLeft;
-                lastScrollLeft = newScrollLeft;
-
-                // Continue animation
-                momentum = requestAnimationFrame(animate);
-            }
-
-            momentum = requestAnimationFrame(animate);
+            scrollTimeout = setTimeout(() => {
+                snapToItem();
+            }, 100);
         }
 
         /**
-         * Handle keyboard navigation (arrow keys)
+         * Update carousel indicators (dots)
          */
-        function handleKeyDown(e) {
+        function updateIndicators(currentIndex) {
+            const indicators = slider.querySelectorAll('.carousel-indicator');
+            indicators.forEach((indicator, index) => {
+                if (index === currentIndex) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+        }
+
+        /**
+         * Handle scroll event for updating indicators
+         */
+        function handleScroll() {
+            if (isDragging) return;
+
             const itemWidth = getItemWidth();
-
-            switch(e.key) {
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    track.scrollLeft -= itemWidth;
-                    snapToNearestItem();
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    track.scrollLeft += itemWidth;
-                    snapToNearestItem();
-                    break;
-            }
+            const currentScroll = track.scrollLeft;
+            const itemIndex = Math.round(currentScroll / itemWidth);
+            updateIndicators(itemIndex);
         }
 
         /**
-         * Initialize event listeners
+         * Create carousel indicator dots
          */
-        function initEvents() {
-            // Mouse events (desktop)
-            track.addEventListener('mousedown', handleMouseDown);
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
+        function createIndicators() {
+            const indicatorContainer = document.createElement('div');
+            indicatorContainer.className = 'carousel-indicators';
 
-            // Touch events (mobile)
-            track.addEventListener('touchstart', handleTouchStart, { passive: true });
-            track.addEventListener('touchmove', handleTouchMove, { passive: true });
-            track.addEventListener('touchend', handleTouchEnd);
+            for (let i = 0; i < items.length; i++) {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'carousel-indicator';
+                dot.setAttribute('aria-label', `Go to item ${i + 1}`);
 
-            // Keyboard navigation
-            track.addEventListener('keydown', handleKeyDown);
-
-            // Prevent text selection during drag
-            track.addEventListener('selectstart', function(e) {
-                if (isDragging) {
-                    e.preventDefault();
+                if (i === 0) {
+                    dot.classList.add('active');
                 }
-            });
 
-            // Set initial cursor style
-            track.style.cursor = 'grab';
+                // Click to scroll to item
+                dot.addEventListener('click', () => {
+                    const itemWidth = getItemWidth();
+                    const targetScroll = i * itemWidth;
+                    track.scrollTo({
+                        left: targetScroll,
+                        behavior: 'smooth'
+                    });
+                    updateIndicators(i);
+                });
 
-            // Re-snap on window resize
-            let resizeTimer;
-            window.addEventListener('resize', function() {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    snapToNearestItem();
-                }, 250);
-            });
+                indicatorContainer.appendChild(dot);
+            }
+
+            return indicatorContainer;
         }
 
         /**
-         * Initialize the carousel
+         * Initialize carousel
          */
         function init() {
-            // Ensure smooth scrolling behavior
-            track.style.scrollBehavior = 'auto';
+            // Add touch event listeners
+            track.addEventListener('touchstart', handleTouchStart, false);
+            track.addEventListener('touchmove', handleTouchMove, { passive: true });
+            track.addEventListener('touchend', handleTouchEnd, false);
 
-            // Snap to first item on load
-            snapToNearestItem();
+            // Add scroll listener for indicator updates
+            track.addEventListener('scroll', handleScroll, { passive: true });
 
-            // Initialize events
-            initEvents();
-        }
+            // Add mouse drag support for desktop
+            let mouseDown = false;
+            let mouseStartX = 0;
+            let mouseScrollLeft = 0;
 
-        // Initialize on load
-        init();
-
-        // Re-initialize after fonts load
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function() {
-                snapToNearestItem();
+            track.addEventListener('mousedown', (e) => {
+                mouseDown = true;
+                mouseStartX = e.clientX;
+                mouseScrollLeft = track.scrollLeft;
+                track.style.cursor = 'grabbing';
+                track.style.scrollSnapType = 'none';
             });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+                const deltaX = e.clientX - mouseStartX;
+                track.scrollLeft = mouseScrollLeft - deltaX;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!mouseDown) return;
+                mouseDown = false;
+                track.style.cursor = 'grab';
+                track.style.scrollSnapType = 'x mandatory';
+                snapToItem();
+            });
+
+            // Set initial cursor
+            track.style.cursor = 'grab';
+
+            // Create and insert indicators
+            const indicators = createIndicators();
+            slider.appendChild(indicators);
+
+            // Initial snap
+            snapToItem();
         }
+
+        // Initialize when ready
+        init();
     }
 
 })();
