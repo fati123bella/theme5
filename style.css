@@ -1588,13 +1588,14 @@ ul, ol {
 }
 
 .post-nav-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    align-items: stretch;
     gap: 2rem;
 }
 
 /* Navigation Item Container */
 .post-nav-item {
+    flex: 1;
     background: #fff;
     border-radius: 12px;
     border: 1px solid #e5e5e5;
@@ -1710,7 +1711,7 @@ ul, ol {
 /* Tablet Layout */
 @media (max-width: 768px) {
     .post-nav-wrapper {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: 1.5rem;
     }
 
