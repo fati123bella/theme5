@@ -106,8 +106,8 @@ get_header();
         // Post navigation
         the_post_navigation(
             array(
-                'prev_text' => '<span class="nav-subtitle">' . esc_html__( 'Previous Recipe:', 'cozyrecipes' ) . '</span> <span class="nav-title">%title</span>',
-                'next_text' => '<span class="nav-subtitle">' . esc_html__( 'Next Recipe:', 'cozyrecipes' ) . '</span> <span class="nav-title">%title</span>',
+                'prev_text' => '<span class="nav-arrow">←</span> <span class="nav-subtitle">' . esc_html__( 'Previous:', 'cozyrecipes' ) . '</span> <span class="nav-title">%title</span>',
+                'next_text' => '<span class="nav-subtitle">' . esc_html__( 'Next:', 'cozyrecipes' ) . '</span> <span class="nav-title">%title</span> <span class="nav-arrow">→</span>',
             )
         );
 
