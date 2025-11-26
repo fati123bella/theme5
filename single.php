@@ -103,13 +103,8 @@ get_header();
         </article><!-- #post-<?php the_ID(); ?> -->
 
         <?php
-        // Post navigation
-        the_post_navigation(
-            array(
-                'prev_text' => '<span class="nav-arrow">←</span> <span class="nav-subtitle">' . esc_html__( 'Previous:', 'cozyrecipes' ) . '</span> <span class="nav-title">%title</span>',
-                'next_text' => '<span class="nav-subtitle">' . esc_html__( 'Next:', 'cozyrecipes' ) . '</span> <span class="nav-title">%title</span> <span class="nav-arrow">→</span>',
-            )
-        );
+        // Custom post navigation with featured images
+        get_template_part( 'template-parts/custom-post-navigation' );
 
         // Related recipes
         $categories = get_the_category();
