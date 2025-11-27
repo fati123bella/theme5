@@ -389,8 +389,9 @@ function cozyrecipes_scripts() {
         false  // FALSE = load in <head>, TRUE = load in footer
     );
 
-    // B. Enqueue theme stylesheet (will be deferred via filter below)
-    wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), $style_version, 'all' );
+    // B. Enqueue theme stylesheet (minified in production, full in development)
+    $stylesheet_file = file_exists( get_template_directory() . '/style.min.css' ) ? '/style.min.css' : '/style.css';
+    wp_enqueue_style( 'cozyrecipes-style', get_template_directory_uri() . $stylesheet_file, array(), $style_version, 'all' );
 
     // C. Enqueue theme JavaScript in footer (depends on jQuery)
     wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), $js_version, true );
@@ -2201,3 +2202,314 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
     ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
+add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
+
+/* ========================================
+   SEO OPTIMIZATION MODULE
+======================================== */
+
+/**
+ * Add JSON-LD Structured Data for Recipes on Single Posts
+ */
+function cozyrecipes_add_recipe_schema() {
+    if ( ! is_singular( 'post' ) ) {
+        return;
+    }
+
+    global $post;
+    $post_id = get_the_ID();
+    
+    // Get featured image
+    $image_id = get_post_thumbnail_id( $post_id );
+    $image_url = wp_get_attachment_image_src( $image_id, 'full' );
+    $image_url = $image_url ? $image_url[0] : '';
+
+    // Build Recipe Schema
+    $schema = array(
+        '@context' => 'https://schema.org/',
+        '@type' => 'Recipe',
+        'name' => get_the_title(),
+        'description' => wp_trim_words( get_the_excerpt(), 20 ),
+        'author' => array(
+            '@type' => 'Person',
+            'name' => get_the_author_meta( 'display_name', $post->post_author ),
+        ),
+        'image' => $image_url ? array(
+            '@type' => 'ImageObject',
+            'url' => $image_url,
+            'width' => 1200,
+            'height' => 800,
+        ) : null,
+        'datePublished' => mysql2date( 'c', $post->post_date ),
+        'dateModified' => mysql2date( 'c', $post->post_modified ),
+        'prepTime' => 'PT15M',
+        'cookTime' => 'PT30M',
+        'totalTime' => 'PT45M',
+        'recipeYield' => '4 servings',
+        'recipeCategory' => 'Breakfast, Lunch, Dinner',
+        'recipeCuisine' => 'American',
+        'keywords' => implode( ', ', array_map( function( $term ) { return $term->name; }, wp_get_post_terms( $post_id, 'category' ) ) ),
+        'url' => get_permalink(),
+    );
+
+    // Remove null image if no featured image
+    if ( ! $image_url ) {
+        unset( $schema['image'] );
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_recipe_schema', 15 );
+
+/**
+ * Add Breadcrumb Schema JSON-LD
+ */
+function cozyrecipes_add_breadcrumb_schema() {
+    // Only on archives and single posts
+    if ( ! is_singular() && ! is_archive() && ! is_home() ) {
+        return;
+    }
+
+    $breadcrumbs = array(
+        array(
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Home',
+            'item' => home_url(),
+        ),
+    );
+
+    if ( is_singular() ) {
+        $categories = get_the_category();
+        if ( ! empty( $categories ) ) {
+            $breadcrumbs[] = array(
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $categories[0]->name,
+                'item' => get_category_link( $categories[0]->term_id ),
+            );
+        }
+
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => count( $breadcrumbs ) + 1,
+            'name' => get_the_title(),
+            'item' => get_permalink(),
+        );
+    } elseif ( is_category() ) {
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => single_cat_title( '', false ),
+            'item' => get_category_link( get_query_var( 'cat' ) ),
+        );
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbs,
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_breadcrumb_schema', 15 );
+
+/**
+ * Add Open Graph Meta Tags for Social Sharing
+ */
+function cozyrecipes_add_open_graph_tags() {
+    $title = wp_get_document_title();
+    $description = wp_trim_words( get_the_excerpt(), 20 );
+    $url = get_the_permalink();
+    $image = '';
+
+    if ( is_singular() ) {
+        $image_id = get_post_thumbnail_id();
+        if ( $image_id ) {
+            $image_array = wp_get_attachment_image_src( $image_id, 'large' );
+            $image = $image_array[0];
+        }
+    }
+
+    // Fallback image if no featured image
+    if ( ! $image ) {
+        $image = get_template_directory_uri() . '/assets/images/default-og-image.jpg';
+    }
+
+    echo '<meta property="og:type" content="' . ( is_singular( 'post' ) ? 'article' : 'website' ) . '">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+    echo '<meta property="og:description" content="' . esc_attr( $description ) . '">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url( $url ) . '">' . "\n";
+    echo '<meta property="og:image" content="' . esc_url( $image ) . '">' . "\n";
+    echo '<meta property="og:image:width" content="1200">' . "\n";
+    echo '<meta property="og:image:height" content="630">' . "\n";
+    echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_open_graph_tags', 10 );
+
+/**
+ * Add Twitter Card Meta Tags
+ */
+function cozyrecipes_add_twitter_card_tags() {
+    echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr( wp_get_document_title() ) . '">' . "\n";
+    echo '<meta name="twitter:description" content="' . esc_attr( wp_trim_words( get_the_excerpt(), 20 ) ) . '">' . "\n";
+
+    if ( is_singular() && has_post_thumbnail() ) {
+        $image_array = wp_get_attachment_image_src( get_post_thumbnail_id(), 'large' );
+        echo '<meta name="twitter:image" content="' . esc_url( $image_array[0] ) . '">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_twitter_card_tags', 10 );
+
+/**
+ * Add Canonical URL
+ */
+function cozyrecipes_add_canonical_url() {
+    if ( ! is_singular() && ! is_archive() ) {
+        return;
+    }
+
+    $url = '';
+    if ( is_singular() ) {
+        $url = get_permalink();
+    } elseif ( is_home() ) {
+        $url = home_url();
+    } elseif ( is_category() ) {
+        $url = get_category_link( get_query_var( 'cat' ) );
+    } elseif ( is_tag() ) {
+        $url = get_tag_link( get_query_var( 'tag_id' ) );
+    }
+
+    if ( $url ) {
+        echo '<link rel="canonical" href="' . esc_url( $url ) . '">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_canonical_url', 10 );
+
+/**
+ * Add SEO Meta Tags
+ */
+function cozyrecipes_add_seo_meta_tags() {
+    if ( is_singular( 'post' ) ) {
+        // Meta description
+        $description = wp_trim_words( get_the_excerpt(), 20 );
+        echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+
+        // Keywords from categories
+        $categories = get_the_category();
+        if ( ! empty( $categories ) ) {
+            $keywords = implode( ', ', array_map( function( $cat ) { return $cat->name; }, $categories ) );
+            echo '<meta name="keywords" content="' . esc_attr( $keywords ) . '">' . "\n";
+        }
+
+        // Article specific meta
+        echo '<meta property="article:published_time" content="' . esc_attr( mysql2date( 'c', get_the_time( 'Y-m-d H:i:s' ) ) ) . '">' . "\n";
+        echo '<meta property="article:modified_time" content="' . esc_attr( mysql2date( 'c', get_the_modified_time( 'Y-m-d H:i:s' ) ) ) . '">' . "\n";
+        echo '<meta property="article:author" content="' . esc_attr( get_the_author_meta( 'display_name' ) ) . '">' . "\n";
+
+        // Author URL
+        $author_url = get_author_posts_url( get_the_author_meta( 'ID' ) );
+        echo '<link rel="author" href="' . esc_url( $author_url ) . '">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_seo_meta_tags', 10 );
+
+/**
+ * Optimize Image Alt Text - Ensure all images have proper alt attributes
+ */
+function cozyrecipes_filter_post_content_images( $content ) {
+    // Add alt text to images missing it
+    $content = preg_replace_callback(
+        '/<img[^>]*src=["\']([^"\']*)["\'][^>]*>/i',
+        function( $matches ) {
+            $img_tag = $matches[0];
+            
+            // Check if alt already exists
+            if ( strpos( $img_tag, 'alt=' ) !== false ) {
+                return $img_tag;
+            }
+
+            // Extract filename as fallback alt text
+            $filename = basename( $matches[1] );
+            $alt_text = sanitize_text_field( str_replace( array( '-', '_' ), ' ', pathinfo( $filename, PATHINFO_FILENAME ) ) );
+
+            // Insert alt attribute
+            return str_replace( '<img', '<img alt="' . esc_attr( $alt_text ) . '"', $img_tag );
+        },
+        $content
+    );
+
+    return $content;
+}
+add_filter( 'the_content', 'cozyrecipes_filter_post_content_images', 10 );
+
+/**
+ * Add Schema.org Organization Information
+ */
+function cozyrecipes_add_organization_schema() {
+    if ( ! is_front_page() && ! is_home() ) {
+        return;
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => get_bloginfo( 'name' ),
+        'description' => get_bloginfo( 'description' ),
+        'url' => home_url(),
+        'logo' => get_template_directory_uri() . '/assets/images/logo.png',
+        'contact' => array(
+            '@type' => 'ContactPoint',
+            'telephone' => '', // Add your phone if available
+            'contactType' => 'Customer Service',
+        ),
+        'sameAs' => array(
+            // Add your social media URLs
+            'https://www.facebook.com/',
+            'https://www.twitter.com/',
+            'https://www.instagram.com/',
+        ),
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_organization_schema', 15 );
+
+/**
+ * Remove Unnecessary Meta Tags for Lighter HTML
+ */
+function cozyrecipes_remove_unnecessary_meta_tags() {
+    remove_action( 'wp_head', 'wp_shortlink_wp_head', 10 );
+}
+add_action( 'init', 'cozyrecipes_remove_unnecessary_meta_tags' );
+
+/**
+ * Disable REST API for unauthenticated users (optional security)
+ */
+function cozyrecipes_disable_rest_for_unauthenticated() {
+    if ( ! is_user_logged_in() ) {
+        add_filter( 'rest_authentication_errors', function( $result ) {
+            if ( ! empty( $result ) ) {
+                return $result;
+            }
+            return new WP_Error( 'rest_disabled', 'REST API is disabled for unauthenticated requests', array( 'status' => 403 ) );
+        });
+    }
+}
+// add_action( 'rest_api_init', 'cozyrecipes_disable_rest_for_unauthenticated' ); // Uncomment if needed
+
+/**
+ * Add robots.txt optimization hints in header
+ */
+function cozyrecipes_add_robots_meta() {
+    if ( is_front_page() || is_archive() || is_singular() ) {
+        echo '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_robots_meta', 10 );
+
+/* ========================================
+   END SEO OPTIMIZATION MODULE
+======================================== */
