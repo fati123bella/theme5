@@ -376,22 +376,23 @@ function cozyrecipes_scripts() {
     $js_file = get_template_directory() . '/js/navigation.js';
     $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
 
-    // CRITICAL: Enqueue jQuery FIRST with no dependencies
+    // CRITICAL: Enqueue jQuery (loads in HEAD by default via WordPress)
     wp_enqueue_script( 'jquery' );
 
-    // IMPORTANT: Enqueue jQuery Migrate AFTER jQuery
+    // CRITICAL: Enqueue jQuery Migrate AFTER jQuery (also in HEAD)
+    // Must load in HEAD, right after jQuery, before any jQuery-dependent scripts
     wp_enqueue_script(
         'jquery-migrate',
         includes_url( '/js/jquery/jquery-migrate.min.js' ),
         array( 'jquery' ),  // Depends on jQuery
         null,
-        true
+        false  // FALSE = load in <head>, TRUE = load in footer
     );
 
     // B. Enqueue theme stylesheet (will be deferred via filter below)
     wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), $style_version, 'all' );
 
-    // C. Enqueue theme JavaScript (depends on jQuery for compatibility)
+    // C. Enqueue theme JavaScript in footer (depends on jQuery)
     wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), $js_version, true );
 
     // Enqueue comment reply script only when needed
@@ -1887,9 +1888,16 @@ add_action( 'wp_enqueue_scripts', 'cozyrecipes_performance_optimizations', 1 );
 
 /**
  * Add async loading to non-critical scripts
+ * CRITICAL: Never defer/async jQuery or jQuery Migrate
  */
 function cozyrecipes_async_scripts( $tag, $handle ) {
-    // Don't async navigation and slider - they're important for interactivity
+    // MUST NOT DEFER: jQuery core and jQuery Migrate
+    // These must load synchronously before any dependent scripts
+    if ( in_array( $handle, array( 'jquery', 'jquery-migrate', 'jquery-core' ) ) ) {
+        return $tag;  // Leave unchanged - load in HEAD synchronously
+    }
+
+    // Don't async critical theme scripts
     $critical_scripts = array( 'cozyrecipes-navigation', 'cozyrecipes-category-slider' );
 
     if ( ! in_array( $handle, $critical_scripts ) ) {
