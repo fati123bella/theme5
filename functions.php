@@ -364,6 +364,7 @@ add_action( 'wp_head', 'cozyrecipes_preload_lcp_image', 2 );
 /**
  * C & F. Enqueue Scripts and Styles with filemtime() versioning
  * filemtime() = intelligent cache busting (only updates when file changes)
+ * FIXED: Proper jQuery loading order
  */
 function cozyrecipes_scripts() {
     $theme_version = wp_get_theme()->get( 'Version' );
@@ -375,11 +376,23 @@ function cozyrecipes_scripts() {
     $js_file = get_template_directory() . '/js/navigation.js';
     $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
 
+    // CRITICAL: Enqueue jQuery FIRST with no dependencies
+    wp_enqueue_script( 'jquery' );
+
+    // IMPORTANT: Enqueue jQuery Migrate AFTER jQuery
+    wp_enqueue_script(
+        'jquery-migrate',
+        includes_url( '/js/jquery/jquery-migrate.min.js' ),
+        array( 'jquery' ),  // Depends on jQuery
+        null,
+        true
+    );
+
     // B. Enqueue theme stylesheet (will be deferred via filter below)
     wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), $style_version, 'all' );
 
-    // C. Enqueue theme JavaScript (will be deferred via filter below)
-    wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), $js_version, true );
+    // C. Enqueue theme JavaScript (depends on jQuery for compatibility)
+    wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), $js_version, true );
 
     // Enqueue comment reply script only when needed
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -1776,12 +1789,12 @@ function cozyrecipes_enqueue_category_slider() {
     $js_file = get_template_directory() . '/js/category-slider.js';
     $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
     
-    wp_enqueue_script( 
-        'cozyrecipes-category-slider', 
-        get_template_directory_uri() . '/js/category-slider.js', 
-        array(), 
-        $js_version, 
-        true 
+    wp_enqueue_script(
+        'cozyrecipes-category-slider',
+        get_template_directory_uri() . '/js/category-slider.js',
+        array( 'jquery' ),  // Depends on jQuery
+        $js_version,
+        true
     );
     
     // Pass settings to JS (empty for now, auto-scroll disabled)
@@ -1833,7 +1846,7 @@ function cozyrecipes_enqueue_editors_picks() {
         wp_enqueue_script(
             'cozyrecipes-editors-picks',
             get_template_directory_uri() . '/assets/js/editors-picks.js',
-            array(),
+            array( 'jquery' ),  // Depends on jQuery
             $js_version,
             true
         );
