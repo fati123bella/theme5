@@ -1792,7 +1792,7 @@ function cozyrecipes_enqueue_category_slider() {
     wp_enqueue_script(
         'cozyrecipes-category-slider',
         get_template_directory_uri() . '/js/category-slider.js',
-        array( 'jquery' ),  // Depends on jQuery
+        array(),  // FIXED: No jQuery dependency (script uses pure vanilla JS)
         $js_version,
         true
     );
@@ -1846,7 +1846,7 @@ function cozyrecipes_enqueue_editors_picks() {
         wp_enqueue_script(
             'cozyrecipes-editors-picks',
             get_template_directory_uri() . '/assets/js/editors-picks.js',
-            array( 'jquery' ),  // Depends on jQuery
+            array(),  // FIXED: No jQuery dependency (script uses Intersection Observer API)
             $js_version,
             true
         );
@@ -1903,12 +1903,38 @@ add_filter( 'script_loader_tag', 'cozyrecipes_async_scripts', 10, 2 );
 
 /**
  * Cache transients cleanup - Delete old cached queries periodically
+ * FIXED: Properly schedule cleanup with WP-Cron
  */
 function cozyrecipes_cleanup_transients() {
-    delete_transient( 'cozyrecipes_editors_picks_*' );
-    delete_transient( 'cozyrecipes_categories_*' );
+    global $wpdb;
+
+    // Delete transients older than their TTL
+    // This prevents database bloat from expired transients
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_timeout_cozyrecipes_%'
+         AND option_value < " . time()
+    );
+
+    // Also clean up the actual transient values
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_cozyrecipes_%'
+         AND option_name NOT LIKE '_transient_timeout%'"
+    );
 }
-add_action( 'wp_scheduled_event', 'cozyrecipes_cleanup_transients' );
+
+// Schedule the cleanup event if not already scheduled
+if ( ! wp_next_scheduled( 'cozyrecipes_daily_cleanup' ) ) {
+    wp_schedule_event( time(), 'daily', 'cozyrecipes_daily_cleanup' );
+}
+
+add_action( 'cozyrecipes_daily_cleanup', 'cozyrecipes_cleanup_transients' );
+
+// Cleanup on theme deactivation
+register_deactivation_hook( __FILE__, function() {
+    wp_clear_scheduled_hook( 'cozyrecipes_daily_cleanup' );
+} );
 
 /* ========================================
    EDITOR'S PICKS - CUSTOMIZER SETTINGS
