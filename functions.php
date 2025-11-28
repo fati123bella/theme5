@@ -34,6 +34,7 @@ function cozyrecipes_setup() {
     // Register navigation menus
     register_nav_menus( array(
         'primary' => esc_html__( 'Primary Menu', 'cozyrecipes' ),
+        'top-bar' => esc_html__( 'Top Bar Menu', 'cozyrecipes' ),
         'footer'  => esc_html__( 'Footer Menu', 'cozyrecipes' ),
     ) );
 
@@ -1180,29 +1181,6 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'label'    => __( 'Enable Top Bar Menu', 'cozyrecipes' ),
         'section'  => 'cozyrecipes_top_bar_menu',
         'type'     => 'checkbox',
-    ) );
-
-    // Select Menu for Top Bar
-    $wp_customize->add_setting( 'cozyrecipes_top_bar_menu_id', array(
-        'default'           => 0,
-        'sanitize_callback' => 'absint',
-        'transport'         => 'refresh',
-    ) );
-
-    $menus = wp_get_nav_menus();
-    $menu_choices = array( 0 => __( '— Select Menu —', 'cozyrecipes' ) );
-
-    if ( ! empty( $menus ) ) {
-        foreach ( $menus as $menu ) {
-            $menu_choices[ $menu->term_id ] = $menu->name;
-        }
-    }
-
-    $wp_customize->add_control( 'cozyrecipes_top_bar_menu_id', array(
-        'label'    => __( 'Top Bar Menu', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_top_bar_menu',
-        'type'     => 'select',
-        'choices'  => $menu_choices,
     ) );
 
     // Top Bar Text Color

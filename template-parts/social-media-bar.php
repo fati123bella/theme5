@@ -8,7 +8,6 @@
 // Get customizer settings
 $enable_social_bar = get_theme_mod( 'cozyrecipes_enable_social_bar', true );
 $enable_top_menu   = get_theme_mod( 'cozyrecipes_enable_top_bar_menu', true );
-$top_menu_id       = get_theme_mod( 'cozyrecipes_top_bar_menu_id', 0 );
 $bar_bg_color      = get_theme_mod( 'cozyrecipes_top_bar_bg_color', '#ffffff' );
 $text_color        = get_theme_mod( 'cozyrecipes_top_bar_text_color', '#333333' );
 $icon_color        = get_theme_mod( 'cozyrecipes_social_bar_icon_color', '#333333' );
@@ -23,7 +22,7 @@ $tiktok_url    = get_theme_mod( 'cozyrecipes_tiktok_url' );
 
 // Check if there's content to display
 $has_social = $facebook_url || $twitter_url || $instagram_url || $pinterest_url || $youtube_url || $tiktok_url;
-$has_menu   = $enable_top_menu && $top_menu_id > 0;
+$has_menu   = $enable_top_menu && has_nav_menu( 'top-bar' );
 
 if ( ! $enable_social_bar || ( ! $has_social && ! $has_menu ) ) {
     return;
@@ -41,7 +40,7 @@ $icon_style = 'style="color: ' . esc_attr( $icon_color ) . ';"';
             <div class="top-bar-menu" <?php echo wp_kses_post( $text_style ); ?>>
                 <?php
                 wp_nav_menu( array(
-                    'menu'           => $top_menu_id,
+                    'theme_location' => 'top-bar',
                     'container'      => false,
                     'fallback_cb'    => false,
                     'depth'          => 1,
