@@ -1178,6 +1178,7 @@ article {
     text-align: center;
     margin: 0 0 3rem;
     padding: 3rem 2rem;
+    background: transparent;
 }
 
 .single-recipe-title {
@@ -1198,6 +1199,7 @@ article {
     margin: 0 0 3rem;
     width: 100%;
     overflow: hidden;
+    background: transparent;
 }
 
 .single-recipe-image img {
@@ -1209,6 +1211,7 @@ article {
 .single-recipe-content {
     margin: 0 0 3rem;
     padding: 3rem 2rem;
+    background: transparent;
 }
 
 .single-recipe-content h2,
