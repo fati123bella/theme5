@@ -142,9 +142,11 @@ ul, ol {
     justify-content: space-between;
 }
 
-/* Top Bar Menu (Left) */
+/* Top Bar Menu (Right) */
 .top-bar-menu {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .top-bar-menu ul {
@@ -175,13 +177,14 @@ ul, ol {
     border-bottom-color: #ff6b6b;
 }
 
-/* Social Icons Center */
+/* Social Icons Left */
 .social-icons-center {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 0.6rem;
+    order: -1;
 }
 
 .social-icon-link {
@@ -190,6 +193,8 @@ ul, ol {
     justify-content: center;
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    min-height: 24px;
     border-radius: 50%;
     background-color: transparent;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -197,6 +202,7 @@ ul, ol {
     color: inherit;
     flex-shrink: 0;
     border: 1px solid transparent;
+    overflow: hidden;
 }
 
 .social-icon-link:hover {
@@ -207,9 +213,12 @@ ul, ol {
 .social-icon-link svg {
     width: 16px !important;
     height: 16px !important;
-    max-width: 16px;
-    max-height: 16px;
-    display: block;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
 }
 
 /* Platform-specific hover effects */
@@ -268,18 +277,23 @@ ul, ol {
 
     .social-icons-center {
         gap: 0.5rem;
+        order: -1;
     }
 
     .social-icon-link {
         width: 22px;
         height: 22px;
+        min-width: 22px;
+        min-height: 22px;
     }
 
     .social-icon-link svg {
         width: 15px !important;
         height: 15px !important;
-        max-width: 15px;
-        max-height: 15px;
+        min-width: 15px !important;
+        min-height: 15px !important;
+        max-width: 15px !important;
+        max-height: 15px !important;
     }
 }
 
@@ -311,22 +325,26 @@ ul, ol {
     }
 
     .social-icons-center {
-        order: 1;
+        order: -1;
         gap: 0.4rem;
         width: 100%;
-        justify-content: center;
+        justify-content: flex-start;
     }
 
     .social-icon-link {
         width: 20px;
         height: 20px;
+        min-width: 20px;
+        min-height: 20px;
     }
 
     .social-icon-link svg {
         width: 14px !important;
         height: 14px !important;
-        max-width: 14px;
-        max-height: 14px;
+        min-width: 14px !important;
+        min-height: 14px !important;
+        max-width: 14px !important;
+        max-height: 14px !important;
     }
 
     .top-bar-spacer {
