@@ -1170,12 +1170,12 @@ ul, ol {
 ======================================== */
 
 article {
-    width: calc(100vw - 3rem);
+    width: 100vw;
     margin-left: calc(-50vw + 50%);
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none;
+    border: none;
+    padding: 0;
 }
 
 .single-recipe-header {
