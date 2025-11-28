@@ -1443,26 +1443,71 @@ function cozyrecipes_get_categories_choices() {
  * Output custom CSS from Customizer
  */
 function cozyrecipes_customizer_css() {
+    // Get all color theme mods
     $accent_color = get_theme_mod( 'cozyrecipes_accent_color', '#ff6b6b' );
+    $accent_hover = get_theme_mod( 'cozyrecipes_accent_color_hover', '#ff5252' );
+    $body_bg = get_theme_mod( 'cozyrecipes_body_bg_color', '#f8f8f8' );
+    $body_text = get_theme_mod( 'cozyrecipes_body_text_color', '#333333' );
+    $heading_color = get_theme_mod( 'cozyrecipes_heading_color', '#222222' );
+
+    $topbar_bg = get_theme_mod( 'cozyrecipes_topbar_bg_color', '#ffffff' );
+    $topbar_text = get_theme_mod( 'cozyrecipes_topbar_text_color', '#333333' );
+    $topbar_border = get_theme_mod( 'cozyrecipes_topbar_border_color', '#f0f0f0' );
+
     $header_bg = get_theme_mod( 'cozyrecipes_header_bg_color', '#ffffff' );
     $header_text = get_theme_mod( 'cozyrecipes_header_text_color', '#333333' );
-    $body_bg = get_theme_mod( 'cozyrecipes_body_bg_color', '#f8f8f8' );
-    $hero_bg = get_theme_mod( 'cozyrecipes_hero_bg_color', '#ff6b6b' );
+    $nav_hover = get_theme_mod( 'cozyrecipes_nav_hover_color', '#ff6b6b' );
+
+    $hero_bg = get_theme_mod( 'cozyrecipes_hero_bg_color', '#ffffff' );
+    $search_btn_bg = get_theme_mod( 'cozyrecipes_search_button_bg_color', '#ff6b6b' );
+    $search_btn_text = get_theme_mod( 'cozyrecipes_search_button_text_color', '#ffffff' );
+
+    $card_bg = get_theme_mod( 'cozyrecipes_card_bg_color', '#ffffff' );
+    $category_badge = get_theme_mod( 'cozyrecipes_category_badge_color', '#ff6b6b' );
+    $category_badge_text = get_theme_mod( 'cozyrecipes_category_badge_text_color', '#ffffff' );
+
+    $button_bg = get_theme_mod( 'cozyrecipes_button_bg_color', '#ff6b6b' );
+    $button_text = get_theme_mod( 'cozyrecipes_button_text_color', '#ffffff' );
+
+    $link_color = get_theme_mod( 'cozyrecipes_link_color', '#ff6b6b' );
+    $link_hover = get_theme_mod( 'cozyrecipes_link_hover_color', '#ff5252' );
+
+    $meta_text = get_theme_mod( 'cozyrecipes_meta_text_color', '#888888' );
+    $border_color = get_theme_mod( 'cozyrecipes_border_color', '#eee' );
+
     $footer_bg = get_theme_mod( 'cozyrecipes_footer_bg_color', '#2a2a2a' );
     $footer_text = get_theme_mod( 'cozyrecipes_footer_text_color', '#cccccc' );
-    $category_badge_color = get_theme_mod( 'cozyrecipes_category_badge_color', '#ff6b6b' );
+    $footer_link = get_theme_mod( 'cozyrecipes_footer_link_color', '#cccccc' );
+    $footer_link_hover = get_theme_mod( 'cozyrecipes_footer_link_hover_color', '#ff6b6b' );
 
     ?>
     <style type="text/css">
+        /* Body & Text Colors */
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background-color: <?php echo esc_attr( $body_bg ); ?>;
+            color: <?php echo esc_attr( $body_text ); ?>;
         }
 
+        /* Headings */
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: <?php echo esc_attr( $heading_color ); ?>;
         }
 
+        /* Top Bar */
+        .top-bar {
+            background-color: <?php echo esc_attr( $topbar_bg ); ?>;
+            border-bottom-color: <?php echo esc_attr( $topbar_border ); ?>;
+        }
+
+        .top-bar-menu a {
+            color: <?php echo esc_attr( $topbar_text ); ?>;
+        }
+
+        .top-bar-menu a:hover {
+            border-bottom-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Header & Navigation */
         .site-header {
             background-color: <?php echo esc_attr( $header_bg ); ?>;
         }
@@ -1472,57 +1517,140 @@ function cozyrecipes_customizer_css() {
             color: <?php echo esc_attr( $header_text ); ?>;
         }
 
+        .main-navigation a:hover,
+        .site-title a:hover {
+            color: <?php echo esc_attr( $nav_hover ); ?>;
+        }
+
+        /* Hero Section */
         .hero-section {
             background-color: <?php echo esc_attr( $hero_bg ); ?>;
         }
 
+        /* Search Buttons */
+        .hero-search-form button,
+        .search-form button {
+            background-color: <?php echo esc_attr( $search_btn_bg ); ?>;
+            color: <?php echo esc_attr( $search_btn_text ); ?>;
+        }
+
+        .hero-search-form button:hover,
+        .search-form button:hover {
+            background-color: <?php echo esc_attr( $accent_hover ); ?>;
+        }
+
+        /* Cards & Widgets */
+        .recipe-card,
+        .widget,
+        .editors-pick-card,
+        .category-card,
+        .about-author-card {
+            background-color: <?php echo esc_attr( $card_bg ); ?>;
+        }
+
+        /* Category Badges */
+        .recipe-category-badge,
+        .editors-pick-badge {
+            background-color: <?php echo esc_attr( $category_badge ); ?>;
+            color: <?php echo esc_attr( $category_badge_text ); ?>;
+        }
+
+        /* Buttons */
+        .recipe-link,
+        .editors-pick-button,
+        .author-button,
+        .pagination a:hover,
+        .pagination .current,
+        .submit-comment {
+            background-color: <?php echo esc_attr( $button_bg ); ?>;
+            color: <?php echo esc_attr( $button_text ); ?>;
+        }
+
+        .recipe-link:hover,
+        .editors-pick-button:hover,
+        .author-button:hover,
+        .submit-comment:hover {
+            background-color: <?php echo esc_attr( $accent_hover ); ?>;
+        }
+
+        /* Links */
+        a {
+            color: <?php echo esc_attr( $link_color ); ?>;
+        }
+
+        a:hover {
+            color: <?php echo esc_attr( $link_hover ); ?>;
+        }
+
+        /* Meta Text */
+        .recipe-meta,
+        .single-recipe-meta,
+        .editors-pick-meta,
+        .meta-date,
+        .meta-author,
+        .meta-reading-time,
+        .meta-comments {
+            color: <?php echo esc_attr( $meta_text ); ?>;
+        }
+
+        /* Borders */
+        .widget-title,
+        .widget ul li,
+        .comment,
+        .top-bar {
+            border-color: <?php echo esc_attr( $border_color ); ?>;
+        }
+
+        /* Footer */
         .site-footer {
             background-color: <?php echo esc_attr( $footer_bg ); ?>;
             color: <?php echo esc_attr( $footer_text ); ?>;
         }
 
-        a,
-        .main-navigation a:hover,
-        .recipe-link {
-            color: <?php echo esc_attr( $accent_color ); ?>;
+        .footer-widget-area .widget-title {
+            color: <?php echo esc_attr( $footer_text ); ?>;
         }
 
-        .hero-search-form button,
-        .search-form button,
-        .pagination a:hover,
-        .pagination .current {
-            background-color: <?php echo esc_attr( $accent_color ); ?>;
+        .footer-widget-area .widget ul li a,
+        .site-info,
+        .site-info a {
+            color: <?php echo esc_attr( $footer_link ); ?>;
         }
 
-        /* Category Badge Custom Color */
-        .recipe-category-badge {
-            background-color: <?php echo esc_attr( $category_badge_color ); ?>;
-            color: #fff;
-        }
-
-        .recipe-card-title a:hover,
-        .site-title a:hover {
-            color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
-        .footer-widget-area .widget ul li a:hover {
-            color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
+        .footer-widget-area .widget ul li a:hover,
         .site-info a:hover {
+            color: <?php echo esc_attr( $footer_link_hover ); ?>;
+        }
+
+        /* Post Navigation */
+        .nav-arrow,
+        .nav-label {
             color: <?php echo esc_attr( $accent_color ); ?>;
         }
 
+        .post-navigation a:hover .nav-title,
+        .nav-button:hover .nav-post-title {
+            color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .nav-button:hover {
+            border-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Social Icons */
+        .social-icon-link {
+            color: <?php echo esc_attr( $topbar_text ); ?>;
+        }
+
+        /* Comment Form */
+        .comment-form input[type="text"]:focus,
+        .comment-form textarea:focus {
+            border-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Header Search Toggle */
         .header-search-toggle:hover {
             color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
-        .footer-widget-area .widget-title {
-            color: #fff;
-        }
-
-        .footer-widget-area .widget ul li a {
-            color: <?php echo esc_attr( $footer_text ); ?>;
         }
     </style>
     <?php
