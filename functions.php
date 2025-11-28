@@ -1035,6 +1035,131 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'section'  => 'cozyrecipes_single_post',
         'type'     => 'checkbox',
     ) );
+
+    // ========================================
+    // SOCIAL MEDIA TOP BAR SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_social_media', array(
+        'title'    => __( 'Social Media Top Bar', 'cozyrecipes' ),
+        'priority' => 60,
+    ) );
+
+    // Enable Social Media Top Bar
+    $wp_customize->add_setting( 'cozyrecipes_enable_social_bar', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_enable_social_bar', array(
+        'label'    => __( 'Enable Social Media Top Bar', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'checkbox',
+    ) );
+
+    // Facebook URL
+    $wp_customize->add_setting( 'cozyrecipes_facebook_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_facebook_url', array(
+        'label'    => __( 'Facebook URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Twitter URL
+    $wp_customize->add_setting( 'cozyrecipes_twitter_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_twitter_url', array(
+        'label'    => __( 'Twitter/X URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Instagram URL
+    $wp_customize->add_setting( 'cozyrecipes_instagram_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_instagram_url', array(
+        'label'    => __( 'Instagram URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Pinterest URL
+    $wp_customize->add_setting( 'cozyrecipes_pinterest_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_pinterest_url', array(
+        'label'    => __( 'Pinterest URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // YouTube URL
+    $wp_customize->add_setting( 'cozyrecipes_youtube_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_youtube_url', array(
+        'label'    => __( 'YouTube URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // TikTok URL
+    $wp_customize->add_setting( 'cozyrecipes_tiktok_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_tiktok_url', array(
+        'label'    => __( 'TikTok URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Social Bar Background Color
+    $wp_customize->add_setting( 'cozyrecipes_social_bar_bg_color', array(
+        'default'           => '#f8f8f8',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_social_bar_bg_color', array(
+        'label'    => __( 'Social Bar Background Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'settings' => 'cozyrecipes_social_bar_bg_color',
+    ) ) );
+
+    // Social Bar Icon Color
+    $wp_customize->add_setting( 'cozyrecipes_social_bar_icon_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_social_bar_icon_color', array(
+        'label'    => __( 'Social Bar Icon Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'settings' => 'cozyrecipes_social_bar_icon_color',
+    ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_customize_register' );
 

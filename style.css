@@ -122,6 +122,106 @@ ul, ol {
 }
 
 /* ========================================
+   SOCIAL MEDIA TOP BAR
+======================================== */
+
+.social-media-bar {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    z-index: 999;
+}
+
+.social-media-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: transparent;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: #333;
+}
+
+.social-icon:hover {
+    background-color: rgba(255, 107, 107, 0.1);
+    transform: translateY(-2px);
+}
+
+.social-icon .icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+/* Social icon hover colors */
+.social-icon.facebook:hover {
+    color: #1877f2;
+}
+
+.social-icon.twitter:hover {
+    color: #000;
+}
+
+.social-icon.instagram:hover {
+    color: #e4405f;
+}
+
+.social-icon.pinterest:hover {
+    color: #e60023;
+}
+
+.social-icon.youtube:hover {
+    color: #ff0000;
+}
+
+.social-icon.tiktok:hover {
+    color: #000;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .social-media-bar {
+        padding: 0.5rem 1rem;
+    }
+
+    .social-media-container {
+        justify-content: center;
+    }
+
+    .social-icons {
+        gap: 0.75rem;
+    }
+
+    .social-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .social-icon .icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* ========================================
    HEADER & NAVIGATION
 ======================================== */
 
