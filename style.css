@@ -205,8 +205,10 @@ ul, ol {
 }
 
 .social-icon-link svg {
-    width: 16px;
-    height: 16px;
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px;
+    max-height: 16px;
     display: block;
 }
 
@@ -274,8 +276,10 @@ ul, ol {
     }
 
     .social-icon-link svg {
-        width: 15px;
-        height: 15px;
+        width: 15px !important;
+        height: 15px !important;
+        max-width: 15px;
+        max-height: 15px;
     }
 }
 
@@ -319,8 +323,10 @@ ul, ol {
     }
 
     .social-icon-link svg {
-        width: 14px;
-        height: 14px;
+        width: 14px !important;
+        height: 14px !important;
+        max-width: 14px;
+        max-height: 14px;
     }
 
     .top-bar-spacer {
@@ -1172,7 +1178,7 @@ ul, ol {
 article {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
-    background: #ffffff !important;
+    background: transparent;
     box-shadow: none;
     border: none;
     padding: 0;
