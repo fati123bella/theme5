@@ -1160,6 +1160,76 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'section'  => 'cozyrecipes_social_media',
         'settings' => 'cozyrecipes_social_bar_icon_color',
     ) ) );
+
+    // ========================================
+    // TOP BAR MENU SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_top_bar_menu', array(
+        'title'    => __( 'Top Bar Menu', 'cozyrecipes' ),
+        'priority' => 65,
+    ) );
+
+    // Enable Top Bar Menu
+    $wp_customize->add_setting( 'cozyrecipes_enable_top_bar_menu', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_enable_top_bar_menu', array(
+        'label'    => __( 'Enable Top Bar Menu', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'type'     => 'checkbox',
+    ) );
+
+    // Select Menu for Top Bar
+    $wp_customize->add_setting( 'cozyrecipes_top_bar_menu_id', array(
+        'default'           => 0,
+        'sanitize_callback' => 'absint',
+        'transport'         => 'refresh',
+    ) );
+
+    $menus = wp_get_nav_menus();
+    $menu_choices = array( 0 => __( '— Select Menu —', 'cozyrecipes' ) );
+
+    if ( ! empty( $menus ) ) {
+        foreach ( $menus as $menu ) {
+            $menu_choices[ $menu->term_id ] = $menu->name;
+        }
+    }
+
+    $wp_customize->add_control( 'cozyrecipes_top_bar_menu_id', array(
+        'label'    => __( 'Top Bar Menu', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'type'     => 'select',
+        'choices'  => $menu_choices,
+    ) );
+
+    // Top Bar Text Color
+    $wp_customize->add_setting( 'cozyrecipes_top_bar_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_top_bar_text_color', array(
+        'label'    => __( 'Top Bar Text Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'settings' => 'cozyrecipes_top_bar_text_color',
+    ) ) );
+
+    // Top Bar Background Color
+    $wp_customize->add_setting( 'cozyrecipes_top_bar_bg_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_top_bar_bg_color', array(
+        'label'    => __( 'Top Bar Background Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'settings' => 'cozyrecipes_top_bar_bg_color',
+    ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_customize_register' );
 
