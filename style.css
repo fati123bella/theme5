@@ -139,14 +139,16 @@ ul, ol {
     margin: 0 auto;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 1.5rem;
 }
 
 /* Top Bar Menu (Right) */
 .top-bar-menu {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     display: flex;
     justify-content: flex-end;
+    margin-left: auto;
 }
 
 .top-bar-menu ul {
@@ -304,20 +306,20 @@ ul, ol {
     }
 
     .top-bar-container {
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
         gap: 0.75rem;
     }
 
     .top-bar-menu {
-        width: 100%;
-        order: 2;
+        flex: 0 1 auto;
+        margin-left: auto;
     }
 
     .top-bar-menu ul {
-        width: 100%;
-        justify-content: center;
+        justify-content: flex-end;
         gap: 0.8rem;
+        flex-wrap: nowrap;
     }
 
     .top-bar-menu a {
@@ -327,7 +329,7 @@ ul, ol {
     .social-icons-center {
         order: -1;
         gap: 0.4rem;
-        width: 100%;
+        flex: 0 0 auto;
         justify-content: flex-start;
     }
 
