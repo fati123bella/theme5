@@ -999,12 +999,12 @@ ul, ol {
 }
 
 .single-recipe-content {
-    max-width: 960px;
+    max-width: 100%;
     margin: 0 auto 3rem;
-    background: #fff;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .single-recipe-content h2,
@@ -1198,12 +1198,12 @@ ul, ol {
 ======================================== */
 
 .comments-area {
-    max-width: 960px;
+    max-width: 100%;
     margin: 3rem auto;
-    background: #fff;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .comment-list {
@@ -1269,11 +1269,11 @@ ul, ol {
     }
 
     .single-recipe-content {
-        padding: 1.5rem;
+        padding: 0;
     }
 
     .comments-area {
-        padding: 1.5rem;
+        padding: 0;
     }
 
     .hero-content {
