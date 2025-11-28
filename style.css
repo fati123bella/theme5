@@ -1169,11 +1169,15 @@ ul, ol {
    SINGLE POST
 ======================================== */
 
+article {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+}
+
 .single-recipe-header {
     text-align: center;
-    max-width: 800px;
-    margin: 0 auto 3rem;
-    padding-top: 3rem;
+    margin: 0 0 3rem;
+    padding: 3rem 2rem;
 }
 
 .single-recipe-title {
@@ -1191,12 +1195,9 @@ ul, ol {
 }
 
 .single-recipe-image {
-    margin: 0 auto 3rem;
-    max-width: 100%;
+    margin: 0 0 3rem;
     width: 100%;
-    border-radius: 0;
     overflow: hidden;
-    box-shadow: none;
 }
 
 .single-recipe-image img {
@@ -1206,12 +1207,8 @@ ul, ol {
 }
 
 .single-recipe-content {
-    max-width: 960px;
-    margin: 0 auto 3rem;
-    background: #fff;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin: 0 0 3rem;
+    padding: 3rem 2rem;
 }
 
 .single-recipe-content h2,
