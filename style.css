@@ -143,8 +143,9 @@ ul, ol {
 
 .social-icons {
     display: flex;
-    gap: 1rem;
+    gap: 1.2rem;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .social-icon {
@@ -158,16 +159,18 @@ ul, ol {
     transition: all 0.3s ease;
     text-decoration: none;
     color: #333;
+    flex-shrink: 0;
+    line-height: 1;
 }
 
 .social-icon:hover {
-    background-color: rgba(255, 107, 107, 0.1);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    opacity: 0.8;
 }
 
-.social-icon .icon {
-    width: 18px;
-    height: 18px;
+.social-icon svg {
+    width: 20px;
+    height: 20px;
     display: block;
 }
 
@@ -177,11 +180,12 @@ ul, ol {
 }
 
 .social-icon.twitter:hover {
-    color: #000;
+    color: #1da1f2;
 }
 
 .social-icon.instagram:hover {
-    color: #e4405f;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    color: #fff;
 }
 
 .social-icon.pinterest:hover {
@@ -193,13 +197,13 @@ ul, ol {
 }
 
 .social-icon.tiktok:hover {
-    color: #000;
+    color: #25f4ee;
 }
 
 /* Mobile responsive */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .social-media-bar {
-        padding: 0.5rem 1rem;
+        padding: 0.6rem 1rem;
     }
 
     .social-media-container {
@@ -207,7 +211,27 @@ ul, ol {
     }
 
     .social-icons {
-        gap: 0.75rem;
+        gap: 1rem;
+    }
+
+    .social-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .social-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .social-media-bar {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .social-icons {
+        gap: 0.8rem;
     }
 
     .social-icon {
@@ -215,7 +239,7 @@ ul, ol {
         height: 28px;
     }
 
-    .social-icon .icon {
+    .social-icon svg {
         width: 16px;
         height: 16px;
     }
