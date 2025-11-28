@@ -2375,7 +2375,6 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
     ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
-add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
 
 /* ========================================
    SEO OPTIMIZATION MODULE
