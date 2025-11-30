@@ -19,14 +19,25 @@ $accent_color = get_theme_mod( 'cozyrecipes_accent_color', '#ff6b6b' );
 // Get selected categories
 $selected_cat_ids = cozyrecipes_get_selected_categories();
 
-// Get categories - filtered by selection
-$categories = get_categories( array(
-    'orderby'    => 'count',
-    'order'      => 'DESC',
-    'number'     => absint( $categories_count ),
-    'hide_empty' => true,
-    'include'    => $selected_cat_ids,
-) );
+// Try to get cached categories (cache for 12 hours)
+$cache_key = 'cozyrecipes_categories_' . md5( serialize( array( $categories_count, $selected_cat_ids ) ) );
+$categories = get_transient( $cache_key );
+
+if ( false === $categories ) {
+    // Cache miss - get categories from database
+    $categories = get_categories( array(
+        'orderby'    => 'count',
+        'order'      => 'DESC',
+        'number'     => absint( $categories_count ),
+        'hide_empty' => true,
+        'include'    => $selected_cat_ids,
+    ) );
+
+    // Cache the results for 12 hours (43200 seconds)
+    if ( ! empty( $categories ) ) {
+        set_transient( $cache_key, $categories, 43200 );
+    }
+}
 
 if ( empty( $categories ) ) {
     return;
@@ -49,16 +60,6 @@ if ( empty( $categories ) ) {
         <?php endif; ?>
 
         <div class="category-slider" role="navigation" aria-label="<?php esc_attr_e( 'Category navigation', 'cozyrecipes' ); ?>">
-            <button type="button"
-                    class="category-slider__arrow category-slider__arrow--prev"
-                    role="button"
-                    aria-label="<?php esc_attr_e( 'Previous categories', 'cozyrecipes' ); ?>"
-                    tabindex="0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M15 18l-6-6 6-6"/>
-                </svg>
-            </button>
-
             <div class="category-slider-track">
                 <?php foreach ( $categories as $category ) :
                     $category_link = get_category_link( $category->term_id );
@@ -101,16 +102,6 @@ if ( empty( $categories ) ) {
 
                 <?php endforeach; ?>
             </div><!-- .category-slider-track -->
-
-            <button type="button"
-                    class="category-slider__arrow category-slider__arrow--next"
-                    role="button"
-                    aria-label="<?php esc_attr_e( 'Next categories', 'cozyrecipes' ); ?>"
-                    tabindex="0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M9 18l6-6-6-6"/>
-                </svg>
-            </button>
         </div><!-- .category-slider -->
 
     </div><!-- .container -->

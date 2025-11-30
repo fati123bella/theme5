@@ -34,6 +34,7 @@ function cozyrecipes_setup() {
     // Register navigation menus
     register_nav_menus( array(
         'primary' => esc_html__( 'Primary Menu', 'cozyrecipes' ),
+        'top-bar' => esc_html__( 'Top Bar Menu', 'cozyrecipes' ),
         'footer'  => esc_html__( 'Footer Menu', 'cozyrecipes' ),
     ) );
 
@@ -268,21 +269,17 @@ add_action( 'wp_head', 'cozyrecipes_critical_css', 1 );
  */
 function cozyrecipes_resource_hints() {
     ?>
-    <!-- F. DNS Prefetch saves ~100ms per origin -->
+    <!-- DNS Prefetch saves ~100ms per origin -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
 
-    <!-- E. Preconnect to font resources (with crossorigin for fonts) -->
+    <!-- Preconnect to font resources (with crossorigin for fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- E. Direct WOFF2 preload - MUST have crossorigin for fonts -->
-    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" crossorigin>
-    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2" crossorigin>
-
-    <!-- E. Defer font CSS with media print trick -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+    <!-- Optimized font loading with media print trick for non-blocking CSS -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"></noscript>
     <?php
 }
 add_action( 'wp_head', 'cozyrecipes_resource_hints', 2 );
@@ -368,6 +365,7 @@ add_action( 'wp_head', 'cozyrecipes_preload_lcp_image', 2 );
 /**
  * C & F. Enqueue Scripts and Styles with filemtime() versioning
  * filemtime() = intelligent cache busting (only updates when file changes)
+ * FIXED: Proper jQuery loading order
  */
 function cozyrecipes_scripts() {
     $theme_version = wp_get_theme()->get( 'Version' );
@@ -379,11 +377,25 @@ function cozyrecipes_scripts() {
     $js_file = get_template_directory() . '/js/navigation.js';
     $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
 
-    // B. Enqueue theme stylesheet (will be deferred via filter below)
-    wp_enqueue_style( 'cozyrecipes-style', get_stylesheet_uri(), array(), $style_version, 'all' );
+    // CRITICAL: Enqueue jQuery (loads in HEAD by default via WordPress)
+    wp_enqueue_script( 'jquery' );
 
-    // C. Enqueue theme JavaScript (will be deferred via filter below)
-    wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array(), $js_version, true );
+    // CRITICAL: Enqueue jQuery Migrate AFTER jQuery (also in HEAD)
+    // Must load in HEAD, right after jQuery, before any jQuery-dependent scripts
+    wp_enqueue_script(
+        'jquery-migrate',
+        includes_url( '/js/jquery/jquery-migrate.min.js' ),
+        array( 'jquery' ),  // Depends on jQuery
+        null,
+        false  // FALSE = load in <head>, TRUE = load in footer
+    );
+
+    // B. Enqueue theme stylesheet (minified in production, full in development)
+    $stylesheet_file = file_exists( get_template_directory() . '/style.min.css' ) ? '/style.min.css' : '/style.css';
+    wp_enqueue_style( 'cozyrecipes-style', get_template_directory_uri() . $stylesheet_file, array(), $style_version, 'all' );
+
+    // C. Enqueue theme JavaScript in footer (depends on jQuery)
+    wp_enqueue_script( 'cozyrecipes-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), $js_version, true );
 
     // Enqueue comment reply script only when needed
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -543,8 +555,9 @@ function cozyrecipes_customize_register( $wp_customize ) {
     // ========================================
 
     $wp_customize->add_section( 'cozyrecipes_colors', array(
-        'title'    => __( 'Theme Colors', 'cozyrecipes' ),
-        'priority' => 30,
+        'title'       => __( 'Theme Colors', 'cozyrecipes' ),
+        'description' => __( 'Customize all colors throughout your theme', 'cozyrecipes' ),
+        'priority'    => 30,
     ) );
 
     // Primary Accent Color
@@ -555,35 +568,24 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_accent_color', array(
-        'label'    => __( 'Primary Accent Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_accent_color',
+        'label'       => __( 'Primary Accent Color', 'cozyrecipes' ),
+        'description' => __( 'Main theme accent color used for buttons, links, and highlights', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_accent_color',
     ) ) );
 
-    // Header Background Color
-    $wp_customize->add_setting( 'cozyrecipes_header_bg_color', array(
-        'default'           => '#ffffff',
+    // Secondary Accent Color
+    $wp_customize->add_setting( 'cozyrecipes_accent_color_hover', array(
+        'default'           => '#ff5252',
         'sanitize_callback' => 'sanitize_hex_color',
         'transport'         => 'refresh',
     ) );
 
-    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_header_bg_color', array(
-        'label'    => __( 'Header Background Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_header_bg_color',
-    ) ) );
-
-    // Header Text Color
-    $wp_customize->add_setting( 'cozyrecipes_header_text_color', array(
-        'default'           => '#333333',
-        'sanitize_callback' => 'sanitize_hex_color',
-        'transport'         => 'refresh',
-    ) );
-
-    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_header_text_color', array(
-        'label'    => __( 'Header Text Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_header_text_color',
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_accent_color_hover', array(
+        'label'       => __( 'Accent Hover Color', 'cozyrecipes' ),
+        'description' => __( 'Color for hover states on buttons and links', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_accent_color_hover',
     ) ) );
 
     // Body Background Color
@@ -594,23 +596,290 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_body_bg_color', array(
-        'label'    => __( 'Body Background Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_body_bg_color',
+        'label'       => __( 'Body Background Color', 'cozyrecipes' ),
+        'description' => __( 'Main background color for the website', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_body_bg_color',
     ) ) );
 
-    // Hero Background Color
-    $wp_customize->add_setting( 'cozyrecipes_hero_bg_color', array(
+    // Body Text Color
+    $wp_customize->add_setting( 'cozyrecipes_body_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_body_text_color', array(
+        'label'       => __( 'Body Text Color', 'cozyrecipes' ),
+        'description' => __( 'Main text color throughout the site', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_body_text_color',
+    ) ) );
+
+    // Heading Color
+    $wp_customize->add_setting( 'cozyrecipes_heading_color', array(
+        'default'           => '#222222',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_heading_color', array(
+        'label'       => __( 'Headings Color', 'cozyrecipes' ),
+        'description' => __( 'Color for all headings (H1, H2, H3, etc.)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_heading_color',
+    ) ) );
+
+    // Top Bar Background Color
+    $wp_customize->add_setting( 'cozyrecipes_topbar_bg_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_topbar_bg_color', array(
+        'label'       => __( 'Top Bar Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for the top bar with menu and social icons', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_topbar_bg_color',
+    ) ) );
+
+    // Top Bar Text Color
+    $wp_customize->add_setting( 'cozyrecipes_topbar_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_topbar_text_color', array(
+        'label'       => __( 'Top Bar Text Color', 'cozyrecipes' ),
+        'description' => __( 'Text color for top bar menu items', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_topbar_text_color',
+    ) ) );
+
+    // Top Bar Border Color
+    $wp_customize->add_setting( 'cozyrecipes_topbar_border_color', array(
+        'default'           => '#f0f0f0',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_topbar_border_color', array(
+        'label'       => __( 'Top Bar Border Color', 'cozyrecipes' ),
+        'description' => __( 'Border color for the top bar', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_topbar_border_color',
+    ) ) );
+
+    // Header Background Color
+    $wp_customize->add_setting( 'cozyrecipes_header_bg_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_header_bg_color', array(
+        'label'       => __( 'Header Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for the main header/navigation area', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_header_bg_color',
+    ) ) );
+
+    // Header Text Color
+    $wp_customize->add_setting( 'cozyrecipes_header_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_header_text_color', array(
+        'label'       => __( 'Header Text Color', 'cozyrecipes' ),
+        'description' => __( 'Text color for header and navigation menu', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_header_text_color',
+    ) ) );
+
+    // Navigation Hover Color
+    $wp_customize->add_setting( 'cozyrecipes_nav_hover_color', array(
         'default'           => '#ff6b6b',
         'sanitize_callback' => 'sanitize_hex_color',
         'transport'         => 'refresh',
     ) );
 
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_nav_hover_color', array(
+        'label'       => __( 'Navigation Hover Color', 'cozyrecipes' ),
+        'description' => __( 'Color when hovering over navigation menu items', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_nav_hover_color',
+    ) ) );
+
+    // Hero/Search Section Background Color
+    $wp_customize->add_setting( 'cozyrecipes_hero_bg_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_hero_bg_color', array(
-        'label'       => __( 'Hero Background Color', 'cozyrecipes' ),
+        'label'       => __( 'Hero Section Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for the hero/search section', 'cozyrecipes' ),
         'section'     => 'cozyrecipes_colors',
         'settings'    => 'cozyrecipes_hero_bg_color',
-        'description' => __( 'Background color for the hero search section', 'cozyrecipes' ),
+    ) ) );
+
+    // Search Button Background Color
+    $wp_customize->add_setting( 'cozyrecipes_search_button_bg_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_search_button_bg_color', array(
+        'label'       => __( 'Search Button Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for search buttons', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_search_button_bg_color',
+    ) ) );
+
+    // Search Button Text Color
+    $wp_customize->add_setting( 'cozyrecipes_search_button_text_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_search_button_text_color', array(
+        'label'       => __( 'Search Button Text Color', 'cozyrecipes' ),
+        'description' => __( 'Text color for search buttons', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_search_button_text_color',
+    ) ) );
+
+    // Card Background Color
+    $wp_customize->add_setting( 'cozyrecipes_card_bg_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_card_bg_color', array(
+        'label'       => __( 'Card Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for recipe cards and widgets', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_card_bg_color',
+    ) ) );
+
+    // Category Badge Color
+    $wp_customize->add_setting( 'cozyrecipes_category_badge_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_category_badge_color', array(
+        'label'       => __( 'Category Badge Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for category badges on recipe cards', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_category_badge_color',
+    ) ) );
+
+    // Category Badge Text Color
+    $wp_customize->add_setting( 'cozyrecipes_category_badge_text_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_category_badge_text_color', array(
+        'label'       => __( 'Category Badge Text Color', 'cozyrecipes' ),
+        'description' => __( 'Text color for category badges', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_category_badge_text_color',
+    ) ) );
+
+    // Button Background Color
+    $wp_customize->add_setting( 'cozyrecipes_button_bg_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_button_bg_color', array(
+        'label'       => __( 'Button Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for buttons throughout the site', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_button_bg_color',
+    ) ) );
+
+    // Button Text Color
+    $wp_customize->add_setting( 'cozyrecipes_button_text_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_button_text_color', array(
+        'label'       => __( 'Button Text Color', 'cozyrecipes' ),
+        'description' => __( 'Text color for buttons', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_button_text_color',
+    ) ) );
+
+    // Link Color
+    $wp_customize->add_setting( 'cozyrecipes_link_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_link_color', array(
+        'label'       => __( 'Link Color', 'cozyrecipes' ),
+        'description' => __( 'Color for links throughout the site', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_link_color',
+    ) ) );
+
+    // Link Hover Color
+    $wp_customize->add_setting( 'cozyrecipes_link_hover_color', array(
+        'default'           => '#ff5252',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_link_hover_color', array(
+        'label'       => __( 'Link Hover Color', 'cozyrecipes' ),
+        'description' => __( 'Color when hovering over links', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_link_hover_color',
+    ) ) );
+
+    // Meta Text Color
+    $wp_customize->add_setting( 'cozyrecipes_meta_text_color', array(
+        'default'           => '#888888',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_meta_text_color', array(
+        'label'       => __( 'Meta Text Color', 'cozyrecipes' ),
+        'description' => __( 'Color for post meta information (date, author, etc.)', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_meta_text_color',
+    ) ) );
+
+    // Border Color
+    $wp_customize->add_setting( 'cozyrecipes_border_color', array(
+        'default'           => '#eee',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_border_color', array(
+        'label'       => __( 'Border Color', 'cozyrecipes' ),
+        'description' => __( 'Color for borders and dividers throughout the site', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_border_color',
     ) ) );
 
     // Footer Background Color
@@ -621,9 +890,10 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_footer_bg_color', array(
-        'label'    => __( 'Footer Background Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_footer_bg_color',
+        'label'       => __( 'Footer Background Color', 'cozyrecipes' ),
+        'description' => __( 'Background color for the footer area', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_footer_bg_color',
     ) ) );
 
     // Footer Text Color
@@ -634,9 +904,38 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_footer_text_color', array(
-        'label'    => __( 'Footer Text Color', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_colors',
-        'settings' => 'cozyrecipes_footer_text_color',
+        'label'       => __( 'Footer Text Color', 'cozyrecipes' ),
+        'description' => __( 'Text color for footer content', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_footer_text_color',
+    ) ) );
+
+    // Footer Link Color
+    $wp_customize->add_setting( 'cozyrecipes_footer_link_color', array(
+        'default'           => '#cccccc',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_footer_link_color', array(
+        'label'       => __( 'Footer Link Color', 'cozyrecipes' ),
+        'description' => __( 'Color for links in the footer', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_footer_link_color',
+    ) ) );
+
+    // Footer Link Hover Color
+    $wp_customize->add_setting( 'cozyrecipes_footer_link_hover_color', array(
+        'default'           => '#ff6b6b',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_footer_link_hover_color', array(
+        'label'       => __( 'Footer Link Hover Color', 'cozyrecipes' ),
+        'description' => __( 'Color when hovering over footer links', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_colors',
+        'settings'    => 'cozyrecipes_footer_link_hover_color',
     ) ) );
 
     // ========================================
@@ -830,102 +1129,6 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     // ========================================
-    // ABOUT AUTHOR SECTION
-    // ========================================
-
-    $wp_customize->add_section( 'cozyrecipes_about_author', array(
-        'title'       => __( 'About Author (Featured Section)', 'cozyrecipes' ),
-        'description' => __( 'Customize the About Author sidebar that appears next to Featured Recipes', 'cozyrecipes' ),
-        'priority'    => 46,
-    ) );
-
-    // Show About Author
-    $wp_customize->add_setting( 'cozyrecipes_show_about_author', array(
-        'default'           => true,
-        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_show_about_author', array(
-        'label'    => __( 'Show About Author Section', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_about_author',
-        'type'     => 'checkbox',
-    ) );
-
-    // Author Image
-    $wp_customize->add_setting( 'cozyrecipes_author_image', array(
-        'default'           => '',
-        'sanitize_callback' => 'esc_url_raw',
-    ) );
-
-    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'cozyrecipes_author_image', array(
-        'label'       => __( 'Author Image', 'cozyrecipes' ),
-        'description' => __( 'Upload an image of the author. Recommended size: 300x300px', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_about_author',
-        'settings'    => 'cozyrecipes_author_image',
-    ) ) );
-
-    // Author Name
-    $wp_customize->add_setting( 'cozyrecipes_author_name', array(
-        'default'           => 'Chef Name',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_author_name', array(
-        'label'    => __( 'Author Name', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_about_author',
-        'type'     => 'text',
-    ) );
-
-    // Author Title
-    $wp_customize->add_setting( 'cozyrecipes_author_title', array(
-        'default'           => 'Recipe Creator',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_author_title', array(
-        'label'    => __( 'Author Title/Role', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_about_author',
-        'type'     => 'text',
-    ) );
-
-    // Author Description
-    $wp_customize->add_setting( 'cozyrecipes_author_description', array(
-        'default'           => 'Passionate about creating delicious recipes and sharing culinary adventures.',
-        'sanitize_callback' => 'sanitize_textarea_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_author_description', array(
-        'label'    => __( 'Author Description', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_about_author',
-        'type'     => 'textarea',
-    ) );
-
-    // Button Text
-    $wp_customize->add_setting( 'cozyrecipes_author_button_text', array(
-        'default'           => 'Read More',
-        'sanitize_callback' => 'sanitize_text_field',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_author_button_text', array(
-        'label'    => __( 'Button Text', 'cozyrecipes' ),
-        'section'  => 'cozyrecipes_about_author',
-        'type'     => 'text',
-    ) );
-
-    // Button Link
-    $wp_customize->add_setting( 'cozyrecipes_author_button_link', array(
-        'default'           => '#',
-        'sanitize_callback' => 'esc_url_raw',
-    ) );
-
-    $wp_customize->add_control( 'cozyrecipes_author_button_link', array(
-        'label'       => __( 'Button Link URL', 'cozyrecipes' ),
-        'description' => __( 'URL for the "Read More" button (e.g., /about/ or author page)', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_about_author',
-        'type'        => 'url',
-    ) );
-
-    // ========================================
     // LAYOUT SECTION
     // ========================================
 
@@ -1024,6 +1227,178 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'section'  => 'cozyrecipes_single_post',
         'type'     => 'checkbox',
     ) );
+
+    // ========================================
+    // SOCIAL MEDIA TOP BAR SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_social_media', array(
+        'title'    => __( 'Social Media Top Bar', 'cozyrecipes' ),
+        'priority' => 60,
+    ) );
+
+    // Enable Social Media Top Bar
+    $wp_customize->add_setting( 'cozyrecipes_enable_social_bar', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_enable_social_bar', array(
+        'label'    => __( 'Enable Social Media Top Bar', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'checkbox',
+    ) );
+
+    // Facebook URL
+    $wp_customize->add_setting( 'cozyrecipes_facebook_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_facebook_url', array(
+        'label'    => __( 'Facebook URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Twitter URL
+    $wp_customize->add_setting( 'cozyrecipes_twitter_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_twitter_url', array(
+        'label'    => __( 'Twitter/X URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Instagram URL
+    $wp_customize->add_setting( 'cozyrecipes_instagram_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_instagram_url', array(
+        'label'    => __( 'Instagram URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Pinterest URL
+    $wp_customize->add_setting( 'cozyrecipes_pinterest_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_pinterest_url', array(
+        'label'    => __( 'Pinterest URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // YouTube URL
+    $wp_customize->add_setting( 'cozyrecipes_youtube_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_youtube_url', array(
+        'label'    => __( 'YouTube URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // TikTok URL
+    $wp_customize->add_setting( 'cozyrecipes_tiktok_url', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_tiktok_url', array(
+        'label'    => __( 'TikTok URL', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'type'     => 'url',
+    ) );
+
+    // Social Bar Background Color
+    $wp_customize->add_setting( 'cozyrecipes_social_bar_bg_color', array(
+        'default'           => '#f8f8f8',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_social_bar_bg_color', array(
+        'label'    => __( 'Social Bar Background Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'settings' => 'cozyrecipes_social_bar_bg_color',
+    ) ) );
+
+    // Social Bar Icon Color
+    $wp_customize->add_setting( 'cozyrecipes_social_bar_icon_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_social_bar_icon_color', array(
+        'label'    => __( 'Social Bar Icon Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_social_media',
+        'settings' => 'cozyrecipes_social_bar_icon_color',
+    ) ) );
+
+    // ========================================
+    // TOP BAR MENU SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_top_bar_menu', array(
+        'title'    => __( 'Top Bar Menu', 'cozyrecipes' ),
+        'priority' => 65,
+    ) );
+
+    // Enable Top Bar Menu
+    $wp_customize->add_setting( 'cozyrecipes_enable_top_bar_menu', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_enable_top_bar_menu', array(
+        'label'    => __( 'Enable Top Bar Menu', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'type'     => 'checkbox',
+    ) );
+
+    // Top Bar Text Color
+    $wp_customize->add_setting( 'cozyrecipes_top_bar_text_color', array(
+        'default'           => '#333333',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_top_bar_text_color', array(
+        'label'    => __( 'Top Bar Text Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'settings' => 'cozyrecipes_top_bar_text_color',
+    ) ) );
+
+    // Top Bar Background Color
+    $wp_customize->add_setting( 'cozyrecipes_top_bar_bg_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ) );
+
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'cozyrecipes_top_bar_bg_color', array(
+        'label'    => __( 'Top Bar Background Color', 'cozyrecipes' ),
+        'section'  => 'cozyrecipes_top_bar_menu',
+        'settings' => 'cozyrecipes_top_bar_bg_color',
+    ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_customize_register' );
 
@@ -1068,26 +1443,71 @@ function cozyrecipes_get_categories_choices() {
  * Output custom CSS from Customizer
  */
 function cozyrecipes_customizer_css() {
+    // Get all color theme mods
     $accent_color = get_theme_mod( 'cozyrecipes_accent_color', '#ff6b6b' );
+    $accent_hover = get_theme_mod( 'cozyrecipes_accent_color_hover', '#ff5252' );
+    $body_bg = get_theme_mod( 'cozyrecipes_body_bg_color', '#f8f8f8' );
+    $body_text = get_theme_mod( 'cozyrecipes_body_text_color', '#333333' );
+    $heading_color = get_theme_mod( 'cozyrecipes_heading_color', '#222222' );
+
+    $topbar_bg = get_theme_mod( 'cozyrecipes_topbar_bg_color', '#ffffff' );
+    $topbar_text = get_theme_mod( 'cozyrecipes_topbar_text_color', '#333333' );
+    $topbar_border = get_theme_mod( 'cozyrecipes_topbar_border_color', '#f0f0f0' );
+
     $header_bg = get_theme_mod( 'cozyrecipes_header_bg_color', '#ffffff' );
     $header_text = get_theme_mod( 'cozyrecipes_header_text_color', '#333333' );
-    $body_bg = get_theme_mod( 'cozyrecipes_body_bg_color', '#f8f8f8' );
-    $hero_bg = get_theme_mod( 'cozyrecipes_hero_bg_color', '#ff6b6b' );
+    $nav_hover = get_theme_mod( 'cozyrecipes_nav_hover_color', '#ff6b6b' );
+
+    $hero_bg = get_theme_mod( 'cozyrecipes_hero_bg_color', '#ffffff' );
+    $search_btn_bg = get_theme_mod( 'cozyrecipes_search_button_bg_color', '#ff6b6b' );
+    $search_btn_text = get_theme_mod( 'cozyrecipes_search_button_text_color', '#ffffff' );
+
+    $card_bg = get_theme_mod( 'cozyrecipes_card_bg_color', '#ffffff' );
+    $category_badge = get_theme_mod( 'cozyrecipes_category_badge_color', '#ff6b6b' );
+    $category_badge_text = get_theme_mod( 'cozyrecipes_category_badge_text_color', '#ffffff' );
+
+    $button_bg = get_theme_mod( 'cozyrecipes_button_bg_color', '#ff6b6b' );
+    $button_text = get_theme_mod( 'cozyrecipes_button_text_color', '#ffffff' );
+
+    $link_color = get_theme_mod( 'cozyrecipes_link_color', '#ff6b6b' );
+    $link_hover = get_theme_mod( 'cozyrecipes_link_hover_color', '#ff5252' );
+
+    $meta_text = get_theme_mod( 'cozyrecipes_meta_text_color', '#888888' );
+    $border_color = get_theme_mod( 'cozyrecipes_border_color', '#eee' );
+
     $footer_bg = get_theme_mod( 'cozyrecipes_footer_bg_color', '#2a2a2a' );
     $footer_text = get_theme_mod( 'cozyrecipes_footer_text_color', '#cccccc' );
-    $category_badge_color = get_theme_mod( 'cozyrecipes_category_badge_color', '#ff6b6b' );
+    $footer_link = get_theme_mod( 'cozyrecipes_footer_link_color', '#cccccc' );
+    $footer_link_hover = get_theme_mod( 'cozyrecipes_footer_link_hover_color', '#ff6b6b' );
 
     ?>
     <style type="text/css">
+        /* Body & Text Colors */
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background-color: <?php echo esc_attr( $body_bg ); ?>;
+            color: <?php echo esc_attr( $body_text ); ?>;
         }
 
+        /* Headings */
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: <?php echo esc_attr( $heading_color ); ?>;
         }
 
+        /* Top Bar */
+        .top-bar {
+            background-color: <?php echo esc_attr( $topbar_bg ); ?>;
+            border-bottom-color: <?php echo esc_attr( $topbar_border ); ?>;
+        }
+
+        .top-bar-menu a {
+            color: <?php echo esc_attr( $topbar_text ); ?>;
+        }
+
+        .top-bar-menu a:hover {
+            border-bottom-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Header & Navigation */
         .site-header {
             background-color: <?php echo esc_attr( $header_bg ); ?>;
         }
@@ -1097,57 +1517,140 @@ function cozyrecipes_customizer_css() {
             color: <?php echo esc_attr( $header_text ); ?>;
         }
 
+        .main-navigation a:hover,
+        .site-title a:hover {
+            color: <?php echo esc_attr( $nav_hover ); ?>;
+        }
+
+        /* Hero Section */
         .hero-section {
             background-color: <?php echo esc_attr( $hero_bg ); ?>;
         }
 
+        /* Search Buttons */
+        .hero-search-form button,
+        .search-form button {
+            background-color: <?php echo esc_attr( $search_btn_bg ); ?>;
+            color: <?php echo esc_attr( $search_btn_text ); ?>;
+        }
+
+        .hero-search-form button:hover,
+        .search-form button:hover {
+            background-color: <?php echo esc_attr( $accent_hover ); ?>;
+        }
+
+        /* Cards & Widgets */
+        .recipe-card,
+        .widget,
+        .editors-pick-card,
+        .category-card,
+        .about-author-card {
+            background-color: <?php echo esc_attr( $card_bg ); ?>;
+        }
+
+        /* Category Badges */
+        .recipe-category-badge,
+        .editors-pick-badge {
+            background-color: <?php echo esc_attr( $category_badge ); ?>;
+            color: <?php echo esc_attr( $category_badge_text ); ?>;
+        }
+
+        /* Buttons */
+        .recipe-link,
+        .editors-pick-button,
+        .author-button,
+        .pagination a:hover,
+        .pagination .current,
+        .submit-comment {
+            background-color: <?php echo esc_attr( $button_bg ); ?>;
+            color: <?php echo esc_attr( $button_text ); ?>;
+        }
+
+        .recipe-link:hover,
+        .editors-pick-button:hover,
+        .author-button:hover,
+        .submit-comment:hover {
+            background-color: <?php echo esc_attr( $accent_hover ); ?>;
+        }
+
+        /* Links */
+        a {
+            color: <?php echo esc_attr( $link_color ); ?>;
+        }
+
+        a:hover {
+            color: <?php echo esc_attr( $link_hover ); ?>;
+        }
+
+        /* Meta Text */
+        .recipe-meta,
+        .single-recipe-meta,
+        .editors-pick-meta,
+        .meta-date,
+        .meta-author,
+        .meta-reading-time,
+        .meta-comments {
+            color: <?php echo esc_attr( $meta_text ); ?>;
+        }
+
+        /* Borders */
+        .widget-title,
+        .widget ul li,
+        .comment,
+        .top-bar {
+            border-color: <?php echo esc_attr( $border_color ); ?>;
+        }
+
+        /* Footer */
         .site-footer {
             background-color: <?php echo esc_attr( $footer_bg ); ?>;
             color: <?php echo esc_attr( $footer_text ); ?>;
         }
 
-        a,
-        .main-navigation a:hover,
-        .recipe-link {
-            color: <?php echo esc_attr( $accent_color ); ?>;
+        .footer-widget-area .widget-title {
+            color: <?php echo esc_attr( $footer_text ); ?>;
         }
 
-        .hero-search-form button,
-        .search-form button,
-        .pagination a:hover,
-        .pagination .current {
-            background-color: <?php echo esc_attr( $accent_color ); ?>;
+        .footer-widget-area .widget ul li a,
+        .site-info,
+        .site-info a {
+            color: <?php echo esc_attr( $footer_link ); ?>;
         }
 
-        /* Category Badge Custom Color */
-        .recipe-category-badge {
-            background-color: <?php echo esc_attr( $category_badge_color ); ?>;
-            color: #fff;
-        }
-
-        .recipe-card-title a:hover,
-        .site-title a:hover {
-            color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
-        .footer-widget-area .widget ul li a:hover {
-            color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
+        .footer-widget-area .widget ul li a:hover,
         .site-info a:hover {
+            color: <?php echo esc_attr( $footer_link_hover ); ?>;
+        }
+
+        /* Post Navigation */
+        .nav-arrow,
+        .nav-label {
             color: <?php echo esc_attr( $accent_color ); ?>;
         }
 
+        .post-navigation a:hover .nav-title,
+        .nav-button:hover .nav-post-title {
+            color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        .nav-button:hover {
+            border-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Social Icons */
+        .social-icon-link {
+            color: <?php echo esc_attr( $topbar_text ); ?>;
+        }
+
+        /* Comment Form */
+        .comment-form input[type="text"]:focus,
+        .comment-form textarea:focus {
+            border-color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Header Search Toggle */
         .header-search-toggle:hover {
             color: <?php echo esc_attr( $accent_color ); ?>;
-        }
-
-        .footer-widget-area .widget-title {
-            color: #fff;
-        }
-
-        .footer-widget-area .widget ul li a {
-            color: <?php echo esc_attr( $footer_text ); ?>;
         }
     </style>
     <?php
@@ -1312,20 +1815,6 @@ function cozyrecipes_pagination_aria( $output ) {
     return $output;
 }
 add_filter( 'navigation_markup_template', 'cozyrecipes_pagination_aria' );
-
-/**
- * Add async/defer to third-party scripts
- */
-function cozyrecipes_async_scripts( $tag, $handle, $src ) {
-    $async_scripts = array( 'jquery-core', 'jquery-migrate' );
-
-    if ( in_array( $handle, $async_scripts ) ) {
-        return str_replace( ' src', ' async defer src', $tag );
-    }
-
-    return $tag;
-}
-add_filter( 'script_loader_tag', 'cozyrecipes_async_scripts', 10, 3 );
 
 /**
  * Disable unnecessary REST API endpoints for performance
@@ -1637,25 +2126,6 @@ function cozyrecipes_category_slider_customizer( $wp_customize ) {
         ),
     ) );
     
-    // Auto-scroll speed (mobile)
-    $wp_customize->add_setting( 'cozyrecipes_category_slider_speed', array(
-        'default'           => 3000,
-        'sanitize_callback' => 'absint',
-        'transport'         => 'refresh',
-    ) );
-    
-    $wp_customize->add_control( 'cozyrecipes_category_slider_speed', array(
-        'label'       => __( 'Auto-scroll Speed (ms)', 'cozyrecipes' ),
-        'description' => __( 'Mobile carousel auto-scroll interval in milliseconds', 'cozyrecipes' ),
-        'section'     => 'cozyrecipes_category_slider_general',
-        'type'        => 'number',
-        'input_attrs' => array(
-            'min'  => 1000,
-            'max'  => 10000,
-            'step' => 500,
-        ),
-    ) );
-
     // Get all categories
     $categories = get_categories( array(
         'orderby'    => 'count',
@@ -1813,18 +2283,16 @@ function cozyrecipes_enqueue_category_slider() {
     $js_file = get_template_directory() . '/js/category-slider.js';
     $js_version = file_exists( $js_file ) ? filemtime( $js_file ) : $theme_version;
     
-    wp_enqueue_script( 
-        'cozyrecipes-category-slider', 
-        get_template_directory_uri() . '/js/category-slider.js', 
-        array(), 
-        $js_version, 
-        true 
+    wp_enqueue_script(
+        'cozyrecipes-category-slider',
+        get_template_directory_uri() . '/js/category-slider.js',
+        array(),  // FIXED: No jQuery dependency (script uses pure vanilla JS)
+        $js_version,
+        true
     );
     
-    // Pass settings to JS
-    wp_localize_script( 'cozyrecipes-category-slider', 'categorySliderSettings', array(
-        'autoScrollSpeed' => get_theme_mod( 'cozyrecipes_category_slider_speed', 3000 ),
-    ) );
+    // Pass settings to JS (empty for now, auto-scroll disabled)
+    wp_localize_script( 'cozyrecipes-category-slider', 'categorySliderSettings', array() );
 }
 add_action( 'wp_enqueue_scripts', 'cozyrecipes_enqueue_category_slider' );
 
@@ -1872,7 +2340,7 @@ function cozyrecipes_enqueue_editors_picks() {
         wp_enqueue_script(
             'cozyrecipes-editors-picks',
             get_template_directory_uri() . '/assets/js/editors-picks.js',
-            array(),
+            array(),  // FIXED: No jQuery dependency (script uses Intersection Observer API)
             $js_version,
             true
         );
@@ -1890,6 +2358,84 @@ function cozyrecipes_defer_editors_picks_script( $tag, $handle ) {
     return $tag;
 }
 add_filter( 'script_loader_tag', 'cozyrecipes_defer_editors_picks_script', 10, 2 );
+
+/**
+ * Performance Optimizations - Reduce load time and improve PageSpeed
+ */
+function cozyrecipes_performance_optimizations() {
+    // Remove querystring from static resources for better caching
+    if ( ! is_admin() ) {
+        // Remove query strings from CSS and JS (better caching)
+        add_filter( 'script_loader_src', function( $src ) {
+            return remove_query_arg( 'ver', $src );
+        }, 10, 1 );
+        add_filter( 'style_loader_src', function( $src ) {
+            return remove_query_arg( 'ver', $src );
+        }, 10, 1 );
+    }
+
+    // Lazy load all images by default
+    add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+}
+add_action( 'wp_enqueue_scripts', 'cozyrecipes_performance_optimizations', 1 );
+
+/**
+ * Add async loading to non-critical scripts
+ * CRITICAL: Never defer/async jQuery or jQuery Migrate
+ */
+function cozyrecipes_async_scripts( $tag, $handle ) {
+    // MUST NOT DEFER: jQuery core and jQuery Migrate
+    // These must load synchronously before any dependent scripts
+    if ( in_array( $handle, array( 'jquery', 'jquery-migrate', 'jquery-core' ) ) ) {
+        return $tag;  // Leave unchanged - load in HEAD synchronously
+    }
+
+    // Don't async critical theme scripts
+    $critical_scripts = array( 'cozyrecipes-navigation', 'cozyrecipes-category-slider' );
+
+    if ( ! in_array( $handle, $critical_scripts ) ) {
+        if ( strpos( $tag, 'src' ) && 'cozyrecipes-editors-picks' !== $handle ) {
+            return str_replace( ' src', ' async src', $tag );
+        }
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'cozyrecipes_async_scripts', 10, 2 );
+
+/**
+ * Cache transients cleanup - Delete old cached queries periodically
+ * FIXED: Properly schedule cleanup with WP-Cron
+ */
+function cozyrecipes_cleanup_transients() {
+    global $wpdb;
+
+    // Delete transients older than their TTL
+    // This prevents database bloat from expired transients
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_timeout_cozyrecipes_%'
+         AND option_value < " . time()
+    );
+
+    // Also clean up the actual transient values
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_cozyrecipes_%'
+         AND option_name NOT LIKE '_transient_timeout%'"
+    );
+}
+
+// Schedule the cleanup event if not already scheduled
+if ( ! wp_next_scheduled( 'cozyrecipes_daily_cleanup' ) ) {
+    wp_schedule_event( time(), 'daily', 'cozyrecipes_daily_cleanup' );
+}
+
+add_action( 'cozyrecipes_daily_cleanup', 'cozyrecipes_cleanup_transients' );
+
+// Cleanup on theme deactivation
+register_deactivation_hook( __FILE__, function() {
+    wp_clear_scheduled_hook( 'cozyrecipes_daily_cleanup' );
+} );
 
 /* ========================================
    EDITOR'S PICKS - CUSTOMIZER SETTINGS
@@ -2148,3 +2694,313 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
     ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
+
+/* ========================================
+   SEO OPTIMIZATION MODULE
+======================================== */
+
+/**
+ * Add JSON-LD Structured Data for Recipes on Single Posts
+ */
+function cozyrecipes_add_recipe_schema() {
+    if ( ! is_singular( 'post' ) ) {
+        return;
+    }
+
+    global $post;
+    $post_id = get_the_ID();
+    
+    // Get featured image
+    $image_id = get_post_thumbnail_id( $post_id );
+    $image_url = wp_get_attachment_image_src( $image_id, 'full' );
+    $image_url = $image_url ? $image_url[0] : '';
+
+    // Build Recipe Schema
+    $schema = array(
+        '@context' => 'https://schema.org/',
+        '@type' => 'Recipe',
+        'name' => get_the_title(),
+        'description' => wp_trim_words( get_the_excerpt(), 20 ),
+        'author' => array(
+            '@type' => 'Person',
+            'name' => get_the_author_meta( 'display_name', $post->post_author ),
+        ),
+        'image' => $image_url ? array(
+            '@type' => 'ImageObject',
+            'url' => $image_url,
+            'width' => 1200,
+            'height' => 800,
+        ) : null,
+        'datePublished' => mysql2date( 'c', $post->post_date ),
+        'dateModified' => mysql2date( 'c', $post->post_modified ),
+        'prepTime' => 'PT15M',
+        'cookTime' => 'PT30M',
+        'totalTime' => 'PT45M',
+        'recipeYield' => '4 servings',
+        'recipeCategory' => 'Breakfast, Lunch, Dinner',
+        'recipeCuisine' => 'American',
+        'keywords' => implode( ', ', array_map( function( $term ) { return $term->name; }, wp_get_post_terms( $post_id, 'category' ) ) ),
+        'url' => get_permalink(),
+    );
+
+    // Remove null image if no featured image
+    if ( ! $image_url ) {
+        unset( $schema['image'] );
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_recipe_schema', 15 );
+
+/**
+ * Add Breadcrumb Schema JSON-LD
+ */
+function cozyrecipes_add_breadcrumb_schema() {
+    // Only on archives and single posts
+    if ( ! is_singular() && ! is_archive() && ! is_home() ) {
+        return;
+    }
+
+    $breadcrumbs = array(
+        array(
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Home',
+            'item' => home_url(),
+        ),
+    );
+
+    if ( is_singular() ) {
+        $categories = get_the_category();
+        if ( ! empty( $categories ) ) {
+            $breadcrumbs[] = array(
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $categories[0]->name,
+                'item' => get_category_link( $categories[0]->term_id ),
+            );
+        }
+
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => count( $breadcrumbs ) + 1,
+            'name' => get_the_title(),
+            'item' => get_permalink(),
+        );
+    } elseif ( is_category() ) {
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => single_cat_title( '', false ),
+            'item' => get_category_link( get_query_var( 'cat' ) ),
+        );
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbs,
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_breadcrumb_schema', 15 );
+
+/**
+ * Add Open Graph Meta Tags for Social Sharing
+ */
+function cozyrecipes_add_open_graph_tags() {
+    $title = wp_get_document_title();
+    $description = wp_trim_words( get_the_excerpt(), 20 );
+    $url = get_the_permalink();
+    $image = '';
+
+    if ( is_singular() ) {
+        $image_id = get_post_thumbnail_id();
+        if ( $image_id ) {
+            $image_array = wp_get_attachment_image_src( $image_id, 'large' );
+            $image = $image_array[0];
+        }
+    }
+
+    // Fallback image if no featured image
+    if ( ! $image ) {
+        $image = get_template_directory_uri() . '/assets/images/default-og-image.jpg';
+    }
+
+    echo '<meta property="og:type" content="' . ( is_singular( 'post' ) ? 'article' : 'website' ) . '">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+    echo '<meta property="og:description" content="' . esc_attr( $description ) . '">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url( $url ) . '">' . "\n";
+    echo '<meta property="og:image" content="' . esc_url( $image ) . '">' . "\n";
+    echo '<meta property="og:image:width" content="1200">' . "\n";
+    echo '<meta property="og:image:height" content="630">' . "\n";
+    echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_open_graph_tags', 10 );
+
+/**
+ * Add Twitter Card Meta Tags
+ */
+function cozyrecipes_add_twitter_card_tags() {
+    echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr( wp_get_document_title() ) . '">' . "\n";
+    echo '<meta name="twitter:description" content="' . esc_attr( wp_trim_words( get_the_excerpt(), 20 ) ) . '">' . "\n";
+
+    if ( is_singular() && has_post_thumbnail() ) {
+        $image_array = wp_get_attachment_image_src( get_post_thumbnail_id(), 'large' );
+        echo '<meta name="twitter:image" content="' . esc_url( $image_array[0] ) . '">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_twitter_card_tags', 10 );
+
+/**
+ * Add Canonical URL
+ */
+function cozyrecipes_add_canonical_url() {
+    if ( ! is_singular() && ! is_archive() ) {
+        return;
+    }
+
+    $url = '';
+    if ( is_singular() ) {
+        $url = get_permalink();
+    } elseif ( is_home() ) {
+        $url = home_url();
+    } elseif ( is_category() ) {
+        $url = get_category_link( get_query_var( 'cat' ) );
+    } elseif ( is_tag() ) {
+        $url = get_tag_link( get_query_var( 'tag_id' ) );
+    }
+
+    if ( $url ) {
+        echo '<link rel="canonical" href="' . esc_url( $url ) . '">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_canonical_url', 10 );
+
+/**
+ * Add SEO Meta Tags
+ */
+function cozyrecipes_add_seo_meta_tags() {
+    if ( is_singular( 'post' ) ) {
+        // Meta description
+        $description = wp_trim_words( get_the_excerpt(), 20 );
+        echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+
+        // Keywords from categories
+        $categories = get_the_category();
+        if ( ! empty( $categories ) ) {
+            $keywords = implode( ', ', array_map( function( $cat ) { return $cat->name; }, $categories ) );
+            echo '<meta name="keywords" content="' . esc_attr( $keywords ) . '">' . "\n";
+        }
+
+        // Article specific meta
+        echo '<meta property="article:published_time" content="' . esc_attr( mysql2date( 'c', get_the_time( 'Y-m-d H:i:s' ) ) ) . '">' . "\n";
+        echo '<meta property="article:modified_time" content="' . esc_attr( mysql2date( 'c', get_the_modified_time( 'Y-m-d H:i:s' ) ) ) . '">' . "\n";
+        echo '<meta property="article:author" content="' . esc_attr( get_the_author_meta( 'display_name' ) ) . '">' . "\n";
+
+        // Author URL
+        $author_url = get_author_posts_url( get_the_author_meta( 'ID' ) );
+        echo '<link rel="author" href="' . esc_url( $author_url ) . '">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_seo_meta_tags', 10 );
+
+/**
+ * Optimize Image Alt Text - Ensure all images have proper alt attributes
+ */
+function cozyrecipes_filter_post_content_images( $content ) {
+    // Add alt text to images missing it
+    $content = preg_replace_callback(
+        '/<img[^>]*src=["\']([^"\']*)["\'][^>]*>/i',
+        function( $matches ) {
+            $img_tag = $matches[0];
+            
+            // Check if alt already exists
+            if ( strpos( $img_tag, 'alt=' ) !== false ) {
+                return $img_tag;
+            }
+
+            // Extract filename as fallback alt text
+            $filename = basename( $matches[1] );
+            $alt_text = sanitize_text_field( str_replace( array( '-', '_' ), ' ', pathinfo( $filename, PATHINFO_FILENAME ) ) );
+
+            // Insert alt attribute
+            return str_replace( '<img', '<img alt="' . esc_attr( $alt_text ) . '"', $img_tag );
+        },
+        $content
+    );
+
+    return $content;
+}
+add_filter( 'the_content', 'cozyrecipes_filter_post_content_images', 10 );
+
+/**
+ * Add Schema.org Organization Information
+ */
+function cozyrecipes_add_organization_schema() {
+    if ( ! is_front_page() && ! is_home() ) {
+        return;
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => get_bloginfo( 'name' ),
+        'description' => get_bloginfo( 'description' ),
+        'url' => home_url(),
+        'logo' => get_template_directory_uri() . '/assets/images/logo.png',
+        'contact' => array(
+            '@type' => 'ContactPoint',
+            'telephone' => '', // Add your phone if available
+            'contactType' => 'Customer Service',
+        ),
+        'sameAs' => array(
+            // Add your social media URLs
+            'https://www.facebook.com/',
+            'https://www.twitter.com/',
+            'https://www.instagram.com/',
+        ),
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'cozyrecipes_add_organization_schema', 15 );
+
+/**
+ * Remove Unnecessary Meta Tags for Lighter HTML
+ */
+function cozyrecipes_remove_unnecessary_meta_tags() {
+    remove_action( 'wp_head', 'wp_shortlink_wp_head', 10 );
+}
+add_action( 'init', 'cozyrecipes_remove_unnecessary_meta_tags' );
+
+/**
+ * Disable REST API for unauthenticated users (optional security)
+ */
+function cozyrecipes_disable_rest_for_unauthenticated() {
+    if ( ! is_user_logged_in() ) {
+        add_filter( 'rest_authentication_errors', function( $result ) {
+            if ( ! empty( $result ) ) {
+                return $result;
+            }
+            return new WP_Error( 'rest_disabled', 'REST API is disabled for unauthenticated requests', array( 'status' => 403 ) );
+        });
+    }
+}
+// add_action( 'rest_api_init', 'cozyrecipes_disable_rest_for_unauthenticated' ); // Uncomment if needed
+
+/**
+ * Add robots.txt optimization hints in header
+ */
+function cozyrecipes_add_robots_meta() {
+    if ( is_front_page() || is_archive() || is_singular() ) {
+        echo '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">' . "\n";
+    }
+}
+add_action( 'wp_head', 'cozyrecipes_add_robots_meta', 10 );
+
+/* ========================================
+   END SEO OPTIMIZATION MODULE
+======================================== */

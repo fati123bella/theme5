@@ -57,7 +57,17 @@ if ( post_password_required() ) {
 
     endif; // Check for have_comments().
 
-    comment_form();
+    comment_form( array(
+        'class_submit' => 'submit-comment',
+        'label_submit' => esc_attr__( 'Submit Comment', 'cozyrecipes' ),
+        'comment_notes_before' => '',
+        'comment_notes_after' => '',
+        'fields' => array(
+            'author' => '<div class="comment-form-group"><input id="author" name="author" type="text" value="' . esc_attr( $commenter['comment_author'] ) . '" placeholder="' . esc_attr__( 'Your Name', 'cozyrecipes' ) . '" required /></div>',
+            'email'  => '',
+            'url'    => '',
+        ),
+    ) );
     ?>
 
 </div><!-- #comments -->

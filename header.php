@@ -20,6 +20,8 @@
 <div id="page" class="site">
     <a class="skip-link screen-reader-text" href="#primary"><?php esc_html_e( 'Skip to content', 'cozyrecipes' ); ?></a>
 
+    <?php get_template_part( 'template-parts/social-media-bar' ); ?>
+
     <header id="masthead" class="site-header">
         <div class="header-container">
             <div class="site-branding">
@@ -50,16 +52,6 @@
                     )
                 );
                 ?>
-
-                <div class="header-search">
-                    <button class="header-search-toggle" aria-label="<?php esc_attr_e( 'Open search form', 'cozyrecipes' ); ?>" aria-expanded="false" title="<?php esc_attr_e( 'Search', 'cozyrecipes' ); ?>">
-                        <span aria-hidden="true">🔍</span>
-                        <span class="screen-reader-text"><?php esc_html_e( 'Search', 'cozyrecipes' ); ?></span>
-                    </button>
-                    <div class="header-search-form">
-                        <?php get_search_form(); ?>
-                    </div>
-                </div>
             </nav><!-- #site-navigation -->
 
             <button class="mobile-menu-toggle" aria-label="<?php esc_attr_e( 'Open navigation menu', 'cozyrecipes' ); ?>" aria-expanded="false" aria-controls="site-navigation" title="<?php esc_attr_e( 'Menu', 'cozyrecipes' ); ?>">
