@@ -3743,6 +3743,8 @@ function mytheme_register_recipe_meta() {
 		'recipe_cook_time',
 		'recipe_total_time',
 		'recipe_servings',
+		'recipe_calories',
+		'recipe_course',
 		'recipe_notes',
 	);
 
@@ -3774,6 +3776,8 @@ function mytheme_auto_detect_recipe_data( $content ) {
 		'cook_time'    => '',
 		'total_time'   => '',
 		'servings'     => '',
+		'calories'     => '',
+		'course'       => '',
 		'notes'        => '',
 		'nutrition'    => array(),
 	);
@@ -3787,7 +3791,7 @@ function mytheme_auto_detect_recipe_data( $content ) {
 	@$dom->loadHTML( '<?xml encoding="UTF-8">' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 	$xpath = new DOMXPath( $dom );
 
-	// Extract prep time, cook time, total time, servings from text - improved patterns
+	// Extract prep time, cook time, total time, servings, calories, course from text
 	if ( preg_match( '/prep(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
 		$recipe_data['prep_time'] = trim( $matches[1] );
 	}
@@ -3800,18 +3804,26 @@ function mytheme_auto_detect_recipe_data( $content ) {
 	if ( preg_match( '/(?:servings?|yields?|serves|makes):?\s*(\d+(?:\s*-\s*\d+)?(?:\s+(?:servings?|people|portions?|cups?|pieces?))?)/i', $content, $matches ) ) {
 		$recipe_data['servings'] = trim( $matches[1] );
 	}
+	if ( preg_match( '/calories:?\s*(\d+(?:\s*-\s*\d+)?(?:\s*(?:kcal|cal|calories))?)/i', $content, $matches ) ) {
+		$recipe_data['calories'] = trim( $matches[1] );
+	}
+	if ( preg_match( '/course:?\s*([a-z\s]+?)(?:\n|<|$)/i', $content, $matches ) ) {
+		$recipe_data['course'] = trim( $matches[1] );
+	}
 
-	// Extract ingredients and instructions - improved detection
+	// Extract ingredients and instructions - IMPROVED to capture ALL content
 	$headings = $xpath->query( '//h1 | //h2 | //h3 | //h4 | //h5 | //strong | //b' );
+
 	foreach ( $headings as $heading ) {
 		$heading_text = strtolower( trim( $heading->textContent ) );
 
-		// Check for ingredients - more flexible matching
+		// Check for ingredients - capture ALL lists and paragraphs
 		if ( preg_match( '/ingredient/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
 			$steps = 0;
-			while ( $next && $steps < 10 ) {
+			while ( $next && $steps < 20 ) {
 				if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
+					// Process ALL list items
 					$list_items = $xpath->query( './/li', $next );
 					foreach ( $list_items as $item ) {
 						$ingredient = trim( $item->textContent );
@@ -3819,14 +3831,15 @@ function mytheme_auto_detect_recipe_data( $content ) {
 							$recipe_data['ingredients'][] = $ingredient;
 						}
 					}
-					break;
+					// DON'T break - continue to next sibling to capture more lists
 				} elseif ( $next->nodeName === 'p' ) {
 					// Sometimes ingredients are in paragraphs
 					$text = trim( $next->textContent );
 					if ( ! empty( $text ) && strlen( $text ) < 200 && strpos( $text, ':' ) === false ) {
 						$recipe_data['ingredients'][] = $text;
 					}
-				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' || $next->nodeName === 'h5' ) {
+					// Stop when we hit a new heading
 					break;
 				}
 				$next = $next->nextSibling;
@@ -3834,12 +3847,13 @@ function mytheme_auto_detect_recipe_data( $content ) {
 			}
 		}
 
-		// Check for instructions - more flexible matching including "steps"
+		// Check for instructions - capture ALL lists and paragraphs
 		if ( preg_match( '/instruction|direction|step|method|preparation|how to make/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
 			$steps = 0;
-			while ( $next && $steps < 10 ) {
+			while ( $next && $steps < 20 ) {
 				if ( $next->nodeName === 'ol' || $next->nodeName === 'ul' ) {
+					// Process ALL list items
 					$list_items = $xpath->query( './/li', $next );
 					foreach ( $list_items as $item ) {
 						$instruction = trim( $item->textContent );
@@ -3847,14 +3861,15 @@ function mytheme_auto_detect_recipe_data( $content ) {
 							$recipe_data['instructions'][] = $instruction;
 						}
 					}
-					break;
+					// DON'T break - continue to next sibling to capture more lists
 				} elseif ( $next->nodeName === 'p' ) {
 					// Sometimes instructions are in paragraphs
 					$text = trim( $next->textContent );
 					if ( ! empty( $text ) && strlen( $text ) > 10 ) {
 						$recipe_data['instructions'][] = $text;
 					}
-				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' || $next->nodeName === 'h5' ) {
+					// Stop when we hit a new heading
 					break;
 				}
 				$next = $next->nextSibling;
@@ -3866,7 +3881,7 @@ function mytheme_auto_detect_recipe_data( $content ) {
 		if ( preg_match( '/note|tip|hint/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
 			$steps = 0;
-			while ( $next && $steps < 10 ) {
+			while ( $next && $steps < 15 ) {
 				if ( $next->nodeName === 'p' ) {
 					$recipe_data['notes'] .= trim( $next->textContent ) . ' ';
 				} elseif ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
@@ -3874,7 +3889,7 @@ function mytheme_auto_detect_recipe_data( $content ) {
 					foreach ( $list_items as $item ) {
 						$recipe_data['notes'] .= trim( $item->textContent ) . ' ';
 					}
-				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' || $next->nodeName === 'h5' ) {
 					break;
 				}
 				$next = $next->nextSibling;
@@ -3887,7 +3902,7 @@ function mytheme_auto_detect_recipe_data( $content ) {
 		if ( preg_match( '/nutrition|nutritional/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
 			$steps = 0;
-			while ( $next && $steps < 10 ) {
+			while ( $next && $steps < 15 ) {
 				if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
 					$list_items = $xpath->query( './/li', $next );
 					foreach ( $list_items as $item ) {
@@ -3896,13 +3911,12 @@ function mytheme_auto_detect_recipe_data( $content ) {
 							$recipe_data['nutrition'][] = $nutrition;
 						}
 					}
-					break;
 				} elseif ( $next->nodeName === 'p' ) {
 					$text = trim( $next->textContent );
 					if ( ! empty( $text ) ) {
 						$recipe_data['nutrition'][] = $text;
 					}
-				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' || $next->nodeName === 'h5' ) {
 					break;
 				}
 				$next = $next->nextSibling;
@@ -3935,6 +3949,8 @@ function mytheme_get_recipe_data( $post_id = null ) {
 		'cook_time'    => get_post_meta( $post_id, 'recipe_cook_time', true ),
 		'total_time'   => get_post_meta( $post_id, 'recipe_total_time', true ),
 		'servings'     => get_post_meta( $post_id, 'recipe_servings', true ),
+		'calories'     => get_post_meta( $post_id, 'recipe_calories', true ),
+		'course'       => get_post_meta( $post_id, 'recipe_course', true ),
 		'notes'        => get_post_meta( $post_id, 'recipe_notes', true ),
 		'nutrition'    => array(),
 	);
@@ -3972,6 +3988,12 @@ function mytheme_get_recipe_data( $post_id = null ) {
 		}
 		if ( empty( $data['servings'] ) && ! empty( $auto_data['servings'] ) ) {
 			$data['servings'] = $auto_data['servings'];
+		}
+		if ( empty( $data['calories'] ) && ! empty( $auto_data['calories'] ) ) {
+			$data['calories'] = $auto_data['calories'];
+		}
+		if ( empty( $data['course'] ) && ! empty( $auto_data['course'] ) ) {
+			$data['course'] = $auto_data['course'];
 		}
 		if ( empty( $data['notes'] ) && ! empty( $auto_data['notes'] ) ) {
 			$data['notes'] = $auto_data['notes'];
@@ -4056,11 +4078,18 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 
 		<?php
 		// Check if any meta fields have data
-		$has_meta = ! empty( $recipe['prep_time'] ) || ! empty( $recipe['cook_time'] ) || ! empty( $recipe['total_time'] ) || ! empty( $recipe['servings'] );
+		$has_meta = ! empty( $recipe['prep_time'] ) || ! empty( $recipe['cook_time'] ) || ! empty( $recipe['total_time'] ) || ! empty( $recipe['servings'] ) || ! empty( $recipe['calories'] ) || ! empty( $recipe['course'] );
 
 		if ( $has_meta ) :
 		?>
 		<div class="recipe-print-card-meta">
+			<?php if ( ! empty( $recipe['course'] ) ) : ?>
+			<div class="recipe-meta-item">
+				<div class="recipe-meta-label"><?php esc_html_e( 'Course', 'cozyrecipes' ); ?></div>
+				<div class="recipe-meta-value"><?php echo esc_html( $recipe['course'] ); ?></div>
+			</div>
+			<?php endif; ?>
+
 			<?php if ( ! empty( $recipe['prep_time'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Prep Time', 'cozyrecipes' ); ?></div>
@@ -4086,6 +4115,13 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Servings', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['servings'] ); ?></div>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['calories'] ) ) : ?>
+			<div class="recipe-meta-item">
+				<div class="recipe-meta-label"><?php esc_html_e( 'Calories', 'cozyrecipes' ); ?></div>
+				<div class="recipe-meta-value"><?php echo esc_html( $recipe['calories'] ); ?></div>
 			</div>
 			<?php endif; ?>
 		</div>

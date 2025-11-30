@@ -445,8 +445,9 @@
     border-radius: 0;
   }
 
-  /* Hide action buttons in print */
-  .recipe-print-card-actions {
+  /* Hide action buttons and image in print */
+  .recipe-print-card-actions,
+  .recipe-print-card-image {
     display: none !important;
   }
 
@@ -457,14 +458,6 @@
 
   .recipe-print-card-title {
     font-size: 1.75rem;
-  }
-
-  .recipe-print-card-image {
-    float: right;
-    width: 150px;
-    height: 150px;
-    margin: 0 0 1rem 1rem;
-    page-break-after: avoid;
   }
 
   .recipe-print-card-meta {
