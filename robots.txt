@@ -1,23 +1,24 @@
 # Robots.txt for CozyRecipes Theme
-# Allow search engines, block AI training
-
-User-agent: *
-Allow: /
+# Content signal: Allow search engines, block AI training
 
 # Content signal directive
 Content-signal: search=yes,ai-train=no
 
-# Allow search engines to index
+# Rules for all user agents
+User-agent: *
+Disallow: /downloads/
 Disallow: /wp-admin/
 Disallow: /wp-includes/
 Disallow: /wp-content/plugins/
 Disallow: /wp-content/cache/
 Disallow: /wp-content/themes/*/node_modules/
-
-# Allow theme assets
 Allow: /wp-content/themes/*/css/
 Allow: /wp-content/themes/*/js/
 Allow: /wp-content/themes/*/images/
+
+# Rules for magicsearchbot
+User-agent: magicsearchbot
+Disallow: /uploads/
 
 # Sitemap location (update with your actual sitemap URL)
 # Sitemap: https://yourdomain.com/sitemap.xml
