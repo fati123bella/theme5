@@ -3116,6 +3116,295 @@ function cozyrecipes_recipe_card_shortcode( $atts ) {
 }
 add_shortcode( 'recipe', 'cozyrecipes_recipe_card_shortcode' );
 
+/**
+ * Auto-detect and extract recipe data from post content
+ */
+function cozyrecipes_extract_recipe_data( $content ) {
+    $recipe_data = array(
+        'title'        => '',
+        'description'  => '',
+        'prep_time'    => '',
+        'cook_time'    => '',
+        'total_time'   => '',
+        'servings'     => '',
+        'ingredients'  => array(),
+        'instructions' => array(),
+        'notes'        => '',
+        'nutrition'    => array(),
+    );
+
+    // Parse HTML content
+    $dom = new DOMDocument();
+    @$dom->loadHTML( '<?xml encoding="UTF-8">' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+    $xpath = new DOMXPath( $dom );
+
+    // Extract recipe title (look for h2 or h3 with "recipe" in text)
+    $title_nodes = $xpath->query( "//h2 | //h3" );
+    foreach ( $title_nodes as $node ) {
+        $text = strtolower( $node->textContent );
+        if ( strpos( $text, 'recipe' ) !== false && empty( $recipe_data['title'] ) ) {
+            $recipe_data['title'] = trim( $node->textContent );
+            break;
+        }
+    }
+
+    // Extract prep time, cook time, servings from text
+    if ( preg_match( '/prep(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+        $recipe_data['prep_time'] = $matches[1];
+    }
+    if ( preg_match( '/cook(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+        $recipe_data['cook_time'] = $matches[1];
+    }
+    if ( preg_match( '/total(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+        $recipe_data['total_time'] = $matches[1];
+    }
+    if ( preg_match( '/(?:servings?|yields?|serves):?\s*(\d+(?:\s+(?:servings?|people|portions?))?)/i', $content, $matches ) ) {
+        $recipe_data['servings'] = $matches[1];
+    }
+
+    // Extract ingredients - look for heading with "ingredient" followed by a list
+    $headings = $xpath->query( "//h2 | //h3 | //h4" );
+    foreach ( $headings as $heading ) {
+        $heading_text = strtolower( trim( $heading->textContent ) );
+
+        // Check for ingredients
+        if ( strpos( $heading_text, 'ingredient' ) !== false ) {
+            $next = $heading->nextSibling;
+            while ( $next ) {
+                if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
+                    $list_items = $xpath->query( ".//li", $next );
+                    foreach ( $list_items as $item ) {
+                        $ingredient = trim( $item->textContent );
+                        if ( ! empty( $ingredient ) ) {
+                            $recipe_data['ingredients'][] = $ingredient;
+                        }
+                    }
+                    break;
+                } elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+                    break;
+                }
+                $next = $next->nextSibling;
+            }
+        }
+
+        // Check for instructions
+        if ( strpos( $heading_text, 'instruction' ) !== false || strpos( $heading_text, 'direction' ) !== false || strpos( $heading_text, 'method' ) !== false ) {
+            $next = $heading->nextSibling;
+            while ( $next ) {
+                if ( $next->nodeName === 'ol' || $next->nodeName === 'ul' ) {
+                    $list_items = $xpath->query( ".//li", $next );
+                    foreach ( $list_items as $item ) {
+                        $instruction = trim( $item->textContent );
+                        if ( ! empty( $instruction ) ) {
+                            $recipe_data['instructions'][] = $instruction;
+                        }
+                    }
+                    break;
+                } elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+                    break;
+                }
+                $next = $next->nextSibling;
+            }
+        }
+
+        // Check for notes
+        if ( strpos( $heading_text, 'note' ) !== false || strpos( $heading_text, 'tip' ) !== false ) {
+            $next = $heading->nextSibling;
+            while ( $next ) {
+                if ( $next->nodeName === 'p' ) {
+                    $recipe_data['notes'] .= trim( $next->textContent ) . ' ';
+                } elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+                    break;
+                }
+                $next = $next->nextSibling;
+            }
+            $recipe_data['notes'] = trim( $recipe_data['notes'] );
+        }
+
+        // Check for nutrition
+        if ( strpos( $heading_text, 'nutrition' ) !== false ) {
+            $next = $heading->nextSibling;
+            while ( $next ) {
+                if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
+                    $list_items = $xpath->query( ".//li", $next );
+                    foreach ( $list_items as $item ) {
+                        $nutrition = trim( $item->textContent );
+                        if ( ! empty( $nutrition ) ) {
+                            $recipe_data['nutrition'][] = $nutrition;
+                        }
+                    }
+                    break;
+                } elseif ( $next->nodeName === 'p' ) {
+                    $recipe_data['nutrition'][] = trim( $next->textContent );
+                } elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+                    break;
+                }
+                $next = $next->nextSibling;
+            }
+        }
+    }
+
+    return $recipe_data;
+}
+
+/**
+ * Render auto-detected recipe card
+ */
+function cozyrecipes_render_auto_recipe_card() {
+    // Check if recipe card is enabled
+    if ( ! get_theme_mod( 'cozyrecipes_enable_recipe_card', true ) ) {
+        return '';
+    }
+
+    if ( ! is_singular( 'post' ) ) {
+        return '';
+    }
+
+    // Get post content
+    global $post;
+    $content = apply_filters( 'the_content', get_post_field( 'post_content', $post->ID ) );
+
+    // Extract recipe data
+    $recipe_data = cozyrecipes_extract_recipe_data( $content );
+
+    // Check if we found any recipe data
+    $has_recipe_data = ! empty( $recipe_data['ingredients'] ) || ! empty( $recipe_data['instructions'] );
+
+    if ( ! $has_recipe_data ) {
+        return '';
+    }
+
+    // Get customizer settings
+    $show_title        = get_theme_mod( 'cozyrecipes_recipe_card_show_title', true );
+    $show_description  = get_theme_mod( 'cozyrecipes_recipe_card_show_description', true );
+    $show_prep_time    = get_theme_mod( 'cozyrecipes_recipe_card_show_prep_time', true );
+    $show_cook_time    = get_theme_mod( 'cozyrecipes_recipe_card_show_cook_time', true );
+    $show_total_time   = get_theme_mod( 'cozyrecipes_recipe_card_show_total_time', true );
+    $show_servings     = get_theme_mod( 'cozyrecipes_recipe_card_show_servings', true );
+    $show_ingredients  = get_theme_mod( 'cozyrecipes_recipe_card_show_ingredients', true );
+    $show_instructions = get_theme_mod( 'cozyrecipes_recipe_card_show_instructions', true );
+    $show_notes        = get_theme_mod( 'cozyrecipes_recipe_card_show_notes', true );
+    $show_nutrition    = get_theme_mod( 'cozyrecipes_recipe_card_show_nutrition', false );
+
+    // Start output buffering
+    ob_start();
+    ?>
+
+    <div class="recipe-card-container auto-recipe-card">
+        <?php if ( $show_title && ! empty( $recipe_data['title'] ) ) : ?>
+        <h2 class="recipe-card-title"><?php echo esc_html( $recipe_data['title'] ); ?></h2>
+        <?php elseif ( $show_title ) : ?>
+        <h2 class="recipe-card-title"><?php the_title(); ?></h2>
+        <?php endif; ?>
+
+        <?php if ( $show_description && has_excerpt() ) : ?>
+        <p class="recipe-card-description"><?php echo esc_html( get_the_excerpt() ); ?></p>
+        <?php endif; ?>
+
+        <?php
+        // Check if any time/servings fields are enabled and have data
+        $has_meta = ( $show_prep_time && ! empty( $recipe_data['prep_time'] ) ) ||
+                    ( $show_cook_time && ! empty( $recipe_data['cook_time'] ) ) ||
+                    ( $show_total_time && ! empty( $recipe_data['total_time'] ) ) ||
+                    ( $show_servings && ! empty( $recipe_data['servings'] ) );
+
+        if ( $has_meta ) :
+        ?>
+        <div class="recipe-card-meta">
+            <?php if ( $show_prep_time && ! empty( $recipe_data['prep_time'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Prep:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $recipe_data['prep_time'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $show_cook_time && ! empty( $recipe_data['cook_time'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6.13 1L6 16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V1"></path>
+                    <path d="M3 5h18"></path>
+                    <path d="M13 5v6"></path>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Cook:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $recipe_data['cook_time'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $show_total_time && ! empty( $recipe_data['total_time'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Total:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $recipe_data['total_time'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $show_servings && ! empty( $recipe_data['servings'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Servings:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $recipe_data['servings'] ); ?></span>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_ingredients && ! empty( $recipe_data['ingredients'] ) ) : ?>
+        <div class="recipe-card-section">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Ingredients', 'cozyrecipes' ); ?></h3>
+            <ul class="recipe-card-ingredients">
+                <?php foreach ( $recipe_data['ingredients'] as $ingredient ) : ?>
+                    <li><?php echo esc_html( $ingredient ); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_instructions && ! empty( $recipe_data['instructions'] ) ) : ?>
+        <div class="recipe-card-section">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Instructions', 'cozyrecipes' ); ?></h3>
+            <ol class="recipe-card-instructions">
+                <?php foreach ( $recipe_data['instructions'] as $instruction ) : ?>
+                    <li><?php echo esc_html( $instruction ); ?></li>
+                <?php endforeach; ?>
+            </ol>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_notes && ! empty( $recipe_data['notes'] ) ) : ?>
+        <div class="recipe-card-section recipe-card-notes">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Notes', 'cozyrecipes' ); ?></h3>
+            <p><?php echo esc_html( $recipe_data['notes'] ); ?></p>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_nutrition && ! empty( $recipe_data['nutrition'] ) ) : ?>
+        <div class="recipe-card-section recipe-card-nutrition">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Nutrition Information', 'cozyrecipes' ); ?></h3>
+            <ul class="recipe-card-nutrition-list">
+                <?php foreach ( $recipe_data['nutrition'] as $nutrition ) : ?>
+                    <li><?php echo esc_html( $nutrition ); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <?php
+    return ob_get_clean();
+}
+
 /* ========================================
    SEO OPTIMIZATION MODULE
 ======================================== */

@@ -85,6 +85,11 @@ get_header();
                 </div>
             <?php endif; ?>
 
+            <?php
+            // Auto-generate recipe card from post content
+            echo cozyrecipes_render_auto_recipe_card();
+            ?>
+
             <div class="single-recipe-content">
                 <?php
                 the_content();
