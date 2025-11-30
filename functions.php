@@ -1307,6 +1307,107 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     // ========================================
+    // PRINT RECIPE OPTIONS SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_print_recipe', array(
+        'title'       => __( 'Print Recipe Options', 'cozyrecipes' ),
+        'description' => __( 'Choose which sections to include when printing recipes.', 'cozyrecipes' ),
+        'priority'    => 55,
+    ) );
+
+    // Enable Print Recipe Button
+    $wp_customize->add_setting( 'cozyrecipes_enable_print_button', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_enable_print_button', array(
+        'label'       => __( 'Enable Print Recipe Button', 'cozyrecipes' ),
+        'description' => __( 'Display a print button on single posts.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // Print Title
+    $wp_customize->add_setting( 'cozyrecipes_print_title', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_print_title', array(
+        'label'       => __( 'Print Title', 'cozyrecipes' ),
+        'description' => __( 'Include the recipe title when printing.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // Print Featured Image
+    $wp_customize->add_setting( 'cozyrecipes_print_featured_image', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_print_featured_image', array(
+        'label'       => __( 'Print Featured Image', 'cozyrecipes' ),
+        'description' => __( 'Include the featured image when printing.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // Print Category Badge
+    $wp_customize->add_setting( 'cozyrecipes_print_category', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_print_category', array(
+        'label'       => __( 'Print Category Badge', 'cozyrecipes' ),
+        'description' => __( 'Include the category badge when printing.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // Print Post Meta
+    $wp_customize->add_setting( 'cozyrecipes_print_meta', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_print_meta', array(
+        'label'       => __( 'Print Post Meta', 'cozyrecipes' ),
+        'description' => __( 'Include post meta (date, author, reading time) when printing.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // Print Main Content
+    $wp_customize->add_setting( 'cozyrecipes_print_content', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_print_content', array(
+        'label'       => __( 'Print Main Content', 'cozyrecipes' ),
+        'description' => __( 'Include the main recipe content (description, ingredients, instructions) when printing.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // Print Tags
+    $wp_customize->add_setting( 'cozyrecipes_print_tags', array(
+        'default'           => false,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_print_tags', array(
+        'label'       => __( 'Print Tags', 'cozyrecipes' ),
+        'description' => __( 'Include post tags when printing.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_print_recipe',
+        'type'        => 'checkbox',
+    ) );
+
+    // ========================================
     // SOCIAL MEDIA TOP BAR SECTION
     // ========================================
 
@@ -1750,6 +1851,55 @@ function cozyrecipes_customizer_css() {
         /* Header Search Toggle */
         .header-search-toggle:hover {
             color: <?php echo esc_attr( $accent_color ); ?>;
+        }
+
+        /* Print Recipe Styles */
+        <?php
+        // Get print settings
+        $print_title = get_theme_mod( 'cozyrecipes_print_title', true );
+        $print_featured_image = get_theme_mod( 'cozyrecipes_print_featured_image', true );
+        $print_category = get_theme_mod( 'cozyrecipes_print_category', true );
+        $print_meta = get_theme_mod( 'cozyrecipes_print_meta', true );
+        $print_content = get_theme_mod( 'cozyrecipes_print_content', true );
+        $print_tags = get_theme_mod( 'cozyrecipes_print_tags', false );
+        ?>
+
+        @media print {
+            <?php if ( ! $print_title ) : ?>
+            .print-title {
+                display: none !important;
+            }
+            <?php endif; ?>
+
+            <?php if ( ! $print_featured_image ) : ?>
+            .print-featured-image {
+                display: none !important;
+            }
+            <?php endif; ?>
+
+            <?php if ( ! $print_category ) : ?>
+            .print-category {
+                display: none !important;
+            }
+            <?php endif; ?>
+
+            <?php if ( ! $print_meta ) : ?>
+            .print-meta {
+                display: none !important;
+            }
+            <?php endif; ?>
+
+            <?php if ( ! $print_content ) : ?>
+            .print-content {
+                display: none !important;
+            }
+            <?php endif; ?>
+
+            <?php if ( ! $print_tags ) : ?>
+            .print-tags {
+                display: none !important;
+            }
+            <?php endif; ?>
         }
     </style>
     <?php

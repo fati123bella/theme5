@@ -17,17 +17,32 @@ get_header();
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
             <header class="single-recipe-header">
                 <?php
+                // Print Recipe Button
+                $enable_print_button = get_theme_mod( 'cozyrecipes_enable_print_button', true );
+                if ( $enable_print_button ) :
+                    ?>
+                    <button class="print-recipe-button" onclick="window.print();" aria-label="<?php esc_attr_e( 'Print Recipe', 'cozyrecipes' ); ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        <span><?php esc_html_e( 'Print Recipe', 'cozyrecipes' ); ?></span>
+                    </button>
+                <?php endif; ?>
+
+                <?php
                 $category = cozyrecipes_first_category();
                 if ( $category ) :
                     ?>
-                    <div class="recipe-category-badge">
+                    <div class="recipe-category-badge print-category">
                         <a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>">
                             <?php echo esc_html( $category->name ); ?>
                         </a>
                     </div>
                 <?php endif; ?>
 
-                <h1 class="single-recipe-title"><?php the_title(); ?></h1>
+                <h1 class="single-recipe-title print-title"><?php the_title(); ?></h1>
 
                 <?php
                 // Get meta display settings
@@ -39,7 +54,7 @@ get_header();
                 // Check if any meta is enabled
                 if ( $show_date || $show_author || $show_reading_time || $show_comments ) :
                 ?>
-                <div class="single-recipe-meta">
+                <div class="single-recipe-meta print-meta">
                     <?php if ( $show_date ) : ?>
                     <span class="meta-date">
                         <?php echo get_the_date(); ?>
@@ -80,12 +95,12 @@ get_header();
             $show_featured_image = get_theme_mod( 'cozyrecipes_single_featured_image', true );
             if ( $show_featured_image && has_post_thumbnail() ) :
                 ?>
-                <div class="single-recipe-image">
+                <div class="single-recipe-image print-featured-image">
                     <?php the_post_thumbnail( 'cozyrecipes-featured', array( 'alt' => the_title_attribute( array( 'echo' => false ) ) ) ); ?>
                 </div>
             <?php endif; ?>
 
-            <div class="single-recipe-content">
+            <div class="single-recipe-content print-content">
                 <?php
                 the_content();
 
@@ -103,7 +118,7 @@ get_header();
             $tags_list = get_the_tag_list( '', esc_html_x( ', ', 'list item separator', 'cozyrecipes' ) );
             if ( $tags_list ) :
                 ?>
-                <footer class="entry-footer">
+                <footer class="entry-footer print-tags">
                     <div class="<?php echo esc_attr( cozyrecipes_get_container_class() ); ?>" style="max-width: 760px;">
                         <span class="tags-links">
                             <?php
