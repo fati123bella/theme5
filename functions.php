@@ -1579,13 +1579,19 @@ function cozyrecipes_customizer_css() {
         }
 
         a:hover,
-        .recipe-link:hover,
         .recipe-card-title a:hover {
             color: <?php echo esc_attr( $link_hover ); ?>;
         }
 
+        /* View Recipe Button */
         .recipe-link {
-            color: <?php echo esc_attr( $button_bg ); ?>;
+            color: <?php echo esc_attr( $button_bg ); ?> !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .recipe-link:hover {
+            color: <?php echo esc_attr( $link_hover ); ?> !important;
         }
 
         /* Meta Text */
