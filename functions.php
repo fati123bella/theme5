@@ -1551,8 +1551,8 @@ function cozyrecipes_customizer_css() {
         /* Category Badges */
         .recipe-category-badge,
         .editors-pick-badge {
-            background-color: <?php echo esc_attr( $category_badge ); ?>;
-            color: <?php echo esc_attr( $category_badge_text ); ?>;
+            background-color: <?php echo esc_attr( $category_badge ); ?> !important;
+            color: <?php echo esc_attr( $category_badge_text ); ?> !important;
         }
 
         /* Buttons */
