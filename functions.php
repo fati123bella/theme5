@@ -1170,6 +1170,32 @@ function cozyrecipes_customize_register( $wp_customize ) {
         ),
     ) );
 
+    // Disable Footer
+    $wp_customize->add_setting( 'cozyrecipes_disable_footer', array(
+        'default'           => false,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_disable_footer', array(
+        'label'       => __( 'Disable Footer', 'cozyrecipes' ),
+        'description' => __( 'Check to completely hide the footer section.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_layout',
+        'type'        => 'checkbox',
+    ) );
+
+    // Disable Sticky Header
+    $wp_customize->add_setting( 'cozyrecipes_disable_sticky_header', array(
+        'default'           => false,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_disable_sticky_header', array(
+        'label'       => __( 'Disable Sticky Header', 'cozyrecipes' ),
+        'description' => __( 'Check to disable the sticky/fixed header on scroll.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_layout',
+        'type'        => 'checkbox',
+    ) );
+
     // ========================================
     // RECIPE CARDS DISPLAY
     // ========================================
@@ -1480,8 +1506,25 @@ function cozyrecipes_customizer_css() {
     $footer_link = get_theme_mod( 'cozyrecipes_footer_link_color', '#cccccc' );
     $footer_link_hover = get_theme_mod( 'cozyrecipes_footer_link_hover_color', '#ff6b6b' );
 
+    // Layout options
+    $disable_sticky = get_theme_mod( 'cozyrecipes_disable_sticky_header', false );
+    $disable_footer = get_theme_mod( 'cozyrecipes_disable_footer', false );
+
     ?>
     <style type="text/css">
+        <?php if ( $disable_sticky ) : ?>
+        /* Disable Sticky Header */
+        .site-header {
+            position: relative !important;
+        }
+        <?php endif; ?>
+
+        <?php if ( $disable_footer ) : ?>
+        /* Hide Footer */
+        .site-footer {
+            display: none !important;
+        }
+        <?php endif; ?>
         /* Body & Text Colors */
         body {
             background-color: <?php echo esc_attr( $body_bg ); ?>;
