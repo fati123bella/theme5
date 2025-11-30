@@ -3290,12 +3290,23 @@ function cozyrecipes_render_auto_recipe_card() {
     ob_start();
     ?>
 
-    <div class="recipe-card-container auto-recipe-card">
-        <?php if ( $show_title && ! empty( $recipe_data['title'] ) ) : ?>
-        <h2 class="recipe-card-title"><?php echo esc_html( $recipe_data['title'] ); ?></h2>
-        <?php elseif ( $show_title ) : ?>
-        <h2 class="recipe-card-title"><?php the_title(); ?></h2>
-        <?php endif; ?>
+    <div id="recipe-card" class="recipe-card-container auto-recipe-card">
+        <div class="recipe-card-header">
+            <?php if ( $show_title && ! empty( $recipe_data['title'] ) ) : ?>
+            <h2 class="recipe-card-title"><?php echo esc_html( $recipe_data['title'] ); ?></h2>
+            <?php elseif ( $show_title ) : ?>
+            <h2 class="recipe-card-title"><?php the_title(); ?></h2>
+            <?php endif; ?>
+
+            <button class="print-recipe-btn" onclick="window.print();" aria-label="<?php esc_attr_e( 'Print Recipe', 'cozyrecipes' ); ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                <span><?php esc_html_e( 'Print Recipe', 'cozyrecipes' ); ?></span>
+            </button>
+        </div>
 
         <?php if ( $show_description && has_excerpt() ) : ?>
         <p class="recipe-card-description"><?php echo esc_html( get_the_excerpt() ); ?></p>

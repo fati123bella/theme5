@@ -86,9 +86,23 @@ get_header();
             <?php endif; ?>
 
             <?php
-            // Auto-generate recipe card from post content
-            echo cozyrecipes_render_auto_recipe_card();
+            // Jump to Recipe button
+            $content = get_post_field( 'post_content', get_the_ID() );
+            $recipe_data = cozyrecipes_extract_recipe_data( apply_filters( 'the_content', $content ) );
+            $has_recipe = ! empty( $recipe_data['ingredients'] ) || ! empty( $recipe_data['instructions'] );
+
+            if ( $has_recipe && get_theme_mod( 'cozyrecipes_enable_recipe_card', true ) ) :
             ?>
+            <div class="jump-to-recipe-container">
+                <a href="#recipe-card" class="jump-to-recipe-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <polyline points="19 12 12 19 5 12"></polyline>
+                    </svg>
+                    <span><?php esc_html_e( 'Jump to Recipe', 'cozyrecipes' ); ?></span>
+                </a>
+            </div>
+            <?php endif; ?>
 
             <div class="single-recipe-content">
                 <?php
@@ -102,6 +116,11 @@ get_header();
                 );
                 ?>
             </div><!-- .single-recipe-content -->
+
+            <?php
+            // Auto-generate recipe card from post content (below content)
+            echo cozyrecipes_render_auto_recipe_card();
+            ?>
 
             <?php
             // Tags
