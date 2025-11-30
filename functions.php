@@ -3791,24 +3791,82 @@ function mytheme_auto_detect_recipe_data( $content ) {
 	@$dom->loadHTML( '<?xml encoding="UTF-8">' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 	$xpath = new DOMXPath( $dom );
 
-	// Extract prep time, cook time, total time, servings, calories, course from text
-	if ( preg_match( '/prep(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+	// Extract prep time, cook time, total time, servings, calories, course from text - IMPROVED PATTERNS
+
+	// Prep time - handles: "Prep: 15 minutes", "Prep Time: 15 mins", "Preparation: 15-20 min"
+	if ( preg_match( '/(?:prep(?:aration)?(?:\s+time)?|pre[pḿ])\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
 		$recipe_data['prep_time'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/cook(?:ing)?(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+
+	// Cook time - handles: "Cook: 30 minutes", "Cooking Time: 30 mins", "Cook: 30-45 min"
+	if ( preg_match( '/(?:cook(?:ing)?(?:\s+time)?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
 		$recipe_data['cook_time'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/total(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+
+	// Total time - handles: "Total: 45 minutes", "Total Time: 45 mins"
+	if ( preg_match( '/(?:total(?:\s+time)?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
 		$recipe_data['total_time'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/(?:servings?|yields?|serves|makes):?\s*(\d+(?:\s*-\s*\d+)?(?:\s+(?:servings?|people|portions?|cups?|pieces?))?)/i', $content, $matches ) ) {
+
+	// Servings - IMPROVED to handle: "Servings: 4", "Serves: 4-6", "Yield: 12 cookies", "Makes: 8 portions"
+	if ( preg_match( '/(?:servings?|yields?|serves?|makes?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?(?:\s+(?:servings?|people|persons?|portions?|cookies?|cupcakes?|pieces?|slices?))?)/i', $content, $matches ) ) {
 		$recipe_data['servings'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/calories:?\s*(\d+(?:\s*-\s*\d+)?(?:\s*(?:kcal|cal|calories))?)/i', $content, $matches ) ) {
-		$recipe_data['calories'] = trim( $matches[1] );
+
+	// Calories - IMPROVED to handle: "Calories: 300", "300 kcal", "Cal: 250-300", "300 calories per serving"
+	if ( preg_match( '/(?:calories?|kcal)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?)\s*(kcal|cal|calories)?(?:\s+per\s+serving)?/i', $content, $matches ) ) {
+		$cal_value = trim( $matches[1] );
+		$cal_unit = ! empty( $matches[2] ) ? strtolower( trim( $matches[2] ) ) : 'kcal';
+		// Normalize unit
+		if ( $cal_unit === 'cal' || $cal_unit === 'calories' || $cal_unit === 'calorie' ) {
+			$cal_unit = 'kcal';
+		}
+		$recipe_data['calories'] = $cal_value . ' ' . $cal_unit;
 	}
-	if ( preg_match( '/course:?\s*([a-z\s]+?)(?:\n|<|$)/i', $content, $matches ) ) {
-		$recipe_data['course'] = trim( $matches[1] );
+
+	// Course - IMPROVED to detect common course types
+	if ( preg_match( '/(?:course|category|meal\s+type)\s*:?\s*(breakfast|brunch|lunch|dinner|supper|appetizer|starter|main\s+(?:course|dish)|side\s+(?:dish)?|dessert|snack|salad|soup|beverage|drink)(?:\s|<|,|\.|;|$)/i', $content, $matches ) ) {
+		$recipe_data['course'] = ucwords( trim( $matches[1] ) );
+	}
+
+	// Additional pass: Look for metadata in paragraph/div elements (common in recipe sites)
+	// This helps when recipe info is structured in paragraphs rather than just text
+	$paragraphs = $xpath->query( '//p | //div[@class]' );
+	foreach ( $paragraphs as $para ) {
+		$para_text = trim( $para->textContent );
+
+		// Try to find servings if not already found
+		if ( empty( $recipe_data['servings'] ) && preg_match( '/(?:servings?|yields?|serves?|makes?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?(?:\s+(?:servings?|people|persons?|portions?|cookies?|cupcakes?|pieces?|slices?))?)/i', $para_text, $matches ) ) {
+			$recipe_data['servings'] = trim( $matches[1] );
+		}
+
+		// Try to find calories if not already found
+		if ( empty( $recipe_data['calories'] ) && preg_match( '/(?:calories?|kcal)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?)\s*(kcal|cal|calories)?/i', $para_text, $matches ) ) {
+			$cal_value = trim( $matches[1] );
+			$cal_unit = ! empty( $matches[2] ) ? strtolower( trim( $matches[2] ) ) : 'kcal';
+			if ( $cal_unit === 'cal' || $cal_unit === 'calories' || $cal_unit === 'calorie' ) {
+				$cal_unit = 'kcal';
+			}
+			$recipe_data['calories'] = $cal_value . ' ' . $cal_unit;
+		}
+
+		// Try to find course if not already found
+		if ( empty( $recipe_data['course'] ) && preg_match( '/(?:course|category|meal\s+type)\s*:?\s*(breakfast|brunch|lunch|dinner|supper|appetizer|starter|main\s+(?:course|dish)|side\s+(?:dish)?|dessert|snack|salad|soup|beverage|drink)/i', $para_text, $matches ) ) {
+			$recipe_data['course'] = ucwords( trim( $matches[1] ) );
+		}
+
+		// Try to find times if not already found
+		if ( empty( $recipe_data['prep_time'] ) && preg_match( '/(?:prep(?:aration)?(?:\s+time)?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $para_text, $matches ) ) {
+			$recipe_data['prep_time'] = trim( $matches[1] );
+		}
+
+		if ( empty( $recipe_data['cook_time'] ) && preg_match( '/(?:cook(?:ing)?(?:\s+time)?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $para_text, $matches ) ) {
+			$recipe_data['cook_time'] = trim( $matches[1] );
+		}
+
+		if ( empty( $recipe_data['total_time'] ) && preg_match( '/(?:total(?:\s+time)?)\s*:?\s*(\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $para_text, $matches ) ) {
+			$recipe_data['total_time'] = trim( $matches[1] );
+		}
 	}
 
 	// Extract ingredients and instructions - IMPROVED to capture ALL content
