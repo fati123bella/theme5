@@ -3775,6 +3775,7 @@ function mytheme_auto_detect_recipe_data( $content ) {
 		'total_time'   => '',
 		'servings'     => '',
 		'notes'        => '',
+		'nutrition'    => array(),
 	);
 
 	if ( empty( $content ) ) {
@@ -3786,77 +3787,127 @@ function mytheme_auto_detect_recipe_data( $content ) {
 	@$dom->loadHTML( '<?xml encoding="UTF-8">' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 	$xpath = new DOMXPath( $dom );
 
-	// Extract prep time, cook time, total time, servings from text
-	if ( preg_match( '/prep(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
-		$recipe_data['prep_time'] = $matches[1];
+	// Extract prep time, cook time, total time, servings from text - improved patterns
+	if ( preg_match( '/prep(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+		$recipe_data['prep_time'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/cook(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
-		$recipe_data['cook_time'] = $matches[1];
+	if ( preg_match( '/cook(?:ing)?(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+		$recipe_data['cook_time'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/total(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
-		$recipe_data['total_time'] = $matches[1];
+	if ( preg_match( '/total(?:\s+time)?:?\s*(\d+(?:\s*-\s*\d+)?\s*(?:min|mins|minute|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+		$recipe_data['total_time'] = trim( $matches[1] );
 	}
-	if ( preg_match( '/(?:servings?|yields?|serves):?\s*(\d+(?:\s+(?:servings?|people|portions?))?)/i', $content, $matches ) ) {
-		$recipe_data['servings'] = $matches[1];
+	if ( preg_match( '/(?:servings?|yields?|serves|makes):?\s*(\d+(?:\s*-\s*\d+)?(?:\s+(?:servings?|people|portions?|cups?|pieces?))?)/i', $content, $matches ) ) {
+		$recipe_data['servings'] = trim( $matches[1] );
 	}
 
-	// Extract ingredients and instructions
-	$headings = $xpath->query( '//h2 | //h3 | //h4' );
+	// Extract ingredients and instructions - improved detection
+	$headings = $xpath->query( '//h1 | //h2 | //h3 | //h4 | //h5 | //strong | //b' );
 	foreach ( $headings as $heading ) {
 		$heading_text = strtolower( trim( $heading->textContent ) );
 
-		// Check for ingredients
-		if ( strpos( $heading_text, 'ingredient' ) !== false ) {
+		// Check for ingredients - more flexible matching
+		if ( preg_match( '/ingredient/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
-			while ( $next ) {
+			$steps = 0;
+			while ( $next && $steps < 10 ) {
 				if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
 					$list_items = $xpath->query( './/li', $next );
 					foreach ( $list_items as $item ) {
 						$ingredient = trim( $item->textContent );
-						if ( ! empty( $ingredient ) ) {
+						if ( ! empty( $ingredient ) && strlen( $ingredient ) > 2 ) {
 							$recipe_data['ingredients'][] = $ingredient;
 						}
 					}
 					break;
-				} elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'p' ) {
+					// Sometimes ingredients are in paragraphs
+					$text = trim( $next->textContent );
+					if ( ! empty( $text ) && strlen( $text ) < 200 && strpos( $text, ':' ) === false ) {
+						$recipe_data['ingredients'][] = $text;
+					}
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
 					break;
 				}
 				$next = $next->nextSibling;
+				$steps++;
 			}
 		}
 
-		// Check for instructions
-		if ( strpos( $heading_text, 'instruction' ) !== false || strpos( $heading_text, 'direction' ) !== false || strpos( $heading_text, 'method' ) !== false ) {
+		// Check for instructions - more flexible matching including "steps"
+		if ( preg_match( '/instruction|direction|step|method|preparation|how to make/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
-			while ( $next ) {
+			$steps = 0;
+			while ( $next && $steps < 10 ) {
 				if ( $next->nodeName === 'ol' || $next->nodeName === 'ul' ) {
 					$list_items = $xpath->query( './/li', $next );
 					foreach ( $list_items as $item ) {
 						$instruction = trim( $item->textContent );
-						if ( ! empty( $instruction ) ) {
+						if ( ! empty( $instruction ) && strlen( $instruction ) > 5 ) {
 							$recipe_data['instructions'][] = $instruction;
 						}
 					}
 					break;
-				} elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'p' ) {
+					// Sometimes instructions are in paragraphs
+					$text = trim( $next->textContent );
+					if ( ! empty( $text ) && strlen( $text ) > 10 ) {
+						$recipe_data['instructions'][] = $text;
+					}
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
 					break;
 				}
 				$next = $next->nextSibling;
+				$steps++;
 			}
 		}
 
 		// Check for notes
-		if ( strpos( $heading_text, 'note' ) !== false || strpos( $heading_text, 'tip' ) !== false ) {
+		if ( preg_match( '/note|tip|hint/i', $heading_text ) ) {
 			$next = $heading->nextSibling;
-			while ( $next ) {
+			$steps = 0;
+			while ( $next && $steps < 10 ) {
 				if ( $next->nodeName === 'p' ) {
 					$recipe_data['notes'] .= trim( $next->textContent ) . ' ';
-				} elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+				} elseif ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
+					$list_items = $xpath->query( './/li', $next );
+					foreach ( $list_items as $item ) {
+						$recipe_data['notes'] .= trim( $item->textContent ) . ' ';
+					}
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
 					break;
 				}
 				$next = $next->nextSibling;
+				$steps++;
 			}
 			$recipe_data['notes'] = trim( $recipe_data['notes'] );
+		}
+
+		// Check for nutrition
+		if ( preg_match( '/nutrition|nutritional/i', $heading_text ) ) {
+			$next = $heading->nextSibling;
+			$steps = 0;
+			while ( $next && $steps < 10 ) {
+				if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
+					$list_items = $xpath->query( './/li', $next );
+					foreach ( $list_items as $item ) {
+						$nutrition = trim( $item->textContent );
+						if ( ! empty( $nutrition ) ) {
+							$recipe_data['nutrition'][] = $nutrition;
+						}
+					}
+					break;
+				} elseif ( $next->nodeName === 'p' ) {
+					$text = trim( $next->textContent );
+					if ( ! empty( $text ) ) {
+						$recipe_data['nutrition'][] = $text;
+					}
+				} elseif ( $next->nodeName === 'h1' || $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+					break;
+				}
+				$next = $next->nextSibling;
+				$steps++;
+			}
 		}
 	}
 
@@ -3885,9 +3936,10 @@ function mytheme_get_recipe_data( $post_id = null ) {
 		'total_time'   => get_post_meta( $post_id, 'recipe_total_time', true ),
 		'servings'     => get_post_meta( $post_id, 'recipe_servings', true ),
 		'notes'        => get_post_meta( $post_id, 'recipe_notes', true ),
+		'nutrition'    => array(),
 	);
 
-	// Convert meta ingredients/instructions from text to array if needed
+	// Convert meta ingredients/instructions/nutrition from text to array if needed
 	if ( ! empty( $data['ingredients'] ) && is_string( $data['ingredients'] ) ) {
 		$data['ingredients'] = array_filter( array_map( 'trim', explode( "\n", $data['ingredients'] ) ) );
 	}
@@ -3923,6 +3975,9 @@ function mytheme_get_recipe_data( $post_id = null ) {
 		}
 		if ( empty( $data['notes'] ) && ! empty( $auto_data['notes'] ) ) {
 			$data['notes'] = $auto_data['notes'];
+		}
+		if ( empty( $data['nutrition'] ) && ! empty( $auto_data['nutrition'] ) ) {
+			$data['nutrition'] = $auto_data['nutrition'];
 		}
 	}
 
@@ -4056,6 +4111,17 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 						<li><?php echo esc_html( $instruction ); ?></li>
 					<?php endforeach; ?>
 				</ol>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['nutrition'] ) ) : ?>
+			<div class="recipe-section">
+				<h3 class="recipe-section-title"><?php esc_html_e( 'Nutrition', 'cozyrecipes' ); ?></h3>
+				<ul class="recipe-ingredients-list">
+					<?php foreach ( $recipe['nutrition'] as $nutrition_item ) : ?>
+						<li><?php echo esc_html( $nutrition_item ); ?></li>
+					<?php endforeach; ?>
+				</ul>
 			</div>
 			<?php endif; ?>
 
