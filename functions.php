@@ -1307,6 +1307,149 @@ function cozyrecipes_customize_register( $wp_customize ) {
     ) );
 
     // ========================================
+    // RECIPE CARD SECTION
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_recipe_card', array(
+        'title'       => __( 'Recipe Card Options', 'cozyrecipes' ),
+        'description' => __( 'Customize the recipe card display and which fields to show.', 'cozyrecipes' ),
+        'priority'    => 55,
+    ) );
+
+    // Enable Recipe Card
+    $wp_customize->add_setting( 'cozyrecipes_enable_recipe_card', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_enable_recipe_card', array(
+        'label'       => __( 'Enable Recipe Card', 'cozyrecipes' ),
+        'description' => __( 'Display recipe card with structured information.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Recipe Title
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_title', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_title', array(
+        'label'       => __( 'Show Recipe Title', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Recipe Description
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_description', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_description', array(
+        'label'       => __( 'Show Recipe Description', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Prep Time
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_prep_time', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_prep_time', array(
+        'label'       => __( 'Show Prep Time', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Cook Time
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_cook_time', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_cook_time', array(
+        'label'       => __( 'Show Cook Time', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Total Time
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_total_time', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_total_time', array(
+        'label'       => __( 'Show Total Time', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Servings
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_servings', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_servings', array(
+        'label'       => __( 'Show Servings', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Ingredients
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_ingredients', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_ingredients', array(
+        'label'       => __( 'Show Ingredients', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Instructions
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_instructions', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_instructions', array(
+        'label'       => __( 'Show Instructions', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Notes
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_notes', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_notes', array(
+        'label'       => __( 'Show Notes', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Nutrition
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_nutrition', array(
+        'default'           => false,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_nutrition', array(
+        'label'       => __( 'Show Nutrition Info', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // ========================================
     // SOCIAL MEDIA TOP BAR SECTION
     // ========================================
 
@@ -2793,6 +2936,185 @@ function cozyrecipes_editors_picks_customizer( $wp_customize ) {
     ) ) );
 }
 add_action( 'customize_register', 'cozyrecipes_editors_picks_customizer' );
+
+/* ========================================
+   RECIPE CARD MODULE
+======================================== */
+
+/**
+ * Recipe Card Shortcode
+ *
+ * Usage: [recipe title="Chocolate Cake" prep_time="15 mins" cook_time="30 mins" servings="8"
+ *         description="A delicious chocolate cake"
+ *         ingredients="2 cups flour|1 cup sugar|3 eggs|1 cup milk"
+ *         instructions="Mix ingredients|Bake at 350F|Cool and serve"
+ *         notes="Best served warm"
+ *         nutrition="Calories: 250|Fat: 10g|Carbs: 35g"]
+ */
+function cozyrecipes_recipe_card_shortcode( $atts ) {
+    // Check if recipe card is enabled
+    if ( ! get_theme_mod( 'cozyrecipes_enable_recipe_card', true ) ) {
+        return '';
+    }
+
+    // Parse shortcode attributes
+    $atts = shortcode_atts( array(
+        'title'        => '',
+        'description'  => '',
+        'prep_time'    => '',
+        'cook_time'    => '',
+        'total_time'   => '',
+        'servings'     => '',
+        'ingredients'  => '',
+        'instructions' => '',
+        'notes'        => '',
+        'nutrition'    => '',
+    ), $atts, 'recipe' );
+
+    // Get customizer settings
+    $show_title        = get_theme_mod( 'cozyrecipes_recipe_card_show_title', true );
+    $show_description  = get_theme_mod( 'cozyrecipes_recipe_card_show_description', true );
+    $show_prep_time    = get_theme_mod( 'cozyrecipes_recipe_card_show_prep_time', true );
+    $show_cook_time    = get_theme_mod( 'cozyrecipes_recipe_card_show_cook_time', true );
+    $show_total_time   = get_theme_mod( 'cozyrecipes_recipe_card_show_total_time', true );
+    $show_servings     = get_theme_mod( 'cozyrecipes_recipe_card_show_servings', true );
+    $show_ingredients  = get_theme_mod( 'cozyrecipes_recipe_card_show_ingredients', true );
+    $show_instructions = get_theme_mod( 'cozyrecipes_recipe_card_show_instructions', true );
+    $show_notes        = get_theme_mod( 'cozyrecipes_recipe_card_show_notes', true );
+    $show_nutrition    = get_theme_mod( 'cozyrecipes_recipe_card_show_nutrition', false );
+
+    // Start output buffering
+    ob_start();
+    ?>
+
+    <div class="recipe-card-container">
+        <?php if ( $show_title && ! empty( $atts['title'] ) ) : ?>
+        <h2 class="recipe-card-title"><?php echo esc_html( $atts['title'] ); ?></h2>
+        <?php endif; ?>
+
+        <?php if ( $show_description && ! empty( $atts['description'] ) ) : ?>
+        <p class="recipe-card-description"><?php echo esc_html( $atts['description'] ); ?></p>
+        <?php endif; ?>
+
+        <?php
+        // Check if any time/servings fields are enabled and have data
+        $has_meta = ( $show_prep_time && ! empty( $atts['prep_time'] ) ) ||
+                    ( $show_cook_time && ! empty( $atts['cook_time'] ) ) ||
+                    ( $show_total_time && ! empty( $atts['total_time'] ) ) ||
+                    ( $show_servings && ! empty( $atts['servings'] ) );
+
+        if ( $has_meta ) :
+        ?>
+        <div class="recipe-card-meta">
+            <?php if ( $show_prep_time && ! empty( $atts['prep_time'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Prep:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $atts['prep_time'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $show_cook_time && ! empty( $atts['cook_time'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6.13 1L6 16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V1"></path>
+                    <path d="M3 5h18"></path>
+                    <path d="M13 5v6"></path>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Cook:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $atts['cook_time'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $show_total_time && ! empty( $atts['total_time'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Total:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $atts['total_time'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $show_servings && ! empty( $atts['servings'] ) ) : ?>
+            <div class="recipe-card-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span class="meta-label"><?php esc_html_e( 'Servings:', 'cozyrecipes' ); ?></span>
+                <span class="meta-value"><?php echo esc_html( $atts['servings'] ); ?></span>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_ingredients && ! empty( $atts['ingredients'] ) ) : ?>
+        <div class="recipe-card-section">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Ingredients', 'cozyrecipes' ); ?></h3>
+            <ul class="recipe-card-ingredients">
+                <?php
+                $ingredients = explode( '|', $atts['ingredients'] );
+                foreach ( $ingredients as $ingredient ) {
+                    if ( ! empty( trim( $ingredient ) ) ) {
+                        echo '<li>' . esc_html( trim( $ingredient ) ) . '</li>';
+                    }
+                }
+                ?>
+            </ul>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_instructions && ! empty( $atts['instructions'] ) ) : ?>
+        <div class="recipe-card-section">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Instructions', 'cozyrecipes' ); ?></h3>
+            <ol class="recipe-card-instructions">
+                <?php
+                $instructions = explode( '|', $atts['instructions'] );
+                foreach ( $instructions as $instruction ) {
+                    if ( ! empty( trim( $instruction ) ) ) {
+                        echo '<li>' . esc_html( trim( $instruction ) ) . '</li>';
+                    }
+                }
+                ?>
+            </ol>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_notes && ! empty( $atts['notes'] ) ) : ?>
+        <div class="recipe-card-section recipe-card-notes">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Notes', 'cozyrecipes' ); ?></h3>
+            <p><?php echo esc_html( $atts['notes'] ); ?></p>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( $show_nutrition && ! empty( $atts['nutrition'] ) ) : ?>
+        <div class="recipe-card-section recipe-card-nutrition">
+            <h3 class="recipe-card-section-title"><?php esc_html_e( 'Nutrition Information', 'cozyrecipes' ); ?></h3>
+            <ul class="recipe-card-nutrition-list">
+                <?php
+                $nutrition_items = explode( '|', $atts['nutrition'] );
+                foreach ( $nutrition_items as $nutrition ) {
+                    if ( ! empty( trim( $nutrition ) ) ) {
+                        echo '<li>' . esc_html( trim( $nutrition ) ) . '</li>';
+                    }
+                }
+                ?>
+            </ul>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <?php
+    return ob_get_clean();
+}
+add_shortcode( 'recipe', 'cozyrecipes_recipe_card_shortcode' );
 
 /* ========================================
    SEO OPTIMIZATION MODULE
