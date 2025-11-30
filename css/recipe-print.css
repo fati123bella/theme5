@@ -1,0 +1,436 @@
+/**
+ * Recipe Print Card Styles
+ * Clean, minimal, elegant, and printer-friendly
+ */
+
+:root {
+  --recipe-card-bg: #ffffff;
+  --recipe-card-border: #e3e3e3;
+  --recipe-card-title: #222222;
+  --recipe-card-text: #444444;
+  --recipe-card-accent: #3b8f7d;
+  --recipe-card-button-bg: #3b8f7d;
+  --recipe-card-button-text: #ffffff;
+  --recipe-card-pin-bg: #bd081c;
+  --recipe-card-pin-text: #ffffff;
+  --recipe-card-meta-bg: #f8f9fa;
+  --recipe-card-shadow: rgba(0, 0, 0, 0.08);
+}
+
+/* Main Recipe Card Container */
+.recipe-print-card {
+  max-width: 900px;
+  margin: 3rem auto;
+  background: var(--recipe-card-bg);
+  border: 1px solid var(--recipe-card-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--recipe-card-shadow);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Recipe Card Header */
+.recipe-print-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2.5rem;
+  border-bottom: 1px solid var(--recipe-card-border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.recipe-print-card-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--recipe-card-title);
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 250px;
+}
+
+.recipe-print-card-subtitle {
+  font-size: 1.125rem;
+  color: var(--recipe-card-text);
+  margin: 0.5rem 0 0 0;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Action Buttons */
+.recipe-print-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.recipe-print-card-actions button,
+.recipe-print-card-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.recipe-print-btn {
+  background: var(--recipe-card-button-bg);
+  color: var(--recipe-card-button-text);
+}
+
+.recipe-print-btn:hover {
+  background: #2d6f5f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 143, 125, 0.3);
+}
+
+.recipe-pin-btn {
+  background: var(--recipe-card-pin-bg);
+  color: var(--recipe-card-pin-text);
+}
+
+.recipe-pin-btn:hover {
+  background: #9a0616;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(189, 8, 28, 0.3);
+}
+
+.recipe-print-btn svg,
+.recipe-pin-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Featured Image */
+.recipe-print-card-image {
+  width: 100%;
+  max-height: 500px;
+  overflow: hidden;
+}
+
+.recipe-print-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Recipe Meta (Time & Servings) */
+.recipe-print-card-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem 2.5rem;
+  background: var(--recipe-card-meta-bg);
+  border-bottom: 1px solid var(--recipe-card-border);
+}
+
+.recipe-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recipe-meta-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--recipe-card-accent);
+}
+
+.recipe-meta-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--recipe-card-title);
+}
+
+/* Recipe Content */
+.recipe-print-card-content {
+  padding: 2rem 2.5rem;
+}
+
+/* Ingredients & Instructions Sections */
+.recipe-section {
+  margin-bottom: 2rem;
+}
+
+.recipe-section:last-child {
+  margin-bottom: 0;
+}
+
+.recipe-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--recipe-card-title);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--recipe-card-accent);
+}
+
+.recipe-ingredients-list,
+.recipe-instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recipe-ingredients-list li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--recipe-card-border);
+  color: var(--recipe-card-text);
+  line-height: 1.6;
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.recipe-ingredients-list li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--recipe-card-accent);
+  font-weight: 700;
+}
+
+.recipe-ingredients-list li:last-child {
+  border-bottom: none;
+}
+
+.recipe-instructions-list {
+  counter-reset: step-counter;
+}
+
+.recipe-instructions-list li {
+  counter-increment: step-counter;
+  padding: 1.25rem 0 1.25rem 3rem;
+  border-bottom: 1px solid var(--recipe-card-border);
+  color: var(--recipe-card-text);
+  line-height: 1.7;
+  position: relative;
+}
+
+.recipe-instructions-list li:before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 1.25rem;
+  width: 2rem;
+  height: 2rem;
+  background: var(--recipe-card-accent);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.recipe-instructions-list li:last-child {
+  border-bottom: none;
+}
+
+/* Notes Section */
+.recipe-notes {
+  background: var(--recipe-card-meta-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.recipe-notes-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--recipe-card-title);
+  margin: 0 0 0.75rem 0;
+}
+
+.recipe-notes-content {
+  color: var(--recipe-card-text);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .recipe-print-card {
+    margin: 1.5rem 1rem;
+    border-radius: 8px;
+  }
+
+  .recipe-print-card-header {
+    padding: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .recipe-print-card-title {
+    font-size: 1.75rem;
+    min-width: auto;
+  }
+
+  .recipe-print-card-subtitle {
+    font-size: 1rem;
+  }
+
+  .recipe-print-card-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .recipe-print-card-actions button,
+  .recipe-print-card-actions a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .recipe-print-card-meta {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .recipe-print-card-content {
+    padding: 1.5rem;
+  }
+
+  .recipe-section-title {
+    font-size: 1.25rem;
+  }
+
+  .recipe-instructions-list li {
+    padding-left: 2.5rem;
+  }
+
+  .recipe-instructions-list li:before {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .recipe-print-card-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-print-card-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  /* Hide everything except the recipe card */
+  body * {
+    visibility: hidden;
+  }
+
+  .recipe-print-card,
+  .recipe-print-card * {
+    visibility: visible;
+  }
+
+  .recipe-print-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  /* Hide action buttons in print */
+  .recipe-print-card-actions {
+    display: none !important;
+  }
+
+  .recipe-print-card-header {
+    padding: 1.5rem 2rem;
+    page-break-after: avoid;
+  }
+
+  .recipe-print-card-title {
+    font-size: 1.75rem;
+  }
+
+  .recipe-print-card-image {
+    max-height: 400px;
+    page-break-after: avoid;
+  }
+
+  .recipe-print-card-meta {
+    padding: 1.25rem 2rem;
+    page-break-inside: avoid;
+  }
+
+  .recipe-print-card-content {
+    padding: 1.5rem 2rem;
+  }
+
+  .recipe-section {
+    page-break-inside: avoid;
+  }
+
+  .recipe-section-title {
+    page-break-after: avoid;
+  }
+
+  .recipe-instructions-list li,
+  .recipe-ingredients-list li {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure black text on white background for printing */
+  .recipe-print-card {
+    background: white !important;
+    color: black !important;
+  }
+
+  .recipe-section-title,
+  .recipe-meta-value,
+  .recipe-notes-title {
+    color: black !important;
+  }
+
+  .recipe-ingredients-list li,
+  .recipe-instructions-list li,
+  .recipe-meta-label,
+  .recipe-notes-content {
+    color: #333 !important;
+  }
+
+  /* Simplify borders for print */
+  .recipe-print-card-header,
+  .recipe-print-card-meta,
+  .recipe-ingredients-list li,
+  .recipe-instructions-list li {
+    border-color: #ddd !important;
+  }
+
+  .recipe-section-title {
+    border-bottom-color: #333 !important;
+  }
+
+  /* Simplify backgrounds for print */
+  .recipe-print-card-meta,
+  .recipe-notes {
+    background: #f9f9f9 !important;
+  }
+
+  /* Optimize instruction numbers for print */
+  .recipe-instructions-list li:before {
+    background: #333 !important;
+    color: white !important;
+  }
+}

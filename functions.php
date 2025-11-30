@@ -3725,3 +3725,398 @@ add_action( 'wp_head', 'cozyrecipes_add_robots_meta', 10 );
 /* ========================================
    END SEO OPTIMIZATION MODULE
 ======================================== */
+
+/* ========================================
+   RECIPE PRINT CARD MODULE (mytheme_)
+   Clean, minimal, printer-friendly recipe cards
+======================================== */
+
+/**
+ * Register custom recipe meta fields
+ */
+function mytheme_register_recipe_meta() {
+	$meta_fields = array(
+		'recipe_subtitle',
+		'recipe_ingredients',
+		'recipe_instructions',
+		'recipe_prep_time',
+		'recipe_cook_time',
+		'recipe_total_time',
+		'recipe_servings',
+		'recipe_notes',
+	);
+
+	foreach ( $meta_fields as $field ) {
+		register_post_meta(
+			'post',
+			$field,
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+	}
+}
+add_action( 'init', 'mytheme_register_recipe_meta' );
+
+/**
+ * Auto-detect recipe data from post content
+ *
+ * @param string $content The post content HTML.
+ * @return array Recipe data array.
+ */
+function mytheme_auto_detect_recipe_data( $content ) {
+	$recipe_data = array(
+		'ingredients'  => array(),
+		'instructions' => array(),
+		'prep_time'    => '',
+		'cook_time'    => '',
+		'total_time'   => '',
+		'servings'     => '',
+		'notes'        => '',
+	);
+
+	if ( empty( $content ) ) {
+		return $recipe_data;
+	}
+
+	// Parse HTML content
+	$dom = new DOMDocument();
+	@$dom->loadHTML( '<?xml encoding="UTF-8">' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+	$xpath = new DOMXPath( $dom );
+
+	// Extract prep time, cook time, total time, servings from text
+	if ( preg_match( '/prep(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+		$recipe_data['prep_time'] = $matches[1];
+	}
+	if ( preg_match( '/cook(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+		$recipe_data['cook_time'] = $matches[1];
+	}
+	if ( preg_match( '/total(?:\s+time)?:?\s*(\d+\s*(?:min|mins|minutes|hour|hours|hr|hrs))/i', $content, $matches ) ) {
+		$recipe_data['total_time'] = $matches[1];
+	}
+	if ( preg_match( '/(?:servings?|yields?|serves):?\s*(\d+(?:\s+(?:servings?|people|portions?))?)/i', $content, $matches ) ) {
+		$recipe_data['servings'] = $matches[1];
+	}
+
+	// Extract ingredients and instructions
+	$headings = $xpath->query( '//h2 | //h3 | //h4' );
+	foreach ( $headings as $heading ) {
+		$heading_text = strtolower( trim( $heading->textContent ) );
+
+		// Check for ingredients
+		if ( strpos( $heading_text, 'ingredient' ) !== false ) {
+			$next = $heading->nextSibling;
+			while ( $next ) {
+				if ( $next->nodeName === 'ul' || $next->nodeName === 'ol' ) {
+					$list_items = $xpath->query( './/li', $next );
+					foreach ( $list_items as $item ) {
+						$ingredient = trim( $item->textContent );
+						if ( ! empty( $ingredient ) ) {
+							$recipe_data['ingredients'][] = $ingredient;
+						}
+					}
+					break;
+				} elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+					break;
+				}
+				$next = $next->nextSibling;
+			}
+		}
+
+		// Check for instructions
+		if ( strpos( $heading_text, 'instruction' ) !== false || strpos( $heading_text, 'direction' ) !== false || strpos( $heading_text, 'method' ) !== false ) {
+			$next = $heading->nextSibling;
+			while ( $next ) {
+				if ( $next->nodeName === 'ol' || $next->nodeName === 'ul' ) {
+					$list_items = $xpath->query( './/li', $next );
+					foreach ( $list_items as $item ) {
+						$instruction = trim( $item->textContent );
+						if ( ! empty( $instruction ) ) {
+							$recipe_data['instructions'][] = $instruction;
+						}
+					}
+					break;
+				} elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+					break;
+				}
+				$next = $next->nextSibling;
+			}
+		}
+
+		// Check for notes
+		if ( strpos( $heading_text, 'note' ) !== false || strpos( $heading_text, 'tip' ) !== false ) {
+			$next = $heading->nextSibling;
+			while ( $next ) {
+				if ( $next->nodeName === 'p' ) {
+					$recipe_data['notes'] .= trim( $next->textContent ) . ' ';
+				} elseif ( $next->nodeName === 'h2' || $next->nodeName === 'h3' || $next->nodeName === 'h4' ) {
+					break;
+				}
+				$next = $next->nextSibling;
+			}
+			$recipe_data['notes'] = trim( $recipe_data['notes'] );
+		}
+	}
+
+	return $recipe_data;
+}
+
+/**
+ * Get recipe data - custom meta fields first, fallback to auto-detect
+ *
+ * @param int $post_id Post ID.
+ * @return array Complete recipe data.
+ */
+function mytheme_get_recipe_data( $post_id = null ) {
+	if ( ! $post_id ) {
+		$post_id = get_the_ID();
+	}
+
+	// Get custom meta fields
+	$data = array(
+		'title'        => get_the_title( $post_id ),
+		'subtitle'     => get_post_meta( $post_id, 'recipe_subtitle', true ),
+		'ingredients'  => get_post_meta( $post_id, 'recipe_ingredients', true ),
+		'instructions' => get_post_meta( $post_id, 'recipe_instructions', true ),
+		'prep_time'    => get_post_meta( $post_id, 'recipe_prep_time', true ),
+		'cook_time'    => get_post_meta( $post_id, 'recipe_cook_time', true ),
+		'total_time'   => get_post_meta( $post_id, 'recipe_total_time', true ),
+		'servings'     => get_post_meta( $post_id, 'recipe_servings', true ),
+		'notes'        => get_post_meta( $post_id, 'recipe_notes', true ),
+	);
+
+	// Convert meta ingredients/instructions from text to array if needed
+	if ( ! empty( $data['ingredients'] ) && is_string( $data['ingredients'] ) ) {
+		$data['ingredients'] = array_filter( array_map( 'trim', explode( "\n", $data['ingredients'] ) ) );
+	}
+	if ( ! empty( $data['instructions'] ) && is_string( $data['instructions'] ) ) {
+		$data['instructions'] = array_filter( array_map( 'trim', explode( "\n", $data['instructions'] ) ) );
+	}
+
+	// Fallback to auto-detection if critical fields are empty
+	$need_auto_detect = empty( $data['ingredients'] ) || empty( $data['instructions'] );
+
+	if ( $need_auto_detect ) {
+		$content   = apply_filters( 'the_content', get_post_field( 'post_content', $post_id ) );
+		$auto_data = mytheme_auto_detect_recipe_data( $content );
+
+		// Merge auto-detected data (only if custom field is empty)
+		if ( empty( $data['ingredients'] ) && ! empty( $auto_data['ingredients'] ) ) {
+			$data['ingredients'] = $auto_data['ingredients'];
+		}
+		if ( empty( $data['instructions'] ) && ! empty( $auto_data['instructions'] ) ) {
+			$data['instructions'] = $auto_data['instructions'];
+		}
+		if ( empty( $data['prep_time'] ) && ! empty( $auto_data['prep_time'] ) ) {
+			$data['prep_time'] = $auto_data['prep_time'];
+		}
+		if ( empty( $data['cook_time'] ) && ! empty( $auto_data['cook_time'] ) ) {
+			$data['cook_time'] = $auto_data['cook_time'];
+		}
+		if ( empty( $data['total_time'] ) && ! empty( $auto_data['total_time'] ) ) {
+			$data['total_time'] = $auto_data['total_time'];
+		}
+		if ( empty( $data['servings'] ) && ! empty( $auto_data['servings'] ) ) {
+			$data['servings'] = $auto_data['servings'];
+		}
+		if ( empty( $data['notes'] ) && ! empty( $auto_data['notes'] ) ) {
+			$data['notes'] = $auto_data['notes'];
+		}
+	}
+
+	return $data;
+}
+
+/**
+ * Render the recipe print card
+ *
+ * @param int $post_id Post ID.
+ * @return string HTML output.
+ */
+function mytheme_render_recipe_print_card( $post_id = null ) {
+	if ( ! $post_id ) {
+		$post_id = get_the_ID();
+	}
+
+	if ( ! is_singular( 'post' ) ) {
+		return '';
+	}
+
+	// Get recipe data
+	$recipe = mytheme_get_recipe_data( $post_id );
+
+	// Check if we have recipe data
+	$has_recipe = ! empty( $recipe['ingredients'] ) || ! empty( $recipe['instructions'] );
+
+	if ( ! $has_recipe ) {
+		return '';
+	}
+
+	// Get featured image
+	$featured_image_url = get_the_post_thumbnail_url( $post_id, 'full' );
+
+	// Get Pinterest share URL
+	$post_url           = get_permalink( $post_id );
+	$pinterest_url      = 'https://pinterest.com/pin/create/button/?url=' . urlencode( $post_url ) . '&media=' . urlencode( $featured_image_url ) . '&description=' . urlencode( $recipe['title'] );
+
+	// Start output buffering
+	ob_start();
+	?>
+
+	<section id="recipe-print-card" class="recipe-print-card">
+		<div class="recipe-print-card-header">
+			<div>
+				<h2 class="recipe-print-card-title"><?php echo esc_html( $recipe['title'] ); ?></h2>
+				<?php if ( ! empty( $recipe['subtitle'] ) ) : ?>
+					<p class="recipe-print-card-subtitle"><?php echo esc_html( $recipe['subtitle'] ); ?></p>
+				<?php endif; ?>
+			</div>
+			<div class="recipe-print-card-actions">
+				<button class="recipe-print-btn" onclick="window.print();" aria-label="<?php esc_attr_e( 'Print Recipe', 'cozyrecipes' ); ?>">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="6 9 6 2 18 2 18 9"></polyline>
+						<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+						<rect x="6" y="14" width="12" height="8"></rect>
+					</svg>
+					<span><?php esc_html_e( 'Print', 'cozyrecipes' ); ?></span>
+				</button>
+				<?php if ( $featured_image_url ) : ?>
+				<a href="<?php echo esc_url( $pinterest_url ); ?>" class="recipe-pin-btn" target="_blank" rel="noopener" aria-label="<?php esc_attr_e( 'Pin on Pinterest', 'cozyrecipes' ); ?>">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M12 2C6.477 2 2 6.477 2 12c0 4.237 2.636 7.855 6.356 9.312-.088-.791-.167-2.005.035-2.868.182-.78 1.172-4.97 1.172-4.97s-.299-.6-.299-1.486c0-1.39.806-2.428 1.81-2.428.852 0 1.264.64 1.264 1.408 0 .858-.545 2.14-.828 3.33-.236.995.5 1.807 1.48 1.807 1.778 0 3.144-1.874 3.144-4.58 0-2.393-1.72-4.068-4.177-4.068-2.845 0-4.515 2.135-4.515 4.34 0 .859.331 1.781.745 2.281a.3.3 0 01.069.288l-.278 1.133c-.044.183-.145.223-.335.134-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.965-.525-2.291-1.148l-.623 2.378c-.226.869-.835 1.958-1.244 2.621.937.29 1.931.446 2.962.446 5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+					</svg>
+					<span><?php esc_html_e( 'Pin', 'cozyrecipes' ); ?></span>
+				</a>
+				<?php endif; ?>
+			</div>
+		</div>
+
+		<?php if ( $featured_image_url ) : ?>
+		<div class="recipe-print-card-image">
+			<img src="<?php echo esc_url( $featured_image_url ); ?>" alt="<?php echo esc_attr( $recipe['title'] ); ?>" />
+		</div>
+		<?php endif; ?>
+
+		<?php
+		// Check if any meta fields have data
+		$has_meta = ! empty( $recipe['prep_time'] ) || ! empty( $recipe['cook_time'] ) || ! empty( $recipe['total_time'] ) || ! empty( $recipe['servings'] );
+
+		if ( $has_meta ) :
+		?>
+		<div class="recipe-print-card-meta">
+			<?php if ( ! empty( $recipe['prep_time'] ) ) : ?>
+			<div class="recipe-meta-item">
+				<div class="recipe-meta-label"><?php esc_html_e( 'Prep Time', 'cozyrecipes' ); ?></div>
+				<div class="recipe-meta-value"><?php echo esc_html( $recipe['prep_time'] ); ?></div>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['cook_time'] ) ) : ?>
+			<div class="recipe-meta-item">
+				<div class="recipe-meta-label"><?php esc_html_e( 'Cook Time', 'cozyrecipes' ); ?></div>
+				<div class="recipe-meta-value"><?php echo esc_html( $recipe['cook_time'] ); ?></div>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['total_time'] ) ) : ?>
+			<div class="recipe-meta-item">
+				<div class="recipe-meta-label"><?php esc_html_e( 'Total Time', 'cozyrecipes' ); ?></div>
+				<div class="recipe-meta-value"><?php echo esc_html( $recipe['total_time'] ); ?></div>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['servings'] ) ) : ?>
+			<div class="recipe-meta-item">
+				<div class="recipe-meta-label"><?php esc_html_e( 'Servings', 'cozyrecipes' ); ?></div>
+				<div class="recipe-meta-value"><?php echo esc_html( $recipe['servings'] ); ?></div>
+			</div>
+			<?php endif; ?>
+		</div>
+		<?php endif; ?>
+
+		<div class="recipe-print-card-content">
+			<?php if ( ! empty( $recipe['ingredients'] ) ) : ?>
+			<div class="recipe-section">
+				<h3 class="recipe-section-title"><?php esc_html_e( 'Ingredients', 'cozyrecipes' ); ?></h3>
+				<ul class="recipe-ingredients-list">
+					<?php foreach ( $recipe['ingredients'] as $ingredient ) : ?>
+						<li><?php echo esc_html( $ingredient ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['instructions'] ) ) : ?>
+			<div class="recipe-section">
+				<h3 class="recipe-section-title"><?php esc_html_e( 'Instructions', 'cozyrecipes' ); ?></h3>
+				<ol class="recipe-instructions-list">
+					<?php foreach ( $recipe['instructions'] as $instruction ) : ?>
+						<li><?php echo esc_html( $instruction ); ?></li>
+					<?php endforeach; ?>
+				</ol>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $recipe['notes'] ) ) : ?>
+			<div class="recipe-notes">
+				<h4 class="recipe-notes-title"><?php esc_html_e( 'Notes', 'cozyrecipes' ); ?></h4>
+				<p class="recipe-notes-content"><?php echo esc_html( $recipe['notes'] ); ?></p>
+			</div>
+			<?php endif; ?>
+		</div>
+	</section>
+
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Recipe print card shortcode
+ *
+ * Usage: [recipe_print_card]
+ */
+function mytheme_recipe_print_card_shortcode( $atts ) {
+	$atts = shortcode_atts(
+		array(
+			'id' => get_the_ID(),
+		),
+		$atts,
+		'recipe_print_card'
+	);
+
+	return mytheme_render_recipe_print_card( intval( $atts['id'] ) );
+}
+add_shortcode( 'recipe_print_card', 'mytheme_recipe_print_card_shortcode' );
+
+/**
+ * Enqueue recipe print card assets
+ */
+function mytheme_enqueue_recipe_assets() {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+
+	// Enqueue CSS
+	wp_enqueue_style(
+		'mytheme-recipe-print',
+		get_template_directory_uri() . '/css/recipe-print.css',
+		array(),
+		'1.0.0'
+	);
+
+	// Enqueue JavaScript
+	wp_enqueue_script(
+		'mytheme-recipe-print',
+		get_template_directory_uri() . '/js/recipe-print.js',
+		array(),
+		'1.0.0',
+		true
+	);
+}
+add_action( 'wp_enqueue_scripts', 'mytheme_enqueue_recipe_assets' );
+
+/* ========================================
+   END RECIPE PRINT CARD MODULE
+======================================== */
