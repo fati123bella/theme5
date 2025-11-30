@@ -1562,15 +1562,18 @@ function cozyrecipes_customizer_css() {
         .pagination a:hover,
         .pagination .current,
         .submit-comment {
-            background-color: <?php echo esc_attr( $button_bg ); ?>;
-            color: <?php echo esc_attr( $button_text ); ?>;
+            background-color: <?php echo esc_attr( $button_bg ); ?> !important;
+            color: <?php echo esc_attr( $button_text ); ?> !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
 
         .recipe-link:hover,
         .editors-pick-button:hover,
         .author-button:hover,
         .submit-comment:hover {
-            background-color: <?php echo esc_attr( $accent_hover ); ?>;
+            background-color: <?php echo esc_attr( $accent_hover ); ?> !important;
+            color: <?php echo esc_attr( $button_text ); ?> !important;
         }
 
         /* Links */
@@ -1581,17 +1584,6 @@ function cozyrecipes_customizer_css() {
         a:hover,
         .recipe-card-title a:hover {
             color: <?php echo esc_attr( $link_hover ); ?>;
-        }
-
-        /* View Recipe Button */
-        .recipe-link {
-            color: <?php echo esc_attr( $button_bg ); ?> !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        .recipe-link:hover {
-            color: <?php echo esc_attr( $link_hover ); ?> !important;
         }
 
         /* Meta Text */
