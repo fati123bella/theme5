@@ -57,14 +57,26 @@ $cozyrecipes_card_index++;
             </a>
         </h3>
 
+        <?php
+        // Check if any meta is enabled
+        $show_date = get_theme_mod( 'cozyrecipes_show_post_date', true );
+        $show_reading_time = get_theme_mod( 'cozyrecipes_show_reading_time', true );
+
+        if ( $show_date || $show_reading_time ) :
+        ?>
         <div class="recipe-meta">
+            <?php if ( $show_date ) : ?>
             <span class="meta-date">
                 <?php echo get_the_date(); ?>
             </span>
+            <?php endif; ?>
+            <?php if ( $show_reading_time ) : ?>
             <span class="meta-reading-time">
                 <?php echo esc_html( cozyrecipes_reading_time() ); ?>
             </span>
+            <?php endif; ?>
         </div><!-- .recipe-meta -->
+        <?php endif; ?>
 
         <div class="recipe-excerpt">
             <?php the_excerpt(); ?>

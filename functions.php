@@ -1254,6 +1254,58 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'type'     => 'checkbox',
     ) );
 
+    // Show Post Date
+    $wp_customize->add_setting( 'cozyrecipes_show_post_date', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_post_date', array(
+        'label'       => __( 'Show Post Date', 'cozyrecipes' ),
+        'description' => __( 'Display the post date on recipe cards and single posts.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_single_post',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Post Author
+    $wp_customize->add_setting( 'cozyrecipes_show_post_author', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_post_author', array(
+        'label'       => __( 'Show Post Author', 'cozyrecipes' ),
+        'description' => __( 'Display the author name on single posts.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_single_post',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Reading Time
+    $wp_customize->add_setting( 'cozyrecipes_show_reading_time', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_reading_time', array(
+        'label'       => __( 'Show Reading Time', 'cozyrecipes' ),
+        'description' => __( 'Display the estimated reading time on recipe cards and single posts.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_single_post',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Comment Count
+    $wp_customize->add_setting( 'cozyrecipes_show_comment_count', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_show_comment_count', array(
+        'label'       => __( 'Show Comment Count', 'cozyrecipes' ),
+        'description' => __( 'Display the comment count on single posts.', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_single_post',
+        'type'        => 'checkbox',
+    ) );
+
     // ========================================
     // SOCIAL MEDIA TOP BAR SECTION
     // ========================================

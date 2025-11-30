@@ -29,10 +29,23 @@ get_header();
 
                 <h1 class="single-recipe-title"><?php the_title(); ?></h1>
 
+                <?php
+                // Get meta display settings
+                $show_date = get_theme_mod( 'cozyrecipes_show_post_date', true );
+                $show_author = get_theme_mod( 'cozyrecipes_show_post_author', true );
+                $show_reading_time = get_theme_mod( 'cozyrecipes_show_reading_time', true );
+                $show_comments = get_theme_mod( 'cozyrecipes_show_comment_count', true );
+
+                // Check if any meta is enabled
+                if ( $show_date || $show_author || $show_reading_time || $show_comments ) :
+                ?>
                 <div class="single-recipe-meta">
+                    <?php if ( $show_date ) : ?>
                     <span class="meta-date">
                         <?php echo get_the_date(); ?>
                     </span>
+                    <?php endif; ?>
+                    <?php if ( $show_author ) : ?>
                     <span class="meta-author">
                         <?php
                         /* translators: %s: Author name */
@@ -42,10 +55,13 @@ get_header();
                         );
                         ?>
                     </span>
+                    <?php endif; ?>
+                    <?php if ( $show_reading_time ) : ?>
                     <span class="meta-reading-time">
                         <?php echo esc_html( cozyrecipes_reading_time() ); ?>
                     </span>
-                    <?php if ( comments_open() || get_comments_number() ) : ?>
+                    <?php endif; ?>
+                    <?php if ( $show_comments && ( comments_open() || get_comments_number() ) ) : ?>
                         <span class="meta-comments">
                             <?php
                             comments_popup_link(
@@ -57,6 +73,7 @@ get_header();
                         </span>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
             </header><!-- .single-recipe-header -->
 
             <?php
