@@ -890,8 +890,6 @@ ul, ol {
     position: absolute;
     top: 1rem;
     left: 1rem;
-    background: #ff6b6b;
-    color: #fff;
     padding: 0.5rem 1rem;
     border-radius: 25px;
     font-size: 0.8rem;
@@ -951,13 +949,13 @@ ul, ol {
 }
 
 .recipe-link {
-    color: #ff6b6b;
     font-weight: 600;
     font-size: 0.95rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     align-self: flex-start;
+    text-decoration: none;
 }
 
 .recipe-link:hover {
