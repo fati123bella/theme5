@@ -1449,6 +1449,54 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'type'        => 'checkbox',
     ) );
 
+    // Show Subtitle
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_subtitle', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_subtitle', array(
+        'label'       => __( 'Show Recipe Subtitle', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Course
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_course', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_course', array(
+        'label'       => __( 'Show Course', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Calories
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_calories', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_calories', array(
+        'label'       => __( 'Show Calories', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
+    // Show Featured Image
+    $wp_customize->add_setting( 'cozyrecipes_recipe_card_show_image', array(
+        'default'           => true,
+        'sanitize_callback' => 'cozyrecipes_sanitize_checkbox',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_recipe_card_show_image', array(
+        'label'       => __( 'Show Featured Image', 'cozyrecipes' ),
+        'section'     => 'cozyrecipes_recipe_card',
+        'type'        => 'checkbox',
+    ) );
+
     // ========================================
     // SOCIAL MEDIA TOP BAR SECTION
     // ========================================
@@ -4089,6 +4137,20 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 		return '';
 	}
 
+	// Get customizer settings
+	$show_subtitle     = get_theme_mod( 'cozyrecipes_recipe_card_show_subtitle', true );
+	$show_image        = get_theme_mod( 'cozyrecipes_recipe_card_show_image', true );
+	$show_course       = get_theme_mod( 'cozyrecipes_recipe_card_show_course', true );
+	$show_prep_time    = get_theme_mod( 'cozyrecipes_recipe_card_show_prep_time', true );
+	$show_cook_time    = get_theme_mod( 'cozyrecipes_recipe_card_show_cook_time', true );
+	$show_total_time   = get_theme_mod( 'cozyrecipes_recipe_card_show_total_time', true );
+	$show_servings     = get_theme_mod( 'cozyrecipes_recipe_card_show_servings', true );
+	$show_calories     = get_theme_mod( 'cozyrecipes_recipe_card_show_calories', true );
+	$show_ingredients  = get_theme_mod( 'cozyrecipes_recipe_card_show_ingredients', true );
+	$show_instructions = get_theme_mod( 'cozyrecipes_recipe_card_show_instructions', true );
+	$show_notes        = get_theme_mod( 'cozyrecipes_recipe_card_show_notes', true );
+	$show_nutrition    = get_theme_mod( 'cozyrecipes_recipe_card_show_nutrition', false );
+
 	// Get featured image
 	$featured_image_url = get_the_post_thumbnail_url( $post_id, 'full' );
 
@@ -4104,7 +4166,7 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 		<div class="recipe-print-card-header">
 			<div>
 				<h2 class="recipe-print-card-title"><?php echo esc_html( $recipe['title'] ); ?></h2>
-				<?php if ( ! empty( $recipe['subtitle'] ) ) : ?>
+				<?php if ( $show_subtitle && ! empty( $recipe['subtitle'] ) ) : ?>
 					<p class="recipe-print-card-subtitle"><?php echo esc_html( $recipe['subtitle'] ); ?></p>
 				<?php endif; ?>
 			</div>
@@ -4128,55 +4190,60 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 			</div>
 		</div>
 
-		<?php if ( $featured_image_url ) : ?>
+		<?php if ( $show_image && $featured_image_url ) : ?>
 		<div class="recipe-print-card-image">
 			<img src="<?php echo esc_url( $featured_image_url ); ?>" alt="<?php echo esc_attr( $recipe['title'] ); ?>" />
 		</div>
 		<?php endif; ?>
 
 		<?php
-		// Check if any meta fields have data
-		$has_meta = ! empty( $recipe['prep_time'] ) || ! empty( $recipe['cook_time'] ) || ! empty( $recipe['total_time'] ) || ! empty( $recipe['servings'] ) || ! empty( $recipe['calories'] ) || ! empty( $recipe['course'] );
+		// Check if any meta fields have data AND are enabled
+		$has_meta = ( $show_course && ! empty( $recipe['course'] ) ) ||
+		            ( $show_prep_time && ! empty( $recipe['prep_time'] ) ) ||
+		            ( $show_cook_time && ! empty( $recipe['cook_time'] ) ) ||
+		            ( $show_total_time && ! empty( $recipe['total_time'] ) ) ||
+		            ( $show_servings && ! empty( $recipe['servings'] ) ) ||
+		            ( $show_calories && ! empty( $recipe['calories'] ) );
 
 		if ( $has_meta ) :
 		?>
 		<div class="recipe-print-card-meta">
-			<?php if ( ! empty( $recipe['course'] ) ) : ?>
+			<?php if ( $show_course && ! empty( $recipe['course'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Course', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['course'] ); ?></div>
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['prep_time'] ) ) : ?>
+			<?php if ( $show_prep_time && ! empty( $recipe['prep_time'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Prep Time', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['prep_time'] ); ?></div>
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['cook_time'] ) ) : ?>
+			<?php if ( $show_cook_time && ! empty( $recipe['cook_time'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Cook Time', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['cook_time'] ); ?></div>
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['total_time'] ) ) : ?>
+			<?php if ( $show_total_time && ! empty( $recipe['total_time'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Total Time', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['total_time'] ); ?></div>
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['servings'] ) ) : ?>
+			<?php if ( $show_servings && ! empty( $recipe['servings'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Servings', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['servings'] ); ?></div>
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['calories'] ) ) : ?>
+			<?php if ( $show_calories && ! empty( $recipe['calories'] ) ) : ?>
 			<div class="recipe-meta-item">
 				<div class="recipe-meta-label"><?php esc_html_e( 'Calories', 'cozyrecipes' ); ?></div>
 				<div class="recipe-meta-value"><?php echo esc_html( $recipe['calories'] ); ?></div>
@@ -4186,7 +4253,7 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 		<?php endif; ?>
 
 		<div class="recipe-print-card-content">
-			<?php if ( ! empty( $recipe['ingredients'] ) ) : ?>
+			<?php if ( $show_ingredients && ! empty( $recipe['ingredients'] ) ) : ?>
 			<div class="recipe-section">
 				<h3 class="recipe-section-title"><?php esc_html_e( 'Ingredients', 'cozyrecipes' ); ?></h3>
 				<ul class="recipe-ingredients-list">
@@ -4197,7 +4264,7 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['instructions'] ) ) : ?>
+			<?php if ( $show_instructions && ! empty( $recipe['instructions'] ) ) : ?>
 			<div class="recipe-section">
 				<h3 class="recipe-section-title"><?php esc_html_e( 'Instructions', 'cozyrecipes' ); ?></h3>
 				<ol class="recipe-instructions-list">
@@ -4208,7 +4275,7 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['nutrition'] ) ) : ?>
+			<?php if ( $show_nutrition && ! empty( $recipe['nutrition'] ) ) : ?>
 			<div class="recipe-section">
 				<h3 class="recipe-section-title"><?php esc_html_e( 'Nutrition', 'cozyrecipes' ); ?></h3>
 				<ul class="recipe-ingredients-list">
@@ -4219,7 +4286,7 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 			</div>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $recipe['notes'] ) ) : ?>
+			<?php if ( $show_notes && ! empty( $recipe['notes'] ) ) : ?>
 			<div class="recipe-notes">
 				<h4 class="recipe-notes-title"><?php esc_html_e( 'Notes', 'cozyrecipes' ); ?></h4>
 				<p class="recipe-notes-content"><?php echo esc_html( $recipe['notes'] ); ?></p>

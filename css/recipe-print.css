@@ -317,18 +317,44 @@
     margin: 0;
   }
 
+  /* Mobile-optimized meta - horizontal scroll with all items in one line */
   .recipe-print-card-meta {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
     padding: 1rem 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .recipe-print-card-meta::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .recipe-print-card-meta::-webkit-scrollbar-thumb {
+    background: var(--recipe-card-accent);
+    border-radius: 2px;
+  }
+
+  .recipe-meta-item {
+    flex: 0 0 auto;
+    min-width: 100px;
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--recipe-card-border);
+    text-align: center;
   }
 
   .recipe-meta-label {
     font-size: 0.7rem;
+    margin-bottom: 0.25rem;
   }
 
   .recipe-meta-value {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
   }
 
   .recipe-print-card-content {
@@ -392,9 +418,23 @@
     height: 160px;
   }
 
+  /* Keep horizontal scroll on smallest screens */
   .recipe-print-card-meta {
-    grid-template-columns: 1fr 1fr;
     padding: 0.875rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .recipe-meta-item {
+    min-width: 90px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .recipe-meta-label {
+    font-size: 0.65rem;
+  }
+
+  .recipe-meta-value {
+    font-size: 0.9rem;
   }
 
   .recipe-print-card-content {
