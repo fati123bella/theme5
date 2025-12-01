@@ -86,7 +86,7 @@ get_header();
             <?php endif; ?>
 
             <?php
-            // Jump to Recipe button
+            // Jump to Recipe button - Modern centered design
             $content = get_post_field( 'post_content', get_the_ID() );
             $recipe_data = mytheme_auto_detect_recipe_data( apply_filters( 'the_content', $content ) );
             $has_recipe = ! empty( $recipe_data['ingredients'] ) || ! empty( $recipe_data['instructions'] );
@@ -95,11 +95,13 @@ get_header();
             ?>
             <div class="jump-to-recipe-container">
                 <a href="#recipe-print-card" class="jump-to-recipe-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <polyline points="19 12 12 19 5 12"></polyline>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="jump-icon">
+                        <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
                     </svg>
-                    <span><?php esc_html_e( 'Jump to Recipe', 'cozyrecipes' ); ?></span>
+                    <span class="jump-text"><?php esc_html_e( 'Jump to Recipe', 'cozyrecipes' ); ?></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="jump-icon">
+                        <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+                    </svg>
                 </a>
             </div>
             <?php endif; ?>
