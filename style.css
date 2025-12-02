@@ -2446,58 +2446,6 @@ article {
 }
 
 /* ========================================
-   JUMP TO RECIPE BUTTON
-======================================== */
-
-.jump-to-recipe-container {
-    text-align: center;
-    margin: 30px auto;
-    padding: 0 20px;
-}
-
-.jump-to-recipe-btn {
-    display: inline-block;
-    padding: 16px 45px;
-    background: #3b8f7d;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 6px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    transition: all 0.3s;
-}
-
-.jump-to-recipe-btn:hover {
-    background: #2d7766;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    color: #fff;
-}
-
-@media (max-width: 768px) {
-    .jump-to-recipe-container {
-        margin: 25px auto;
-    }
-
-    .jump-to-recipe-btn {
-        padding: 14px 35px;
-        font-size: 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .jump-to-recipe-container {
-        margin: 20px auto;
-    }
-
-    .jump-to-recipe-btn {
-        padding: 12px 30px;
-        font-size: 14px;
-    }
-}
-
-/* ========================================
    RECIPE CARD
 ======================================== */
 

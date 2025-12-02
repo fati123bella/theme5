@@ -87,18 +87,8 @@ get_header();
 
             <?php
             // Jump to Recipe button
-            $content = get_post_field( 'post_content', get_the_ID() );
-            $recipe_data = mytheme_auto_detect_recipe_data( apply_filters( 'the_content', $content ) );
-            $has_recipe = ! empty( $recipe_data['ingredients'] ) || ! empty( $recipe_data['instructions'] );
-
-            if ( $has_recipe && get_theme_mod( 'cozyrecipes_enable_recipe_card', true ) ) :
+            echo mytheme_render_jump_to_recipe_button();
             ?>
-            <div class="jump-to-recipe-container">
-                <a href="#recipe-print-card" class="jump-to-recipe-btn">
-                    <?php esc_html_e( 'Jump to Recipe', 'cozyrecipes' ); ?>
-                </a>
-            </div>
-            <?php endif; ?>
 
             <div class="single-recipe-content">
                 <?php

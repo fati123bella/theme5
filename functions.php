@@ -3784,7 +3784,9 @@ add_action( 'wp_head', 'cozyrecipes_add_robots_meta', 10 );
  */
 function mytheme_register_recipe_meta() {
 	$meta_fields = array(
+		'recipe_title',
 		'recipe_subtitle',
+		'recipe_image_url',
 		'recipe_ingredients',
 		'recipe_instructions',
 		'recipe_prep_time',
@@ -4046,9 +4048,13 @@ function mytheme_get_recipe_data( $post_id = null ) {
 	}
 
 	// Get custom meta fields
+	$meta_title = get_post_meta( $post_id, 'recipe_title', true );
+	$meta_image = get_post_meta( $post_id, 'recipe_image_url', true );
+
 	$data = array(
-		'title'        => get_the_title( $post_id ),
+		'title'        => ! empty( $meta_title ) ? $meta_title : get_the_title( $post_id ),
 		'subtitle'     => get_post_meta( $post_id, 'recipe_subtitle', true ),
+		'image_url'    => ! empty( $meta_image ) ? $meta_image : get_the_post_thumbnail_url( $post_id, 'full' ),
 		'ingredients'  => get_post_meta( $post_id, 'recipe_ingredients', true ),
 		'instructions' => get_post_meta( $post_id, 'recipe_instructions', true ),
 		'prep_time'    => get_post_meta( $post_id, 'recipe_prep_time', true ),
@@ -4151,12 +4157,12 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 	$show_notes        = get_theme_mod( 'cozyrecipes_recipe_card_show_notes', true );
 	$show_nutrition    = get_theme_mod( 'cozyrecipes_recipe_card_show_nutrition', false );
 
-	// Get featured image
-	$featured_image_url = get_the_post_thumbnail_url( $post_id, 'full' );
+	// Get recipe image (already includes fallback to featured image)
+	$recipe_image_url = $recipe['image_url'];
 
 	// Get Pinterest share URL
-	$post_url           = get_permalink( $post_id );
-	$pinterest_url      = 'https://pinterest.com/pin/create/button/?url=' . urlencode( $post_url ) . '&media=' . urlencode( $featured_image_url ) . '&description=' . urlencode( $recipe['title'] );
+	$post_url      = get_permalink( $post_id );
+	$pinterest_url = 'https://pinterest.com/pin/create/button/?url=' . urlencode( $post_url ) . '&media=' . urlencode( $recipe_image_url ) . '&description=' . urlencode( $recipe['title'] );
 
 	// Start output buffering
 	ob_start();
@@ -4179,7 +4185,7 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 					</svg>
 					<span><?php esc_html_e( 'Print', 'cozyrecipes' ); ?></span>
 				</button>
-				<?php if ( $featured_image_url ) : ?>
+				<?php if ( $recipe_image_url ) : ?>
 				<a href="<?php echo esc_url( $pinterest_url ); ?>" class="recipe-pin-btn" target="_blank" rel="noopener" aria-label="<?php esc_attr_e( 'Pin on Pinterest', 'cozyrecipes' ); ?>">
 					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
 						<path d="M12 2C6.477 2 2 6.477 2 12c0 4.237 2.636 7.855 6.356 9.312-.088-.791-.167-2.005.035-2.868.182-.78 1.172-4.97 1.172-4.97s-.299-.6-.299-1.486c0-1.39.806-2.428 1.81-2.428.852 0 1.264.64 1.264 1.408 0 .858-.545 2.14-.828 3.33-.236.995.5 1.807 1.48 1.807 1.778 0 3.144-1.874 3.144-4.58 0-2.393-1.72-4.068-4.177-4.068-2.845 0-4.515 2.135-4.515 4.34 0 .859.331 1.781.745 2.281a.3.3 0 01.069.288l-.278 1.133c-.044.183-.145.223-.335.134-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.965-.525-2.291-1.148l-.623 2.378c-.226.869-.835 1.958-1.244 2.621.937.29 1.931.446 2.962.446 5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
@@ -4190,9 +4196,9 @@ function mytheme_render_recipe_print_card( $post_id = null ) {
 			</div>
 		</div>
 
-		<?php if ( $show_image && $featured_image_url ) : ?>
+		<?php if ( $show_image && $recipe_image_url ) : ?>
 		<div class="recipe-print-card-image">
-			<img src="<?php echo esc_url( $featured_image_url ); ?>" alt="<?php echo esc_attr( $recipe['title'] ); ?>" />
+			<img src="<?php echo esc_url( $recipe_image_url ); ?>" alt="<?php echo esc_attr( $recipe['title'] ); ?>" />
 		</div>
 		<?php endif; ?>
 
@@ -4333,16 +4339,71 @@ function mytheme_enqueue_recipe_assets() {
 		'1.0.0'
 	);
 
-	// Enqueue JavaScript
-	wp_enqueue_script(
+	// Inline smooth scroll script (lightweight, no separate JS file needed)
+	wp_add_inline_script(
 		'mytheme-recipe-print',
-		get_template_directory_uri() . '/js/recipe-print.js',
-		array(),
-		'1.0.0',
-		true
+		"
+		document.addEventListener('DOMContentLoaded', function() {
+			const jumpBtn = document.querySelector('.jump-to-recipe-btn');
+			if (jumpBtn) {
+				jumpBtn.addEventListener('click', function(e) {
+					e.preventDefault();
+					const target = document.getElementById('recipe-card');
+					if (target) {
+						const headerOffset = 100;
+						const elementPosition = target.getBoundingClientRect().top;
+						const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+						window.scrollTo({
+							top: offsetPosition,
+							behavior: 'smooth'
+						});
+					}
+				});
+			}
+		});
+		"
 	);
 }
 add_action( 'wp_enqueue_scripts', 'mytheme_enqueue_recipe_assets' );
+
+/**
+ * Render Jump to Recipe button
+ * Call this function in your template where you want the button to appear
+ *
+ * @param int $post_id Post ID.
+ * @return string HTML output.
+ */
+function mytheme_render_jump_to_recipe_button( $post_id = null ) {
+	if ( ! $post_id ) {
+		$post_id = get_the_ID();
+	}
+
+	if ( ! is_singular( 'post' ) ) {
+		return '';
+	}
+
+	// Check if post has recipe content
+	$content     = apply_filters( 'the_content', get_post_field( 'post_content', $post_id ) );
+	$recipe_data = mytheme_auto_detect_recipe_data( $content );
+
+	// Check for custom meta or auto-detected content
+	$has_ingredients  = ! empty( get_post_meta( $post_id, 'recipe_ingredients', true ) ) || ! empty( $recipe_data['ingredients'] );
+	$has_instructions = ! empty( get_post_meta( $post_id, 'recipe_instructions', true ) ) || ! empty( $recipe_data['instructions'] );
+
+	if ( ! $has_ingredients && ! $has_instructions ) {
+		return '';
+	}
+
+	ob_start();
+	?>
+	<div class="jump-to-recipe-wrapper">
+		<a href="#recipe-card" class="jump-to-recipe-btn">
+			<?php esc_html_e( 'Jump to Recipe', 'cozyrecipes' ); ?>
+		</a>
+	</div>
+	<?php
+	return ob_get_clean();
+}
 
 /* ========================================
    END RECIPE PRINT CARD MODULE
