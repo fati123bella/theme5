@@ -29,6 +29,37 @@ get_header();
 
                 <h1 class="single-recipe-title"><?php the_title(); ?></h1>
 
+                <?php
+                // Jump to Recipe button - Modern centered design (after title)
+                $content = get_post_field( 'post_content', get_the_ID() );
+
+                // Check if post content contains recipe-related content
+                $has_recipe = false;
+                if ( function_exists( 'mytheme_auto_detect_recipe_data' ) ) {
+                    $recipe_data = mytheme_auto_detect_recipe_data( apply_filters( 'the_content', $content ) );
+                    $has_recipe = ! empty( $recipe_data['ingredients'] ) || ! empty( $recipe_data['instructions'] );
+                } else {
+                    // Fallback: check for common recipe indicators
+                    $has_recipe = ( stripos( $content, 'ingredients' ) !== false ||
+                                   stripos( $content, 'instructions' ) !== false ||
+                                   stripos( $content, 'recipe-print-card' ) !== false );
+                }
+
+                if ( $has_recipe && get_theme_mod( 'cozyrecipes_enable_recipe_card', true ) ) :
+                ?>
+                <div class="jump-to-recipe-container-top">
+                    <a href="#recipe-print-card" class="jump-to-recipe-btn-top">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="jump-icon">
+                            <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+                        </svg>
+                        <span class="jump-text"><?php esc_html_e( 'Jump to Recipe', 'cozyrecipes' ); ?></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="jump-icon">
+                            <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+                        </svg>
+                    </a>
+                </div>
+                <?php endif; ?>
+
                 <div class="single-recipe-meta">
                     <span class="meta-date">
                         <?php echo get_the_date(); ?>
