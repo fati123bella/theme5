@@ -2449,11 +2449,14 @@ article {
    JUMP TO RECIPE BUTTON
 ======================================== */
 
-/* Jump to Recipe Button - Modern Centered Design */
+/* Jump to Recipe Button - Elegant Centered Design */
 .jump-to-recipe-container {
-    text-align: center;
-    margin: 2.5rem auto;
-    padding: 0 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+    width: 100%;
     max-width: 100%;
 }
 
@@ -2461,130 +2464,205 @@ article {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 1rem 2.5rem;
-    background: linear-gradient(135deg, #3b8f7d 0%, #2d7766 100%);
+    gap: 0.875rem;
+    padding: 1.125rem 3rem;
+    max-width: 400px;
+    background: linear-gradient(135deg, #48a999 0%, #3b8f7d 50%, #2d7766 100%);
     color: #ffffff;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: 0.3px;
-    border-radius: 60px;
+    letter-spacing: 0.5px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
     text-decoration: none;
     text-transform: uppercase;
-    box-shadow: 0 6px 25px rgba(59, 143, 125, 0.35);
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 4px 15px rgba(59, 143, 125, 0.25),
+        0 8px 25px rgba(59, 143, 125, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    white-space: nowrap;
 }
 
-/* Glossy overlay effect */
+/* Glossy shimmer effect */
 .jump-to-recipe-btn::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: -150%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: left 0.6s ease;
+    z-index: 1;
 }
 
 .jump-to-recipe-btn:hover::before {
-    left: 100%;
+    left: 150%;
+}
+
+/* Subtle inner glow on hover */
+.jump-to-recipe-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+    z-index: 0;
+}
+
+.jump-to-recipe-btn:hover::after {
+    width: 300px;
+    height: 300px;
 }
 
 .jump-to-recipe-btn:hover {
-    background: linear-gradient(135deg, #2d7766 0%, #1f5b4d 100%);
-    box-shadow: 0 8px 35px rgba(59, 143, 125, 0.5);
-    transform: translateY(-3px) scale(1.02);
+    background: linear-gradient(135deg, #3b8f7d 0%, #2d7766 50%, #1f5b4d 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow:
+        0 6px 20px rgba(59, 143, 125, 0.35),
+        0 12px 40px rgba(59, 143, 125, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-4px) scale(1.03);
     color: #ffffff;
 }
 
 .jump-to-recipe-btn:active {
-    transform: translateY(-1px) scale(1);
-    box-shadow: 0 4px 20px rgba(59, 143, 125, 0.4);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow:
+        0 3px 10px rgba(59, 143, 125, 0.3),
+        0 6px 20px rgba(59, 143, 125, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.jump-to-recipe-btn:focus {
+    outline: 3px solid rgba(59, 143, 125, 0.4);
+    outline-offset: 4px;
 }
 
 /* Icon styling */
 .jump-to-recipe-btn .jump-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     flex-shrink: 0;
+    position: relative;
+    z-index: 2;
 }
 
 /* Text styling */
 .jump-to-recipe-btn .jump-text {
     font-weight: 700;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
-/* Animated double chevron icons */
+/* Smooth alternating bounce animations */
 .jump-to-recipe-btn .jump-icon:first-child {
-    animation: bounceLeft 2s ease-in-out infinite;
+    animation: bounceDown 2.5s ease-in-out infinite;
 }
 
 .jump-to-recipe-btn .jump-icon:last-child {
-    animation: bounceRight 2s ease-in-out infinite;
+    animation: bounceDown 2.5s ease-in-out 0.3s infinite;
 }
 
-/* Bounce animations for icons */
-@keyframes bounceLeft {
+/* Simplified bounce animation */
+@keyframes bounceDown {
     0%, 100% {
         transform: translateY(0);
-    }
-    25% {
-        transform: translateY(-4px);
+        opacity: 1;
     }
     50% {
-        transform: translateY(0);
-    }
-    75% {
-        transform: translateY(-2px);
+        transform: translateY(4px);
+        opacity: 0.8;
     }
 }
 
-@keyframes bounceRight {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    25% {
-        transform: translateY(-2px);
-    }
-    50% {
-        transform: translateY(0);
-    }
-    75% {
-        transform: translateY(-4px);
-    }
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+/* Tablet optimization */
+@media (max-width: 992px) {
     .jump-to-recipe-container {
-        margin: 2rem auto;
+        margin: 2.5rem auto;
+        padding: 0 1.25rem;
     }
 
     .jump-to-recipe-btn {
-        padding: 0.875rem 2rem;
+        padding: 1rem 2.5rem;
+        font-size: 1.05rem;
+        gap: 0.75rem;
+        max-width: 380px;
+    }
+
+    .jump-to-recipe-btn .jump-icon {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .jump-to-recipe-container {
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .jump-to-recipe-btn {
+        padding: 0.95rem 2.25rem;
+        font-size: 1rem;
+        gap: 0.7rem;
+        max-width: 340px;
+    }
+
+    .jump-to-recipe-btn .jump-icon {
+        width: 21px;
+        height: 21px;
+    }
+}
+
+/* Small mobile optimization */
+@media (max-width: 480px) {
+    .jump-to-recipe-container {
+        margin: 1.75rem auto;
+        padding: 0 0.75rem;
+    }
+
+    .jump-to-recipe-btn {
+        padding: 0.875rem 1.75rem;
         font-size: 0.95rem;
         gap: 0.6rem;
+        max-width: 100%;
+        letter-spacing: 0.3px;
     }
 
     .jump-to-recipe-btn .jump-icon {
         width: 20px;
         height: 20px;
     }
+
+    .jump-to-recipe-btn .jump-text {
+        font-size: 0.9rem;
+    }
 }
 
-@media (max-width: 480px) {
+/* Extra small devices */
+@media (max-width: 360px) {
     .jump-to-recipe-container {
         margin: 1.5rem auto;
         padding: 0 0.5rem;
     }
 
     .jump-to-recipe-btn {
-        padding: 0.75rem 1.5rem;
+        padding: 0.8rem 1.5rem;
         font-size: 0.9rem;
         gap: 0.5rem;
     }
