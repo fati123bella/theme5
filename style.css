@@ -2449,231 +2449,62 @@ article {
    JUMP TO RECIPE BUTTON
 ======================================== */
 
-/* Jump to Recipe Button - Elegant Centered Design */
+/* Jump to Recipe Button - Simple Centered Design */
 .jump-to-recipe-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 3rem auto;
-    padding: 0 1.5rem;
+    text-align: center;
+    margin: 2.5rem 0;
     width: 100%;
-    max-width: 100%;
+    clear: both;
 }
 
 .jump-to-recipe-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.875rem;
-    padding: 1.125rem 3rem;
-    max-width: 400px;
-    background: linear-gradient(135deg, #48a999 0%, #3b8f7d 50%, #2d7766 100%);
+    display: inline-block;
+    padding: 18px 50px;
+    background: #3b8f7d;
     color: #ffffff;
-    font-size: 1.1rem;
+    font-size: 18px;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50px;
     text-decoration: none;
-    text-transform: uppercase;
-    box-shadow:
-        0 4px 15px rgba(59, 143, 125, 0.25),
-        0 8px 25px rgba(59, 143, 125, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-/* Glossy shimmer effect */
-.jump-to-recipe-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.3),
-        transparent
-    );
-    transition: left 0.6s ease;
-    z-index: 1;
-}
-
-.jump-to-recipe-btn:hover::before {
-    left: 150%;
-}
-
-/* Subtle inner glow on hover */
-.jump-to-recipe-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    transform: translate(-50%, -50%);
-    transition: width 0.5s ease, height 0.5s ease;
-    z-index: 0;
-}
-
-.jump-to-recipe-btn:hover::after {
-    width: 300px;
-    height: 300px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(59, 143, 125, 0.3);
+    transition: all 0.3s ease;
 }
 
 .jump-to-recipe-btn:hover {
-    background: linear-gradient(135deg, #3b8f7d 0%, #2d7766 50%, #1f5b4d 100%);
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow:
-        0 6px 20px rgba(59, 143, 125, 0.35),
-        0 12px 40px rgba(59, 143, 125, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transform: translateY(-4px) scale(1.03);
+    background: #2d7766;
+    box-shadow: 0 6px 18px rgba(59, 143, 125, 0.4);
+    transform: translateY(-2px);
     color: #ffffff;
 }
 
 .jump-to-recipe-btn:active {
-    transform: translateY(-1px) scale(1.01);
-    box-shadow:
-        0 3px 10px rgba(59, 143, 125, 0.3),
-        0 6px 20px rgba(59, 143, 125, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 143, 125, 0.3);
 }
 
-.jump-to-recipe-btn:focus {
-    outline: 3px solid rgba(59, 143, 125, 0.4);
-    outline-offset: 4px;
-}
-
-/* Icon styling */
-.jump-to-recipe-btn .jump-icon {
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 2;
-}
-
-/* Text styling */
-.jump-to-recipe-btn .jump-text {
-    font-weight: 700;
-    position: relative;
-    z-index: 2;
-}
-
-/* Smooth alternating bounce animations */
-.jump-to-recipe-btn .jump-icon:first-child {
-    animation: bounceDown 2.5s ease-in-out infinite;
-}
-
-.jump-to-recipe-btn .jump-icon:last-child {
-    animation: bounceDown 2.5s ease-in-out 0.3s infinite;
-}
-
-/* Simplified bounce animation */
-@keyframes bounceDown {
-    0%, 100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    50% {
-        transform: translateY(4px);
-        opacity: 0.8;
-    }
-}
-
-/* Tablet optimization */
-@media (max-width: 992px) {
+/* Tablet */
+@media (max-width: 768px) {
     .jump-to-recipe-container {
-        margin: 2.5rem auto;
-        padding: 0 1.25rem;
+        margin: 2rem 0;
     }
 
     .jump-to-recipe-btn {
-        padding: 1rem 2.5rem;
-        font-size: 1.05rem;
-        gap: 0.75rem;
-        max-width: 380px;
-    }
-
-    .jump-to-recipe-btn .jump-icon {
-        width: 22px;
-        height: 22px;
+        padding: 16px 40px;
+        font-size: 17px;
     }
 }
 
-/* Mobile optimization */
-@media (max-width: 768px) {
+/* Mobile */
+@media (max-width: 480px) {
     .jump-to-recipe-container {
-        margin: 2rem auto;
+        margin: 1.5rem 0;
         padding: 0 1rem;
     }
 
     .jump-to-recipe-btn {
-        padding: 0.95rem 2.25rem;
-        font-size: 1rem;
-        gap: 0.7rem;
-        max-width: 340px;
-    }
-
-    .jump-to-recipe-btn .jump-icon {
-        width: 21px;
-        height: 21px;
-    }
-}
-
-/* Small mobile optimization */
-@media (max-width: 480px) {
-    .jump-to-recipe-container {
-        margin: 1.75rem auto;
-        padding: 0 0.75rem;
-    }
-
-    .jump-to-recipe-btn {
-        padding: 0.875rem 1.75rem;
-        font-size: 0.95rem;
-        gap: 0.6rem;
-        max-width: 100%;
-        letter-spacing: 0.3px;
-    }
-
-    .jump-to-recipe-btn .jump-icon {
-        width: 20px;
-        height: 20px;
-    }
-
-    .jump-to-recipe-btn .jump-text {
-        font-size: 0.9rem;
-    }
-}
-
-/* Extra small devices */
-@media (max-width: 360px) {
-    .jump-to-recipe-container {
-        margin: 1.5rem auto;
-        padding: 0 0.5rem;
-    }
-
-    .jump-to-recipe-btn {
-        padding: 0.8rem 1.5rem;
-        font-size: 0.9rem;
-        gap: 0.5rem;
-    }
-
-    .jump-to-recipe-btn .jump-icon {
-        width: 18px;
-        height: 18px;
-    }
-
-    .jump-to-recipe-btn .jump-text {
-        font-size: 0.85rem;
+        padding: 15px 35px;
+        font-size: 16px;
     }
 }
 
