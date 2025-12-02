@@ -2449,62 +2449,51 @@ article {
    JUMP TO RECIPE BUTTON
 ======================================== */
 
-/* Jump to Recipe Button - Simple Centered Design */
 .jump-to-recipe-container {
     text-align: center;
-    margin: 2.5rem 0;
-    width: 100%;
-    clear: both;
+    margin: 30px auto;
+    padding: 0 20px;
 }
 
 .jump-to-recipe-btn {
     display: inline-block;
-    padding: 18px 50px;
+    padding: 16px 45px;
     background: #3b8f7d;
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 700;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
     text-decoration: none;
-    text-align: center;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(59, 143, 125, 0.3);
-    transition: all 0.3s ease;
+    border-radius: 6px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    transition: all 0.3s;
 }
 
 .jump-to-recipe-btn:hover {
     background: #2d7766;
-    box-shadow: 0 6px 18px rgba(59, 143, 125, 0.4);
     transform: translateY(-2px);
-    color: #ffffff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    color: #fff;
 }
 
-.jump-to-recipe-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(59, 143, 125, 0.3);
-}
-
-/* Tablet */
 @media (max-width: 768px) {
     .jump-to-recipe-container {
-        margin: 2rem 0;
+        margin: 25px auto;
     }
 
     .jump-to-recipe-btn {
-        padding: 16px 40px;
-        font-size: 17px;
+        padding: 14px 35px;
+        font-size: 15px;
     }
 }
 
-/* Mobile */
 @media (max-width: 480px) {
     .jump-to-recipe-container {
-        margin: 1.5rem 0;
-        padding: 0 1rem;
+        margin: 20px auto;
     }
 
     .jump-to-recipe-btn {
-        padding: 15px 35px;
-        font-size: 16px;
+        padding: 12px 30px;
+        font-size: 14px;
     }
 }
 
