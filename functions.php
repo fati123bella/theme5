@@ -1668,8 +1668,198 @@ function cozyrecipes_customize_register( $wp_customize ) {
         'section'  => 'cozyrecipes_top_bar_menu',
         'settings' => 'cozyrecipes_top_bar_bg_color',
     ) ) );
+
+    // ========================================
+    // IMPORT / EXPORT SETTINGS
+    // ========================================
+
+    $wp_customize->add_section( 'cozyrecipes_import_export', array(
+        'title'       => __( 'Import / Export Settings', 'cozyrecipes' ),
+        'description' => __( 'Export your theme settings to a JSON file or import settings from a previously exported file. This is useful for backing up your configuration or transferring settings between sites.', 'cozyrecipes' ),
+        'priority'    => 999,
+    ) );
+
+    // Export Settings
+    $wp_customize->add_setting( 'cozyrecipes_export_settings', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_export_settings', array(
+        'type'        => 'button',
+        'section'     => 'cozyrecipes_import_export',
+        'label'       => __( 'Export Settings', 'cozyrecipes' ),
+        'description' => __( 'Click the button below to download your current theme settings as a JSON file.', 'cozyrecipes' ),
+        'input_attrs' => array(
+            'value' => __( 'Download Export File', 'cozyrecipes' ),
+            'class' => 'button button-primary cozyrecipes-export-btn',
+        ),
+    ) );
+
+    // Import Settings
+    $wp_customize->add_setting( 'cozyrecipes_import_settings', array(
+        'default'           => '',
+        'sanitize_callback' => 'cozyrecipes_sanitize_import',
+        'transport'         => 'postMessage',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_import_settings', array(
+        'type'        => 'textarea',
+        'section'     => 'cozyrecipes_import_export',
+        'label'       => __( 'Import Settings', 'cozyrecipes' ),
+        'description' => __( 'Paste the exported JSON data here and click "Import Settings" to restore your theme configuration.', 'cozyrecipes' ),
+        'input_attrs' => array(
+            'placeholder' => __( 'Paste exported JSON data here...', 'cozyrecipes' ),
+            'rows'        => 8,
+            'class'       => 'cozyrecipes-import-textarea',
+        ),
+    ) );
+
+    // Import Button (separate setting for the button)
+    $wp_customize->add_setting( 'cozyrecipes_import_button', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ) );
+
+    $wp_customize->add_control( 'cozyrecipes_import_button', array(
+        'type'        => 'button',
+        'section'     => 'cozyrecipes_import_export',
+        'input_attrs' => array(
+            'value' => __( 'Import Settings', 'cozyrecipes' ),
+            'class' => 'button button-secondary cozyrecipes-import-btn',
+        ),
+    ) );
 }
 add_action( 'customize_register', 'cozyrecipes_customize_register' );
+
+/**
+ * Sanitize import data
+ */
+function cozyrecipes_sanitize_import( $input ) {
+    return wp_kses_post( $input );
+}
+
+/**
+ * Get all theme customizer settings for export
+ */
+function cozyrecipes_get_theme_settings() {
+    $settings = array();
+    $mods     = get_theme_mods();
+
+    if ( ! empty( $mods ) ) {
+        foreach ( $mods as $key => $value ) {
+            // Skip settings that shouldn't be exported
+            if ( strpos( $key, 'cozyrecipes_' ) === 0 && $key !== 'cozyrecipes_import_settings' && $key !== 'cozyrecipes_export_settings' ) {
+                $settings[ $key ] = $value;
+            }
+        }
+    }
+
+    return $settings;
+}
+
+/**
+ * AJAX handler for exporting settings
+ */
+function cozyrecipes_ajax_export_settings() {
+    // Security check
+    check_ajax_referer( 'cozyrecipes-customizer-export', 'nonce' );
+
+    if ( ! current_user_can( 'edit_theme_options' ) ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to export settings.', 'cozyrecipes' ) ) );
+    }
+
+    $settings = cozyrecipes_get_theme_settings();
+    $export   = array(
+        'theme'    => get_template(),
+        'version'  => wp_get_theme()->get( 'Version' ),
+        'date'     => current_time( 'Y-m-d H:i:s' ),
+        'settings' => $settings,
+    );
+
+    wp_send_json_success( $export );
+}
+add_action( 'wp_ajax_cozyrecipes_export_settings', 'cozyrecipes_ajax_export_settings' );
+
+/**
+ * AJAX handler for importing settings
+ */
+function cozyrecipes_ajax_import_settings() {
+    // Security check
+    check_ajax_referer( 'cozyrecipes-customizer-import', 'nonce' );
+
+    if ( ! current_user_can( 'edit_theme_options' ) ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to import settings.', 'cozyrecipes' ) ) );
+    }
+
+    $import_data = isset( $_POST['import_data'] ) ? wp_unslash( $_POST['import_data'] ) : '';
+
+    if ( empty( $import_data ) ) {
+        wp_send_json_error( array( 'message' => __( 'No import data provided.', 'cozyrecipes' ) ) );
+    }
+
+    // Decode JSON
+    $data = json_decode( $import_data, true );
+
+    if ( json_last_error() !== JSON_ERROR_NONE ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid JSON data. Please check your import file.', 'cozyrecipes' ) ) );
+    }
+
+    // Validate import data structure
+    if ( ! isset( $data['theme'] ) || ! isset( $data['settings'] ) ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid import file format.', 'cozyrecipes' ) ) );
+    }
+
+    // Import settings
+    $imported = 0;
+    foreach ( $data['settings'] as $key => $value ) {
+        if ( strpos( $key, 'cozyrecipes_' ) === 0 ) {
+            set_theme_mod( $key, $value );
+            $imported++;
+        }
+    }
+
+    wp_send_json_success( array(
+        'message'  => sprintf( __( 'Successfully imported %d settings. Please refresh the page to see changes.', 'cozyrecipes' ), $imported ),
+        'imported' => $imported,
+    ) );
+}
+add_action( 'wp_ajax_cozyrecipes_import_settings', 'cozyrecipes_ajax_import_settings' );
+
+/**
+ * Enqueue customizer import/export scripts
+ */
+function cozyrecipes_customizer_scripts() {
+    wp_enqueue_script(
+        'cozyrecipes-customizer-import-export',
+        get_template_directory_uri() . '/js/customizer-import-export.js',
+        array( 'jquery', 'customize-controls' ),
+        '1.0.0',
+        true
+    );
+
+    wp_localize_script(
+        'cozyrecipes-customizer-import-export',
+        'cozyrecipesCustomizer',
+        array(
+            'exportNonce' => wp_create_nonce( 'cozyrecipes-customizer-export' ),
+            'importNonce' => wp_create_nonce( 'cozyrecipes-customizer-import' ),
+            'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+            'strings'     => array(
+                'exporting'      => __( 'Exporting...', 'cozyrecipes' ),
+                'importing'      => __( 'Importing...', 'cozyrecipes' ),
+                'exportError'    => __( 'Export failed. Please try again.', 'cozyrecipes' ),
+                'importError'    => __( 'Import failed. Please check your data and try again.', 'cozyrecipes' ),
+                'importEmpty'    => __( 'Please paste the import data before clicking Import.', 'cozyrecipes' ),
+                'importSuccess'  => __( 'Settings imported successfully! Refreshing...', 'cozyrecipes' ),
+                'confirmImport'  => __( 'This will overwrite your current settings. Are you sure you want to continue?', 'cozyrecipes' ),
+            ),
+        )
+    );
+}
+add_action( 'customize_controls_enqueue_scripts', 'cozyrecipes_customizer_scripts' );
 
 /**
  * Sanitize checkbox
