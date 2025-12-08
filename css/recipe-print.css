@@ -121,12 +121,13 @@
   flex-shrink: 0;
 }
 
-.recipe-print-card-actions button,
-.recipe-print-card-actions a {
+.recipe-pin-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
+  background: var(--recipe-card-pin-bg);
+  color: var(--recipe-card-pin-text);
   border: none;
   border-radius: 6px;
   font-size: 0.95rem;
@@ -137,29 +138,12 @@
   white-space: nowrap;
 }
 
-.recipe-print-btn {
-  background: var(--recipe-card-button-bg);
-  color: var(--recipe-card-button-text);
-}
-
-.recipe-print-btn:hover {
-  background: #2d6f5f;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 143, 125, 0.3);
-}
-
-.recipe-pin-btn {
-  background: var(--recipe-card-pin-bg);
-  color: var(--recipe-card-pin-text);
-}
-
 .recipe-pin-btn:hover {
   background: #9a0616;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(189, 8, 28, 0.3);
 }
 
-.recipe-print-btn svg,
 .recipe-pin-btn svg {
   width: 18px;
   height: 18px;
@@ -514,110 +498,5 @@
     width: 1.6rem;
     height: 1.6rem;
     font-size: 0.75rem;
-  }
-}
-
-/* Print Styles */
-@media print {
-  /* Hide everything except the recipe card */
-  body * {
-    visibility: hidden;
-  }
-
-  .recipe-print-card,
-  .recipe-print-card * {
-    visibility: visible;
-  }
-
-  .recipe-print-card {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    border: none;
-    box-shadow: none;
-    border-radius: 0;
-  }
-
-  /* Hide action buttons and image in print */
-  .recipe-print-card-actions,
-  .recipe-print-card-image {
-    display: none !important;
-  }
-
-  .recipe-print-card-header {
-    padding: 1.5rem 2rem;
-    page-break-after: avoid;
-  }
-
-  .recipe-print-card-title {
-    font-size: 1.75rem;
-  }
-
-  .recipe-print-card-meta {
-    padding: 1.25rem 2rem;
-    page-break-inside: avoid;
-  }
-
-  .recipe-print-card-content {
-    padding: 1.5rem 2rem;
-  }
-
-  .recipe-section {
-    page-break-inside: avoid;
-  }
-
-  .recipe-section-title {
-    page-break-after: avoid;
-  }
-
-  .recipe-instructions-list li,
-  .recipe-ingredients-list li {
-    page-break-inside: avoid;
-  }
-
-  /* Ensure black text on white background for printing */
-  .recipe-print-card {
-    background: white !important;
-    color: black !important;
-  }
-
-  .recipe-section-title,
-  .recipe-meta-value,
-  .recipe-notes-title {
-    color: black !important;
-  }
-
-  .recipe-ingredients-list li,
-  .recipe-instructions-list li,
-  .recipe-meta-label,
-  .recipe-notes-content {
-    color: #333 !important;
-  }
-
-  /* Simplify borders for print */
-  .recipe-print-card-header,
-  .recipe-print-card-meta,
-  .recipe-ingredients-list li,
-  .recipe-instructions-list li {
-    border-color: #ddd !important;
-  }
-
-  .recipe-section-title {
-    border-bottom-color: #333 !important;
-  }
-
-  /* Simplify backgrounds for print */
-  .recipe-print-card-meta,
-  .recipe-notes {
-    background: #f9f9f9 !important;
-  }
-
-  /* Optimize instruction numbers for print */
-  .recipe-instructions-list li:before {
-    background: #333 !important;
-    color: white !important;
   }
 }
