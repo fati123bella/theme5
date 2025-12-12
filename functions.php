@@ -4447,6 +4447,21 @@ function mytheme_enqueue_recipe_assets() {
 add_action( 'wp_enqueue_scripts', 'mytheme_enqueue_recipe_assets' );
 
 /**
+ * Enqueue Pinterest Pin It button functionality
+ */
+function cozyrecipes_enqueue_pinterest_pin_it() {
+	// Enqueue JavaScript
+	wp_enqueue_script(
+		'cozyrecipes-pinterest-pin-it',
+		get_template_directory_uri() . '/js/pinterest-pin-it.js',
+		array(),
+		filemtime( get_template_directory() . '/js/pinterest-pin-it.js' ),
+		true
+	);
+}
+add_action( 'wp_enqueue_scripts', 'cozyrecipes_enqueue_pinterest_pin_it' );
+
+/**
  * Render Jump to Recipe button
  * Call this function in your template where you want the button to appear
  *

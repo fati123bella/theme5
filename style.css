@@ -3028,3 +3028,84 @@ article {
         page-break-after: avoid;
     }
 }
+
+/* ==========================================================================
+   Pinterest Pin It Button
+   ========================================================================== */
+
+/* Wrapper for images with Pin it button */
+.pin-it-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+/* Pin it button */
+.pin-it-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #e60023;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    opacity: 0;
+    z-index: 10;
+    cursor: pointer;
+}
+
+/* Show button on hover */
+.pin-it-wrapper:hover .pin-it-button {
+    opacity: 1;
+}
+
+/* Button hover effect */
+.pin-it-button:hover {
+    background: #ad081b;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Button SVG icon */
+.pin-it-button svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* Button text */
+.pin-it-button span {
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .pin-it-button {
+        top: 8px;
+        right: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        opacity: 1; /* Always visible on mobile */
+    }
+
+    .pin-it-button svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* For touch devices, always show the button */
+@media (hover: none) {
+    .pin-it-button {
+        opacity: 1;
+    }
+}
