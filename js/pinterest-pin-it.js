@@ -6,54 +6,101 @@
 (function() {
     'use strict';
 
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPinItButtons);
-    } else {
+    // Wait for DOM and images to be ready
+    window.addEventListener('load', function() {
         initPinItButtons();
-    }
+    });
 
     function initPinItButtons() {
-        // Find all content images (exclude icons, logos, small images)
-        const images = document.querySelectorAll('.entry-content img, .post-thumbnail img, article img');
+        // Find all content images with broader selectors
+        const images = document.querySelectorAll(
+            '.single-recipe-content img, ' +
+            '.single-recipe-image img, ' +
+            'article img, ' +
+            '.entry-content img, ' +
+            '.post-thumbnail img, ' +
+            '.wp-post-image, ' +
+            'main img'
+        );
 
-        images.forEach(function(img) {
-            // Skip if image is too small (likely an icon or decoration)
-            if (img.width < 200 || img.height < 200) {
-                return;
+        console.log('Pinterest Pin It: Found ' + images.length + ' images');
+
+        images.forEach(function(img, index) {
+            // Wait for image to load before processing
+            if (!img.complete) {
+                img.addEventListener('load', function() {
+                    processImage(img, index);
+                });
+            } else {
+                processImage(img, index);
             }
-
-            // Skip if already has Pin it button
-            if (img.parentElement.classList.contains('pin-it-wrapper')) {
-                return;
-            }
-
-            // Create wrapper
-            const wrapper = document.createElement('div');
-            wrapper.className = 'pin-it-wrapper';
-
-            // Wrap the image
-            img.parentNode.insertBefore(wrapper, img);
-            wrapper.appendChild(img);
-
-            // Create Pin it button
-            const pinButton = document.createElement('a');
-            pinButton.className = 'pin-it-button';
-            pinButton.href = '#';
-            pinButton.setAttribute('aria-label', 'Pin this image');
-            pinButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM13 7H11V11H7V13H11V17H13V13H17V11H13V7Z" fill="currentColor"/></svg><span>Pin</span>';
-
-            // Add click handler
-            pinButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                pinImage(img);
-            });
-
-            wrapper.appendChild(pinButton);
         });
     }
 
+    function processImage(img, index) {
+        console.log('Processing image ' + index + ':', img.src, 'Size:', img.width + 'x' + img.height);
+
+        // Skip if already has Pin it button
+        if (img.parentElement && img.parentElement.classList.contains('pin-it-wrapper')) {
+            console.log('Image ' + index + ' already has Pin it button');
+            return;
+        }
+
+        // Skip very small images (icons, avatars, etc.)
+        if (img.width < 150 || img.height < 150) {
+            console.log('Image ' + index + ' too small, skipping');
+            return;
+        }
+
+        // Skip if parent is already a link (to avoid nested links issue)
+        if (img.parentElement && img.parentElement.tagName === 'A') {
+            console.log('Image ' + index + ' is inside a link, wrapping the link');
+            wrapElement(img.parentElement);
+        } else {
+            wrapElement(img);
+        }
+
+        console.log('Added Pin it button to image ' + index);
+    }
+
+    function wrapElement(element) {
+        // Create wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'pin-it-wrapper';
+
+        // Wrap the element (image or link)
+        element.parentNode.insertBefore(wrapper, element);
+        wrapper.appendChild(element);
+
+        // Create Pin it button
+        const pinButton = document.createElement('button');
+        pinButton.className = 'pin-it-button';
+        pinButton.type = 'button';
+        pinButton.setAttribute('aria-label', 'Pin this image to Pinterest');
+
+        // Pinterest logo SVG
+        pinButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+            '<path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>' +
+            '</svg><span>Pin</span>';
+
+        // Add click handler
+        pinButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Find the actual image (might be inside a link)
+            const img = wrapper.querySelector('img');
+            if (img) {
+                pinImage(img);
+            }
+        });
+
+        wrapper.appendChild(pinButton);
+    }
+
     function pinImage(img) {
+        console.log('Pinning image:', img.src);
+
         // Get image details
         const imageUrl = img.src;
         const pageUrl = window.location.href;
@@ -67,27 +114,13 @@
             '&media=' + encodeURIComponent(imageUrl) +
             '&description=' + encodeURIComponent(description);
 
+        console.log('Opening Pinterest URL:', pinterestUrl);
+
         // Open Pinterest sharing window
         window.open(
             pinterestUrl,
             'pinterest-share',
             'width=750,height=550,menubar=no,toolbar=no,resizable=yes,scrollbars=yes'
         );
-    }
-
-    // Re-initialize on dynamic content load (for AJAX-loaded content)
-    if (typeof MutationObserver !== 'undefined') {
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length) {
-                    initPinItButtons();
-                }
-            });
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
     }
 })();
