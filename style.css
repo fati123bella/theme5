@@ -3033,6 +3033,14 @@ article {
    Pinterest Pin It Button Badge
    ========================================================================== */
 
+/* CSS Custom Properties for easy color customization */
+:root {
+    --pin-it-bg: #e60023;           /* Pinterest red */
+    --pin-it-bg-hover: #c8001a;     /* Darker red on hover */
+    --pin-it-text: #ffffff;         /* White text */
+    --pin-it-shadow: rgba(0, 0, 0, 0.3);
+}
+
 /* Wrapper for images with Pin it button */
 .pin-it-wrapper {
     position: relative;
@@ -3040,14 +3048,14 @@ article {
     width: 100%;
 }
 
-/* Pin it button badge - Top Right */
+/* Pin it button badge - Always visible at top right */
 .pin-it-button {
     position: absolute;
     top: 10px;
     right: 10px;
     padding: 8px 16px;
-    background: #e60023;
-    color: #ffffff;
+    background: var(--pin-it-bg);
+    color: var(--pin-it-text);
     font-size: 14px;
     font-weight: 700;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -3055,48 +3063,34 @@ article {
     letter-spacing: 0.5px;
     border: none;
     border-radius: 4px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 3px 10px var(--pin-it-shadow);
     transition: all 0.3s ease;
-    opacity: 0;
+    opacity: 1;  /* Always visible */
     z-index: 100;
     cursor: pointer;
     line-height: 1;
     white-space: nowrap;
 }
 
-/* Show button on image hover */
-.pin-it-wrapper:hover .pin-it-button {
-    opacity: 1;
-    transform: translateY(0);
-}
-
 /* Button hover effect */
 .pin-it-button:hover {
-    background: #c8001a;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
-    transform: translateY(-2px) !important;
+    background: var(--pin-it-bg-hover);
+    box-shadow: 0 5px 15px var(--pin-it-shadow);
+    transform: translateY(-2px);
 }
 
 /* Button active state */
 .pin-it-button:active {
-    transform: translateY(0) !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+    box-shadow: 0 2px 5px var(--pin-it-shadow);
 }
 
-/* Mobile: Always visible */
+/* Mobile adjustments */
 @media (max-width: 768px) {
     .pin-it-button {
         top: 8px;
         right: 8px;
         padding: 6px 12px;
         font-size: 12px;
-        opacity: 1;
-    }
-}
-
-/* Touch devices: Always show */
-@media (hover: none) and (pointer: coarse) {
-    .pin-it-button {
-        opacity: 1;
     }
 }
